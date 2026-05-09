@@ -607,7 +607,7 @@ export default function BattleArena({ user, onLogout }) {
                 autoPlay
                 playsInline
                 muted
-                className={`w-full h-full object-cover ${myResult ? 'hidden' : 'block'}`}
+                className={`w-full h-full object-cover scale-x-[-1] ${myResult ? 'hidden' : 'block'}`}
               />
             )}
             {liveScore && !myResult && !uploadedImage && (
