@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, User, Lock, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
+import LightPillar from './LightPillar';
 
 const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : `http://${window.location.hostname}:3001/api`;
 
@@ -51,10 +52,24 @@ export default function AuthForm({ onAuth }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyber-neon/10 via-black to-black pointer-events-none" />
+      <div className="absolute inset-0 bg-black z-0">
+        <LightPillar
+          topColor="#00ff9d"
+          bottomColor="#ff0055"
+          intensity={1.0}
+          rotationSpeed={0.3}
+          glowAmount={0.005}
+          pillarWidth={3.0}
+          pillarHeight={0.4}
+          noiseIntensity={0.5}
+          pillarRotation={0}
+          interactive={false}
+          mixBlendMode="screen"
+        />
+      </div>
 
       {/* Animated grid lines */}
-      <div className="absolute inset-0 pointer-events-none opacity-10"
+      <div className="absolute inset-0 pointer-events-none opacity-20 z-0"
         style={{
           backgroundImage: 'linear-gradient(rgba(0,255,157,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,157,0.3) 1px, transparent 1px)',
           backgroundSize: '60px 60px',

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff } from 'lucide-react';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
+import LightPillar from './LightPillar';
 
 // Connect to the signaling server dynamically so it works on local network devices, or via env
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
@@ -475,7 +476,29 @@ export default function BattleArena({ user, onLogout }) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
         {/* Background Cyber Effect */}
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyber-neon/10 via-black to-black z-0"></div>
+        <div className="absolute inset-0 bg-black z-0">
+          <LightPillar
+            topColor="#00ff9d"
+            bottomColor="#ff0055"
+            intensity={1.0}
+            rotationSpeed={0.3}
+            glowAmount={0.005}
+            pillarWidth={3.0}
+            pillarHeight={0.4}
+            noiseIntensity={0.5}
+            pillarRotation={0}
+            interactive={false}
+            mixBlendMode="screen"
+          />
+        </div>
+
+        {/* Animated grid lines overlay */}
+        <div className="absolute inset-0 pointer-events-none opacity-20 z-0"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(0,255,157,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,157,0.3) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
 
         {/* User Info / Logout Top Bar */}
         {user && (
