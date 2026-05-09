@@ -53,6 +53,25 @@ const distanceToLine = (point, linePoint1, linePoint2) => {
   return num / den;
 };
 
+export const getLiveFaces = async (mediaElement) => {
+  if (!model) await initModel();
+  if (model && mediaElement) {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = mediaElement.videoWidth || mediaElement.naturalWidth || 640;
+      canvas.height = mediaElement.videoHeight || mediaElement.naturalHeight || 480;
+      if (canvas.width === 0 || canvas.height === 0) return null;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(mediaElement, 0, 0, canvas.width, canvas.height);
+      return await model.estimateFaces(canvas);
+    } catch (e) {
+      // Ignore rapid live errors
+      return null;
+    }
+  }
+  return null;
+};
+
 export const analyzeAppearance = async (mediaElement) => {
   if (!model) await initModel();
 

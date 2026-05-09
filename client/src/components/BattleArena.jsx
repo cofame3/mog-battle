@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload } from 'lucide-react';
-import { analyzeAppearance, initModel } from '../utils/aiMock';
+import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 
 // Connect to the signaling server dynamically so it works on local network devices, or via env
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
@@ -60,6 +60,7 @@ export default function BattleArena({ user, onLogout }) {
   const streamRef = useRef(null); // always up-to-date ref for stream
   const fileInputRef = useRef(null);
   const imageRef = useRef(null);
+  const liveCanvasRef = useRef(null);
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -304,7 +305,7 @@ export default function BattleArena({ user, onLogout }) {
     setIsReady(false);
     if (gameMode !== 'solo') setOpponentReady(false);
 
-    let time = 6;
+    let time = 15;
     setCountdown(time);
 
     const interval = setInterval(() => {
@@ -316,6 +317,62 @@ export default function BattleArena({ user, onLogout }) {
       }
     }, 1000);
   };
+
+  useEffect(() => {
+    let animationFrameId;
+    let isActive = true;
+
+    const drawLiveMesh = async () => {
+      if (battleState !== 'battling' || !videoRef.current || !liveCanvasRef.current) return;
+      
+      const video = videoRef.current;
+      const canvas = liveCanvasRef.current;
+      
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        if (isActive) animationFrameId = requestAnimationFrame(drawLiveMesh);
+        return;
+      }
+
+      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+
+      const faces = await getLiveFaces(video);
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (faces && faces.length > 0) {
+        const keypoints = faces[0].keypoints;
+        ctx.fillStyle = '#00ff9d'; // cyber-neon
+        for (let i = 0; i < keypoints.length; i++) {
+          const x = keypoints[i].x;
+          const y = keypoints[i].y;
+          ctx.beginPath();
+          ctx.arc(x, y, 1.5, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      }
+
+      if (isActive) {
+        animationFrameId = requestAnimationFrame(drawLiveMesh);
+      }
+    };
+
+    if (battleState === 'battling') {
+      drawLiveMesh();
+    }
+
+    return () => {
+      isActive = false;
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (liveCanvasRef.current) {
+         const canvas = liveCanvasRef.current;
+         const ctx = canvas.getContext('2d');
+         ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    };
+  }, [battleState]);
 
   const takePhotoSnapshotAndAnalyze = async () => {
     const image = imageRef.current;
@@ -608,6 +665,12 @@ export default function BattleArena({ user, onLogout }) {
                 playsInline
                 muted
                 className={`w-full h-full object-cover scale-x-[-1] ${myResult ? 'hidden' : 'block'}`}
+              />
+            )}
+            {!myResult && !uploadedImage && (
+              <canvas
+                ref={liveCanvasRef}
+                className="absolute inset-0 w-full h-full object-cover scale-x-[-1] z-20 pointer-events-none opacity-60"
               />
             )}
             {liveScore && !myResult && !uploadedImage && (
