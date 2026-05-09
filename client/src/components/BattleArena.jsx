@@ -1,0 +1,656 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { io } from 'socket.io-client';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut } from 'lucide-react';
+import { analyzeAppearance, initModel } from '../utils/aiMock';
+
+// Connect to the signaling server dynamically so it works on local network devices, or via env
+const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const socket = io(SOCKET_URL, { autoConnect: false });
+
+export default function BattleArena({ user, onLogout }) {
+  const [appState, setAppState] = useState('lobby'); // lobby, arena
+  const [lobbyMode, setLobbyMode] = useState('initial'); // initial, friend_join, searching
+  const [gameMode, setGameMode] = useState(null); // solo, random, friend
+  const [roomCodeInput, setRoomCodeInput] = useState('');
+  const [roomCode, setRoomCode] = useState(null);
+
+  const [stream, setStream] = useState(null);
+  const [opponentStream, setOpponentStream] = useState(null);
+  const [isReady, setIsReady] = useState(false);
+  const [opponentReady, setOpponentReady] = useState(false);
+  const [opponentName, setOpponentName] = useState('SUBJECT_02');
+  const [countdown, setCountdown] = useState(null);
+  const [battleState, setBattleState] = useState('idle'); // idle, readying, battling, result
+
+  const [myResult, setMyResult] = useState(null);
+  const [opponentResult, setOpponentResult] = useState(null);
+  const [playersCount, setPlayersCount] = useState(0);
+  const [liveScore, setLiveScore] = useState(null);
+
+  useEffect(() => {
+    if (!stream || battleState === 'result') {
+      setLiveScore(null);
+      return;
+    }
+
+    // Pick a random target that mimics the final result range
+    const target = Math.random() * 55 + 40; // 40–95
+    let current = target + (Math.random() * 20 - 10); // start offset
+    if (current > 99.9) current = 99.9;
+    if (current < 10.0) current = 10.0;
+
+    const interval = setInterval(() => {
+      // Drift toward target with small noise
+      const drift = (target - current) * 0.15;
+      const noise = (Math.random() * 4 - 2);
+      current += drift + noise;
+      if (current > 99.9) current = 99.9;
+      if (current < 10.0) current = 10.0;
+      setLiveScore(current.toFixed(1));
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [stream, battleState]);
+
+  const videoRef = useRef(null);
+  const opponentVideoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const peerRef = useRef(null);
+  const streamRef = useRef(null); // always up-to-date ref for stream
+
+  useEffect(() => {
+    // Preload TFJS model
+    initModel();
+
+    // Socket Events
+    socket.on('room_update', (count) => setPlayersCount(count));
+    socket.on('opponent_ready', (payload) => {
+      if (typeof payload === 'object') {
+        setOpponentReady(payload.isReady);
+        if (payload.username) setOpponentName(payload.username);
+      } else {
+        setOpponentReady(payload);
+      }
+    });
+    socket.on('start_battle', startBattleSequence);
+    socket.on('opponent_snapshot', (data) => {
+      setOpponentResult(data);
+    });
+
+    // Matchmaking Event
+    socket.on('match_found', (code) => {
+      setRoomCode(code);
+      socket.emit('join_room', code);
+      setAppState('arena');
+    });
+
+    // WebRTC Signaling
+    socket.on('user_joined', (newUserId) => {
+      peerRef.current = createPeer(newUserId, socket.id, streamRef.current);
+    });
+
+    socket.on('user_joined_signal', (payload) => {
+      if (payload.signal.type === 'candidate') {
+        peerRef.current?.addIceCandidate(new RTCIceCandidate(payload.signal.candidate));
+      } else {
+        peerRef.current = addPeer(payload.signal, payload.callerID, streamRef.current);
+      }
+    });
+
+    socket.on('receiving_returned_signal', async (payload) => {
+      if (payload.signal.type === 'candidate') {
+        peerRef.current?.addIceCandidate(new RTCIceCandidate(payload.signal.candidate));
+      } else if (peerRef.current) {
+        await peerRef.current.setRemoteDescription(new RTCSessionDescription(payload.signal));
+      }
+    });
+
+    return () => {
+      socket.off('room_update');
+      socket.off('opponent_ready');
+      socket.off('start_battle');
+      socket.off('opponent_snapshot');
+      socket.off('match_found');
+      socket.off('user_joined');
+      socket.off('user_joined_signal');
+      socket.off('receiving_returned_signal');
+    };
+  }, [stream]);
+
+  // Keep streamRef in sync
+  useEffect(() => {
+    streamRef.current = stream;
+  }, [stream]);
+
+  useEffect(() => {
+    if (appState === 'arena' && videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream, appState]);
+
+  useEffect(() => {
+    if (appState === 'arena' && opponentVideoRef.current && opponentStream) {
+      opponentVideoRef.current.srcObject = opponentStream;
+    }
+  }, [opponentStream, appState]);
+
+  const createPeer = (userToSignal, callerID, localStream) => {
+    const peer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    if (localStream) localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+    peer.ontrack = e => {
+      const remoteStream = e.streams[0];
+      setOpponentStream(remoteStream);
+      if (opponentVideoRef.current) {
+        opponentVideoRef.current.srcObject = remoteStream;
+      }
+    };
+    peer.onicecandidate = e => {
+      if (e.candidate) socket.emit('sending_signal', { userToSignal, callerID, signal: { type: 'candidate', candidate: e.candidate } });
+    };
+    peer.createOffer().then(offer => {
+      peer.setLocalDescription(offer);
+      socket.emit('sending_signal', { userToSignal, callerID, signal: offer });
+    });
+    return peer;
+  };
+
+  const addPeer = (incomingSignal, callerID, localStream) => {
+    const peer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    if (localStream) localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+    peer.ontrack = e => {
+      const remoteStream = e.streams[0];
+      setOpponentStream(remoteStream);
+      if (opponentVideoRef.current) {
+        opponentVideoRef.current.srcObject = remoteStream;
+      }
+    };
+    peer.onicecandidate = e => {
+      if (e.candidate) socket.emit('returning_signal', { callerID, signal: { type: 'candidate', candidate: e.candidate } });
+    };
+    peer.setRemoteDescription(new RTCSessionDescription(incomingSignal)).then(() => {
+      peer.createAnswer().then(answer => {
+        peer.setLocalDescription(answer);
+        socket.emit('returning_signal', { callerID, signal: answer });
+      });
+    });
+    return peer;
+  };
+
+  const initCamera = async () => {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        setStream(s);
+        return true;
+      } catch (err) {
+        console.error("Webcam error:", err);
+        alert("Ошибка: Камера недоступна. Пожалуйста, разрешите доступ к камере.");
+        return false;
+      }
+    } else {
+      alert("Ошибка: Камера недоступна. Пожалуйста, убедитесь, что вы открыли сайт по HTTPS.");
+      return false;
+    }
+  };
+
+  const joinSolo = async () => {
+    const hasCam = await initCamera();
+    if (!hasCam) return;
+    setGameMode('solo');
+    setRoomCode('SOLO-AI');
+    setPlayersCount(2); // Bypass requirement
+    setOpponentReady(true);
+    setAppState('arena');
+  };
+
+  const joinRandom = async () => {
+    const hasCam = await initCamera();
+    if (!hasCam) return;
+    setGameMode('random');
+    setLobbyMode('searching');
+    socket.connect();
+    socket.emit('join_random');
+  };
+
+  const generateRoomCode = () => {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  };
+
+  const createPrivateRoom = async () => {
+    const newCode = generateRoomCode();
+    setRoomCodeInput(newCode);
+    joinPrivateRoom(newCode);
+  };
+
+  const joinPrivateRoom = async (codeToJoin) => {
+    if (!codeToJoin.trim()) return;
+    const hasCam = await initCamera();
+    if (!hasCam) return;
+    setGameMode('friend');
+    socket.connect();
+    socket.emit('join_room', codeToJoin.trim());
+    setRoomCode(codeToJoin.trim());
+    setAppState('arena');
+  };
+
+  const returnHome = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    setOpponentStream(null);
+    if (peerRef.current) {
+      peerRef.current.close();
+      peerRef.current = null;
+    }
+    socket.emit('leave_room');
+    socket.disconnect();
+
+    setAppState('lobby');
+    setLobbyMode('initial');
+    setGameMode(null);
+    setRoomCode(null);
+    setBattleState('idle');
+    setIsReady(false);
+    setOpponentReady(false);
+    setOpponentName('SUBJECT_02');
+    setMyResult(null);
+    setOpponentResult(null);
+    setPlayersCount(0);
+  };
+
+  useEffect(() => {
+    if (gameMode === 'solo') {
+      if (battleState === 'idle') {
+        startBattleSequence();
+      }
+    } else if (gameMode !== null) {
+      if (battleState === 'idle' && opponentStream) {
+        setIsReady(true);
+        socket.emit('set_ready', { isReady: true, roomCode, username: user ? user.username : 'GUEST' });
+      }
+    }
+  }, [battleState, opponentStream, gameMode, roomCode]);
+
+  const startBattleSequence = () => {
+    setBattleState('battling');
+    setIsReady(false);
+    if (gameMode !== 'solo') setOpponentReady(false);
+
+    let time = 6;
+    setCountdown(time);
+
+    const interval = setInterval(() => {
+      time -= 1;
+      setCountdown(time);
+      if (time === 0) {
+        clearInterval(interval);
+        takeSnapshotAndAnalyze();
+      }
+    }, 1000);
+  };
+
+  const takeSnapshotAndAnalyze = async () => {
+    setCountdown(null);
+    setBattleState('analyzing');
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    // Pass the actual video element for Face Detection
+    const analysis = await analyzeAppearance(video);
+
+    // Fallback to taking a snapshot for the result screen / sending to opponent
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const imageSrc = canvas.toDataURL('image/jpeg', 0.8);
+
+    const myData = { image: imageSrc, analysis };
+    setMyResult(myData);
+
+    if (gameMode !== 'solo') {
+      socket.emit('submit_snapshot', myData);
+      // Статистика обновится в resetBattle/результате
+    }
+
+    setBattleState('result');
+  };
+
+  // Отправить статистику на сервер
+  const postStats = async (win, score) => {
+    const token = localStorage.getItem('mog_token');
+    if (!token) return;
+    try {
+      await fetch(`${SOCKET_URL}/api/stats`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ win, score }),
+      });
+    } catch {}
+  };
+
+  const resetBattle = () => {
+    setMyResult(null);
+    setOpponentResult(null);
+    setBattleState('idle');
+    if (gameMode === 'solo') setOpponentReady(true);
+  };
+
+  if (appState === 'lobby') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background Cyber Effect */}
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyber-neon/10 via-black to-black z-0"></div>
+
+        {/* User Info / Logout Top Bar */}
+        {user && (
+          <div className="absolute top-6 right-6 z-20 flex items-center gap-4 bg-black/60 border border-cyber-border px-4 py-2 rounded-lg backdrop-blur-md shadow-[0_0_15px_rgba(0,255,157,0.1)]">
+            <User size={16} className="text-gray-400" />
+            <span className="text-sm font-bold text-cyber-neon tracking-widest">{user.username}</span>
+            {onLogout && (
+              <button 
+                onClick={onLogout} 
+                className="ml-2 text-gray-500 hover:text-red-400 transition-colors border-l border-gray-700 pl-4" 
+                title="Выйти из аккаунта"
+              >
+                <LogOut size={18} />
+              </button>
+            )}
+          </div>
+        )}
+
+        <div className="relative z-10 w-full max-w-md bg-cyber-panel border border-cyber-border rounded-xl p-8 shadow-[0_0_30px_rgba(0,255,157,0.1)]">
+          <div className="text-center mb-8">
+            <Zap className="w-16 h-16 text-cyber-neon mx-auto mb-4 animate-pulse" />
+            <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
+              MOG-BATTLE
+            </h1>
+            <p className="text-gray-400 mt-2 text-sm tracking-widest">AESTHETIC EVALUATION PROTOCOL</p>
+          </div>
+
+          {lobbyMode === 'initial' && (
+            <div className="space-y-4">
+              <button
+                onClick={joinSolo}
+                className="w-full flex items-center justify-center gap-2 bg-transparent border border-white text-white font-black uppercase tracking-widest py-4 rounded hover:bg-white hover:text-black transition-all"
+              >
+                <User size={20} />
+                SOLO (TEST MOG SCORE)
+              </button>
+              <button
+                onClick={joinRandom}
+                className="w-full flex items-center justify-center gap-2 bg-cyber-accent text-black font-black uppercase tracking-widest py-4 rounded hover:shadow-[0_0_20px_rgba(255,0,85,0.6)] hover:bg-white transition-all"
+              >
+                <Shuffle size={20} />
+                1 VS 1 (RANDOM)
+              </button>
+              <button
+                onClick={() => setLobbyMode('friend_join')}
+                className="w-full flex items-center justify-center gap-2 bg-cyber-neon text-black font-black uppercase tracking-widest py-4 rounded hover:shadow-[0_0_20px_rgba(0,255,157,0.6)] hover:bg-white transition-all"
+              >
+                <Users size={20} />
+                PLAY WITH FRIEND
+              </button>
+            </div>
+          )}
+
+          {lobbyMode === 'searching' && (
+            <div className="flex flex-col items-center justify-center py-8 space-y-6">
+              <Cpu className="w-16 h-16 text-cyber-accent animate-spin-slow" />
+              <div className="text-xl font-bold tracking-widest text-cyber-accent animate-pulse">
+                SEARCHING OPPONENT...
+              </div>
+              <button
+                onClick={returnHome}
+                className="border border-gray-600 text-gray-400 font-bold tracking-widest px-6 py-2 rounded hover:bg-gray-800 transition-colors"
+              >
+                CANCEL
+              </button>
+            </div>
+          )}
+
+          {lobbyMode === 'friend_join' && (
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <button
+                  onClick={createPrivateRoom}
+                  className="flex-1 bg-cyber-border text-white font-bold uppercase tracking-widest py-3 rounded hover:bg-gray-700 transition-colors text-sm"
+                >
+                  CREATE NEW
+                </button>
+              </div>
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t border-gray-700"></div>
+                <span className="flex-shrink-0 mx-4 text-gray-500 text-xs tracking-widest font-bold">OR JOIN EXISTING</span>
+                <div className="flex-grow border-t border-gray-700"></div>
+              </div>
+              <div>
+                <input
+                  type="text"
+                  value={roomCodeInput}
+                  onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
+                  placeholder="ENTER CODE"
+                  className="w-full bg-black border-2 border-cyber-border rounded px-4 py-3 text-white font-mono text-center tracking-[0.2em] focus:border-cyber-neon focus:outline-none transition-colors"
+                  maxLength={10}
+                  onKeyDown={(e) => e.key === 'Enter' && joinPrivateRoom(roomCodeInput)}
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setLobbyMode('initial')}
+                  className="flex-1 border border-gray-600 text-gray-400 font-bold tracking-widest py-4 rounded hover:bg-gray-800 transition-colors"
+                >
+                  BACK
+                </button>
+                <button
+                  onClick={() => joinPrivateRoom(roomCodeInput)}
+                  disabled={!roomCodeInput.trim()}
+                  className="flex-[2] bg-cyber-neon text-black font-black uppercase tracking-widest py-4 rounded hover:shadow-[0_0_20px_rgba(0,255,157,0.6)] hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  JOIN
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-7xl mx-auto px-4 py-8">
+      {/* Header Info */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-cyber-panel border border-cyber-border p-4 rounded-lg shadow-[0_0_15px_rgba(0,255,157,0.1)] gap-4">
+        <div className="flex items-center gap-4">
+          <Zap className="text-cyber-neon w-8 h-8" />
+          <div className="flex flex-col">
+            <span className="text-xl font-bold tracking-widest text-cyber-neon">MOG-PROTOCOL</span>
+            <span className="text-xs text-gray-400 mt-1">ROOM: <span className="text-white font-mono bg-black px-2 py-1 ml-1 border border-cyber-border rounded tracking-widest">{roomCode}</span></span>
+          </div>
+        </div>
+        <div className="flex items-center gap-6">
+          {user && (
+            <span className="text-sm font-bold text-cyber-neon tracking-widest hidden md:block">
+              {user.username}
+            </span>
+          )}
+          <button onClick={returnHome} className="text-gray-400 hover:text-white transition-colors" title="Return Home">
+            <Home size={24} />
+          </button>
+          {onLogout && (
+            <button onClick={onLogout} className="text-gray-500 hover:text-red-400 transition-colors" title="Выйти">
+              <LogOut size={20} />
+            </button>
+          )}
+
+          {gameMode !== 'solo' && (
+            <div className="text-sm">
+              <span className="text-gray-400">USERS: </span>
+              <span className="text-white font-bold">{playersCount}/2</span>
+            </div>
+          )}
+
+
+          {battleState === 'result' && (
+            <button
+              onClick={resetBattle}
+              className="px-6 py-2 rounded font-bold uppercase border border-cyber-accent text-cyber-accent hover:bg-cyber-accent hover:text-black transition-all"
+            >
+              Rematch
+            </button>
+          )}
+        </div>
+      </div>
+
+
+      {battleState === 'analyzing' && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
+          <Cpu className="w-24 h-24 text-cyber-neon animate-pulse mb-6" />
+          <div className="text-3xl font-bold tracking-widest text-cyber-neon animate-pulse text-center">
+            EXTRACTING FACIAL TOPOLOGY...
+          </div>
+        </div>
+      )}
+
+      {/* Main Arena */}
+      <div className={`grid grid-cols-1 ${gameMode === 'solo' ? 'max-w-3xl mx-auto w-full' : 'md:grid-cols-2'} gap-8 relative`}>
+
+        {/* VS Badge */}
+        {gameMode !== 'solo' && (
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-16 h-16 bg-cyber-dark border-2 border-cyber-accent rounded-full shadow-[0_0_20px_rgba(255,0,85,0.5)]">
+            <span className="text-xl font-black italic text-cyber-accent">VS</span>
+          </div>
+        )}
+
+        {/* Player 1 (Local) */}
+        <div className={`relative rounded-xl overflow-hidden border-2 ${isReady ? 'border-cyber-neon shadow-[0_0_20px_rgba(0,255,157,0.3)]' : 'border-cyber-border'} transition-all duration-500 bg-cyber-panel`}>
+          <div className="absolute top-0 left-0 w-full p-2 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center">
+            <span className="text-sm font-bold text-gray-300 flex items-center gap-2">
+              <Crosshair size={16} className="text-cyber-neon" />
+              {user ? user.username.toUpperCase() : 'SUBJECT_01'} (YOU)
+            </span>
+          </div>
+
+          <div className="aspect-[4/3] relative bg-black flex items-center justify-center">
+            {myResult && (
+              <img src={myResult.image} alt="My snapshot" className="w-full h-full object-cover z-20 absolute top-0 left-0" />
+            )}
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className={`w-full h-full object-cover ${myResult ? 'hidden' : 'block'}`}
+            />
+            {liveScore && !myResult && (
+              <div className="absolute top-4 right-4 z-30 bg-black/60 border border-cyber-neon px-3 py-1 rounded flex flex-col items-end shadow-[0_0_10px_rgba(0,255,157,0.3)] backdrop-blur-sm">
+                <span className="text-[10px] font-bold text-cyber-neon tracking-widest animate-pulse">LIVE ESTIMATE</span>
+                <span className="text-xl font-mono font-black text-white">{liveScore}</span>
+                <span className={`text-[10px] font-black tracking-widest ${getTier(parseFloat(liveScore)).color}`}>{getTier(parseFloat(liveScore)).label}</span>
+              </div>
+            )}
+
+          </div>
+
+          {myResult && <ResultPanel analysis={myResult.analysis} isWinner={gameMode === 'solo' ? true : (opponentResult ? myResult.analysis.total > opponentResult.analysis.total : null)} />}
+        </div>
+
+        {/* Player 2 (Opponent) */}
+        {gameMode !== 'solo' && (
+          <div className={`relative rounded-xl overflow-hidden border-2 ${opponentReady ? 'border-cyber-neon shadow-[0_0_20px_rgba(0,255,157,0.3)]' : 'border-cyber-border'} transition-all duration-500 bg-cyber-panel`}>
+            <div className="absolute top-0 left-0 w-full p-2 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center">
+              <span className="text-sm font-bold text-gray-300 flex items-center gap-2">
+                <ShieldAlert size={16} className="text-cyber-accent" /> 
+                {opponentName.toUpperCase()} (OPPONENT)
+              </span>
+            </div>
+
+            <div className="aspect-[4/3] relative bg-black flex items-center justify-center">
+              {opponentResult && (
+                <img src={opponentResult.image} alt="Opponent snapshot" className="w-full h-full object-cover z-20 absolute top-0 left-0" />
+              )}
+              <video
+                ref={opponentVideoRef}
+                autoPlay
+                playsInline
+                className={`w-full h-full object-cover ${opponentResult ? 'hidden' : opponentStream ? 'block' : 'hidden'}`}
+              />
+              {!opponentResult && !opponentStream && (
+                <div className="text-gray-600 flex flex-col items-center gap-4">
+                  <Camera size={48} className="opacity-20 animate-pulse" />
+                  <span className="text-sm tracking-widest text-center px-4">
+                    {playersCount < 2 ? "WAITING FOR OPPONENT TO JOIN ROOM..." : "CONNECTING VIDEO FEED..."}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {opponentResult && <ResultPanel analysis={opponentResult.analysis} isWinner={myResult ? opponentResult.analysis.total > myResult.analysis.total : null} />}
+          </div>
+        )}
+
+      </div>
+
+      <canvas ref={canvasRef} className="hidden" />
+    </div>
+  );
+}
+
+function ResultPanel({ analysis, isWinner }) {
+  return (
+    <div className="p-4 border-t border-cyber-border bg-black/50 relative z-30">
+      <div className="flex justify-between items-end mb-4">
+        <div>
+          <div className="text-xs text-gray-400 mb-1">AI VERDICT</div>
+          <div className={`text-2xl font-black ${analysis.error ? 'text-red-500 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]' : isWinner ? 'text-cyber-neon drop-shadow-[0_0_10px_rgba(0,255,157,0.8)]' : isWinner === false ? 'text-gray-500' : 'text-cyber-accent'}`}>
+            {analysis.verdict}
+          </div>
+        </div>
+        {!analysis.error && (
+          <div className="text-right">
+            <div className="text-xs text-gray-400 mb-1">MOG SCORE</div>
+            <div className="text-4xl font-black text-white">{analysis.total}</div>
+            <div className={`text-xs font-black tracking-widest mt-1 ${getTier(analysis.total).color}`}>{getTier(analysis.total).label}</div>
+          </div>
+        )}
+      </div>
+
+      {!analysis.error && (
+        <div className="space-y-2">
+          <ScoreBar label="SYMMETRY" value={analysis.symmetry} />
+          <ScoreBar label="JAWLINE" value={analysis.jawline} />
+          <ScoreBar label="EYE AREA" value={analysis.eyes} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ScoreBar({ label, value }) {
+  return (
+    <div className="flex items-center gap-4 text-sm">
+      <div className="w-24 text-gray-400 tracking-wider text-xs">{label}</div>
+      <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-cyber-accent to-cyber-neon"
+          style={{ width: `${value}%` }}
+        />
+      </div>
+      <div className="w-8 text-right font-bold">{value}</div>
+    </div>
+  );
+}
+
+function getTier(score) {
+  if (score >= 90) return { label: 'CHAD', color: 'text-yellow-400' };
+  if (score >= 80) return { label: 'CHADLITE', color: 'text-amber-400' };
+  if (score >= 72) return { label: 'HTN', color: 'text-cyber-neon' };
+  if (score >= 65) return { label: 'MTN', color: 'text-green-400' };
+  if (score >= 55) return { label: 'LTN', color: 'text-blue-400' };
+  if (score >= 45) return { label: 'sub-5', color: 'text-purple-400' };
+  if (score >= 35) return { label: 'sub-3', color: 'text-orange-400' };
+  return { label: 'who are you', color: 'text-red-500' };
+}

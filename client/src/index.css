@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyber-dark: #050505;
+  --color-cyber-neon: #00ff9d;
+  --color-cyber-accent: #ff0055;
+  --color-cyber-panel: #111111;
+  --color-cyber-border: #333333;
+  --font-mono: "Fira Code", monospace;
+  --animate-spin-slow: spin 3s linear infinite;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-cyber-dark);
+    color: white;
+    font-family: var(--font-mono);
+    -webkit-font-smoothing: antialiased;
+    background-image: 
+      radial-gradient(circle at 50% 50%, rgba(0, 255, 157, 0.05) 0%, transparent 50%),
+      linear-gradient(to bottom, rgba(5,5,5,1) 0%, rgba(10,10,10,1) 100%);
+    overflow-x: hidden;
+  }
+}
