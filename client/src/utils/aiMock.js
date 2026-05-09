@@ -53,24 +53,24 @@ const distanceToLine = (point, linePoint1, linePoint2) => {
   return num / den;
 };
 
-export const analyzeAppearance = async (videoElement) => {
+export const analyzeAppearance = async (mediaElement) => {
   if (!model) await initModel();
 
-  if (model && videoElement) {
+  if (model && mediaElement) {
     try {
       // Create an offscreen canvas to guarantee the model gets a static frame
       const canvas = document.createElement('canvas');
-      canvas.width = videoElement.videoWidth || 640;
-      canvas.height = videoElement.videoHeight || 480;
+      canvas.width = mediaElement.videoWidth || mediaElement.naturalWidth || 640;
+      canvas.height = mediaElement.videoHeight || mediaElement.naturalHeight || 480;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(mediaElement, 0, 0, canvas.width, canvas.height);
 
       let faces = await model.estimateFaces(canvas);
       
       // If it fails on the first try, try one more time
       if (faces.length === 0) {
         await new Promise(r => setTimeout(r, 100)); // wait 100ms
-        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(mediaElement, 0, 0, canvas.width, canvas.height);
         faces = await model.estimateFaces(canvas);
       }
       

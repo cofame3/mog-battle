@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload } from 'lucide-react';
 import { analyzeAppearance, initModel } from '../utils/aiMock';
 
 // Connect to the signaling server dynamically so it works on local network devices, or via env
@@ -10,12 +10,13 @@ const socket = io(SOCKET_URL, { autoConnect: false });
 export default function BattleArena({ user, onLogout }) {
   const [appState, setAppState] = useState('lobby'); // lobby, arena
   const [lobbyMode, setLobbyMode] = useState('initial'); // initial, friend_join, searching
-  const [gameMode, setGameMode] = useState(null); // solo, random, friend
+  const [gameMode, setGameMode] = useState(null); // solo, random, friend, photo
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [roomCode, setRoomCode] = useState(null);
 
   const [stream, setStream] = useState(null);
   const [opponentStream, setOpponentStream] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [opponentReady, setOpponentReady] = useState(false);
   const [opponentName, setOpponentName] = useState('SUBJECT_02');
@@ -57,6 +58,20 @@ export default function BattleArena({ user, onLogout }) {
   const canvasRef = useRef(null);
   const peerRef = useRef(null);
   const streamRef = useRef(null); // always up-to-date ref for stream
+  const fileInputRef = useRef(null);
+  const imageRef = useRef(null);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setUploadedImage(url);
+    setGameMode('photo');
+    setRoomCode('PHOTO-AI');
+    setPlayersCount(2); // Bypass requirement
+    setOpponentReady(true);
+    setAppState('arena');
+  };
 
   useEffect(() => {
     // Preload TFJS model
@@ -239,6 +254,8 @@ export default function BattleArena({ user, onLogout }) {
       setStream(null);
     }
     setOpponentStream(null);
+    setUploadedImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     if (peerRef.current) {
       peerRef.current.close();
       peerRef.current = null;
@@ -264,6 +281,10 @@ export default function BattleArena({ user, onLogout }) {
       if (battleState === 'idle') {
         startBattleSequence();
       }
+    } else if (gameMode === 'photo') {
+      if (battleState === 'idle') {
+        setBattleState('analyzing');
+      }
     } else if (gameMode !== null) {
       if (battleState === 'idle' && opponentStream) {
         setIsReady(true);
@@ -271,6 +292,12 @@ export default function BattleArena({ user, onLogout }) {
       }
     }
   }, [battleState, opponentStream, gameMode, roomCode]);
+
+  useEffect(() => {
+    if (gameMode === 'photo' && battleState === 'analyzing' && imageRef.current?.complete) {
+      takePhotoSnapshotAndAnalyze();
+    }
+  }, [battleState, gameMode, uploadedImage]);
 
   const startBattleSequence = () => {
     setBattleState('battling');
@@ -288,6 +315,20 @@ export default function BattleArena({ user, onLogout }) {
         takeSnapshotAndAnalyze();
       }
     }, 1000);
+  };
+
+  const takePhotoSnapshotAndAnalyze = async () => {
+    const image = imageRef.current;
+    if (!image) return;
+
+    // Имитация длительного и сложного анализа (чтобы не было ощущения случайного результата)
+    await new Promise(resolve => setTimeout(resolve, 2500));
+
+    const analysis = await analyzeAppearance(image);
+
+    const myData = { image: uploadedImage, analysis };
+    setMyResult(myData);
+    setBattleState('result');
   };
 
   const takeSnapshotAndAnalyze = async () => {
@@ -332,6 +373,10 @@ export default function BattleArena({ user, onLogout }) {
   };
 
   const resetBattle = () => {
+    if (gameMode === 'photo') {
+      returnHome();
+      return;
+    }
     setMyResult(null);
     setOpponentResult(null);
     setBattleState('idle');
@@ -378,6 +423,13 @@ export default function BattleArena({ user, onLogout }) {
               >
                 <User size={20} />
                 SOLO (TEST MOG SCORE)
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full flex items-center justify-center gap-2 bg-transparent border border-cyber-neon text-cyber-neon font-black uppercase tracking-widest py-4 rounded hover:bg-cyber-neon hover:text-black transition-all"
+              >
+                <Upload size={20} />
+                UPLOAD PHOTO
               </button>
               <button
                 onClick={joinRandom}
@@ -456,6 +508,7 @@ export default function BattleArena({ user, onLogout }) {
             </div>
           )}
         </div>
+        <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
       </div>
     );
   }
@@ -486,7 +539,7 @@ export default function BattleArena({ user, onLogout }) {
             </button>
           )}
 
-          {gameMode !== 'solo' && (
+          {gameMode !== 'solo' && gameMode !== 'photo' && (
             <div className="text-sm">
               <span className="text-gray-400">USERS: </span>
               <span className="text-white font-bold">{playersCount}/2</span>
@@ -516,10 +569,10 @@ export default function BattleArena({ user, onLogout }) {
       )}
 
       {/* Main Arena */}
-      <div className={`grid grid-cols-1 ${gameMode === 'solo' ? 'max-w-3xl mx-auto w-full' : 'md:grid-cols-2'} gap-8 relative`}>
+      <div className={`grid grid-cols-1 ${(gameMode === 'solo' || gameMode === 'photo') ? 'max-w-3xl mx-auto w-full' : 'md:grid-cols-2'} gap-8 relative`}>
 
         {/* VS Badge */}
-        {gameMode !== 'solo' && (
+        {gameMode !== 'solo' && gameMode !== 'photo' && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-16 h-16 bg-cyber-dark border-2 border-cyber-accent rounded-full shadow-[0_0_20px_rgba(255,0,85,0.5)]">
             <span className="text-xl font-black italic text-cyber-accent">VS</span>
           </div>
@@ -538,14 +591,26 @@ export default function BattleArena({ user, onLogout }) {
             {myResult && (
               <img src={myResult.image} alt="My snapshot" className="w-full h-full object-cover z-20 absolute top-0 left-0" />
             )}
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className={`w-full h-full object-cover ${myResult ? 'hidden' : 'block'}`}
-            />
-            {liveScore && !myResult && (
+            {uploadedImage ? (
+              <img 
+                ref={imageRef} 
+                src={uploadedImage} 
+                alt="Uploaded" 
+                onLoad={() => {
+                  if (gameMode === 'photo' && battleState === 'analyzing') takePhotoSnapshotAndAnalyze();
+                }}
+                className={`w-full h-full object-cover ${myResult ? 'hidden' : 'block'}`} 
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className={`w-full h-full object-cover ${myResult ? 'hidden' : 'block'}`}
+              />
+            )}
+            {liveScore && !myResult && !uploadedImage && (
               <div className="absolute top-4 right-4 z-30 bg-black/60 border border-cyber-neon px-3 py-1 rounded flex flex-col items-end shadow-[0_0_10px_rgba(0,255,157,0.3)] backdrop-blur-sm">
                 <span className="text-[10px] font-bold text-cyber-neon tracking-widest animate-pulse">LIVE ESTIMATE</span>
                 <span className="text-xl font-mono font-black text-white">{liveScore}</span>
@@ -559,7 +624,7 @@ export default function BattleArena({ user, onLogout }) {
         </div>
 
         {/* Player 2 (Opponent) */}
-        {gameMode !== 'solo' && (
+        {gameMode !== 'solo' && gameMode !== 'photo' && (
           <div className={`relative rounded-xl overflow-hidden border-2 ${opponentReady ? 'border-cyber-neon shadow-[0_0_20px_rgba(0,255,157,0.3)]' : 'border-cyber-border'} transition-all duration-500 bg-cyber-panel`}>
             <div className="absolute top-0 left-0 w-full p-2 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center">
               <span className="text-sm font-bold text-gray-300 flex items-center gap-2">
@@ -594,6 +659,7 @@ export default function BattleArena({ user, onLogout }) {
 
       </div>
 
+      <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );
