@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff } from 'lucide-react';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 
 // Connect to the signaling server dynamically so it works on local network devices, or via env
@@ -11,6 +11,7 @@ export default function BattleArena({ user, onLogout }) {
   const [appState, setAppState] = useState('lobby'); // lobby, arena
   const [lobbyMode, setLobbyMode] = useState('initial'); // initial, friend_join, searching
   const [gameMode, setGameMode] = useState(null); // solo, random, friend, photo
+  const [isMicMuted, setIsMicMuted] = useState(false);
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [roomCode, setRoomCode] = useState(null);
 
@@ -195,7 +196,7 @@ export default function BattleArena({ user, onLogout }) {
   const initCamera = async () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       try {
-        const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setStream(s);
         return true;
       } catch (err) {
@@ -206,6 +207,16 @@ export default function BattleArena({ user, onLogout }) {
     } else {
       alert("Ошибка: Камера недоступна. Пожалуйста, убедитесь, что вы открыли сайт по HTTPS.");
       return false;
+    }
+  };
+
+  const toggleMic = () => {
+    if (stream) {
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsMicMuted(!audioTrack.enabled);
+      }
     }
   };
 
@@ -277,6 +288,26 @@ export default function BattleArena({ user, onLogout }) {
     setPlayersCount(0);
   };
 
+  const findNextRandom = () => {
+    if (peerRef.current) {
+      peerRef.current.close();
+      peerRef.current = null;
+    }
+    socket.emit('leave_room');
+    setOpponentStream(null);
+    setBattleState('idle');
+    setIsReady(false);
+    setOpponentReady(false);
+    setOpponentName('SUBJECT_02');
+    setMyResult(null);
+    setOpponentResult(null);
+    setPlayersCount(0);
+
+    setLobbyMode('searching');
+    setAppState('lobby');
+    socket.emit('join_random');
+  };
+
   useEffect(() => {
     if (gameMode === 'solo') {
       if (battleState === 'idle') {
@@ -324,10 +355,10 @@ export default function BattleArena({ user, onLogout }) {
 
     const drawLiveMesh = async () => {
       if (battleState !== 'battling' || !videoRef.current || !liveCanvasRef.current) return;
-      
+
       const video = videoRef.current;
       const canvas = liveCanvasRef.current;
-      
+
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         if (isActive) animationFrameId = requestAnimationFrame(drawLiveMesh);
         return;
@@ -367,9 +398,9 @@ export default function BattleArena({ user, onLogout }) {
       isActive = false;
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
       if (liveCanvasRef.current) {
-         const canvas = liveCanvasRef.current;
-         const ctx = canvas.getContext('2d');
-         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const canvas = liveCanvasRef.current;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
     };
   }, [battleState]);
@@ -426,7 +457,7 @@ export default function BattleArena({ user, onLogout }) {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ win, score }),
       });
-    } catch {}
+    } catch { }
   };
 
   const resetBattle = () => {
@@ -452,9 +483,9 @@ export default function BattleArena({ user, onLogout }) {
             <User size={16} className="text-gray-400" />
             <span className="text-sm font-bold text-cyber-neon tracking-widest">{user.username}</span>
             {onLogout && (
-              <button 
-                onClick={onLogout} 
-                className="ml-2 text-gray-500 hover:text-red-400 transition-colors border-l border-gray-700 pl-4" 
+              <button
+                onClick={onLogout}
+                className="ml-2 text-gray-500 hover:text-red-400 transition-colors border-l border-gray-700 pl-4"
                 title="Выйти из аккаунта"
               >
                 <LogOut size={18} />
@@ -587,6 +618,11 @@ export default function BattleArena({ user, onLogout }) {
               {user.username}
             </span>
           )}
+          {stream && (
+            <button onClick={toggleMic} className={`transition-colors ${isMicMuted ? 'text-red-400' : 'text-cyber-neon hover:text-white'}`} title="Микрофон">
+              {isMicMuted ? <MicOff size={24} /> : <Mic size={24} />}
+            </button>
+          )}
           <button onClick={returnHome} className="text-gray-400 hover:text-white transition-colors" title="Return Home">
             <Home size={24} />
           </button>
@@ -605,12 +641,23 @@ export default function BattleArena({ user, onLogout }) {
 
 
           {battleState === 'result' && (
-            <button
-              onClick={resetBattle}
-              className="px-6 py-2 rounded font-bold uppercase border border-cyber-accent text-cyber-accent hover:bg-cyber-accent hover:text-black transition-all"
-            >
-              Rematch
-            </button>
+            <div className="flex gap-2">
+              {gameMode === 'random' ? (
+                <button
+                  onClick={findNextRandom}
+                  className="px-6 py-2 rounded font-bold uppercase border border-cyber-neon text-cyber-neon hover:bg-cyber-neon hover:text-black transition-all"
+                >
+                  NEXT OPPONENT
+                </button>
+              ) : (
+                <button
+                  onClick={resetBattle}
+                  className="px-6 py-2 rounded font-bold uppercase border border-cyber-accent text-cyber-accent hover:bg-cyber-accent hover:text-black transition-all"
+                >
+                  REMATCH
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -645,18 +692,18 @@ export default function BattleArena({ user, onLogout }) {
           </div>
 
           <div className="aspect-[4/3] relative bg-black flex items-center justify-center">
-            {myResult && (
-              <img src={myResult.image} alt="My snapshot" className="w-full h-full object-cover z-20 absolute top-0 left-0" />
+            {myResult && gameMode !== 'photo' && (
+              <img src={myResult.image} alt="My snapshot" className="absolute top-4 left-4 w-24 h-32 object-cover border-2 border-cyber-neon rounded shadow-[0_0_10px_rgba(0,255,157,0.5)] z-30 scale-x-[-1]" />
             )}
             {uploadedImage ? (
-              <img 
-                ref={imageRef} 
-                src={uploadedImage} 
-                alt="Uploaded" 
+              <img
+                ref={imageRef}
+                src={uploadedImage}
+                alt="Uploaded"
                 onLoad={() => {
                   if (gameMode === 'photo' && battleState === 'analyzing') takePhotoSnapshotAndAnalyze();
                 }}
-                className={`w-full h-full object-cover ${myResult ? 'hidden' : 'block'}`} 
+                className={`w-full h-full object-cover block`}
               />
             ) : (
               <video
@@ -664,7 +711,7 @@ export default function BattleArena({ user, onLogout }) {
                 autoPlay
                 playsInline
                 muted
-                className={`w-full h-full object-cover scale-x-[-1] ${myResult ? 'hidden' : 'block'}`}
+                className={`w-full h-full object-cover scale-x-[-1] block`}
               />
             )}
             {!myResult && !uploadedImage && (
@@ -691,20 +738,20 @@ export default function BattleArena({ user, onLogout }) {
           <div className={`relative rounded-xl overflow-hidden border-2 ${opponentReady ? 'border-cyber-neon shadow-[0_0_20px_rgba(0,255,157,0.3)]' : 'border-cyber-border'} transition-all duration-500 bg-cyber-panel`}>
             <div className="absolute top-0 left-0 w-full p-2 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center">
               <span className="text-sm font-bold text-gray-300 flex items-center gap-2">
-                <ShieldAlert size={16} className="text-cyber-accent" /> 
+                <ShieldAlert size={16} className="text-cyber-accent" />
                 {opponentName.toUpperCase()} (OPPONENT)
               </span>
             </div>
 
             <div className="aspect-[4/3] relative bg-black flex items-center justify-center">
               {opponentResult && (
-                <img src={opponentResult.image} alt="Opponent snapshot" className="w-full h-full object-cover z-20 absolute top-0 left-0" />
+                <img src={opponentResult.image} alt="Opponent snapshot" className="absolute top-4 left-4 w-24 h-32 object-cover border-2 border-cyber-accent rounded shadow-[0_0_10px_rgba(255,0,85,0.5)] z-30" />
               )}
               <video
                 ref={opponentVideoRef}
                 autoPlay
                 playsInline
-                className={`w-full h-full object-cover ${opponentResult ? 'hidden' : opponentStream ? 'block' : 'hidden'}`}
+                className={`w-full h-full object-cover ${opponentStream ? 'block' : 'hidden'}`}
               />
               {!opponentResult && !opponentStream && (
                 <div className="text-gray-600 flex flex-col items-center gap-4">

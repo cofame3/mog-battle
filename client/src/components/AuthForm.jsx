@@ -77,22 +77,20 @@ export default function AuthForm({ onAuth }) {
           <div className="flex mb-8 border border-cyber-border rounded-lg overflow-hidden">
             <button
               onClick={() => { setMode('login'); setError(''); }}
-              className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${
-                mode === 'login'
+              className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'login'
                   ? 'bg-cyber-neon text-black'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+                }`}
             >
               <LogIn size={16} />
               Войти
             </button>
             <button
               onClick={() => { setMode('register'); setError(''); }}
-              className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${
-                mode === 'register'
+              className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'register'
                   ? 'bg-cyber-neon text-black'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
+                }`}
             >
               <UserPlus size={16} />
               Регистрация
