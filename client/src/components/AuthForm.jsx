@@ -81,7 +81,7 @@ export default function AuthForm({ onAuth }) {
         <div className="text-center mb-8">
           <Zap className="w-16 h-16 text-cyber-neon mx-auto mb-4 animate-pulse" />
           <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
-            MOG-BATTLE
+            OMOGLE
           </h1>
           <p className="text-gray-400 mt-2 text-sm tracking-widest">AESTHETIC EVALUATION PROTOCOL</p>
         </div>

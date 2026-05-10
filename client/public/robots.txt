@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mog-battle.vercel.app/sitemap.xml
+Sitemap: https://omogle.me/sitemap.xml

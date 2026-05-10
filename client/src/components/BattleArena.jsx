@@ -521,7 +521,7 @@ export default function BattleArena({ user, onLogout }) {
           <div className="text-center mb-8">
             <Zap className="w-16 h-16 text-cyber-neon mx-auto mb-4 animate-pulse" />
             <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
-              MOG-BATTLE
+              OMOGLE
             </h1>
             <p className="text-gray-400 mt-2 text-sm tracking-widest">AESTHETIC EVALUATION PROTOCOL</p>
           </div>
@@ -631,7 +631,7 @@ export default function BattleArena({ user, onLogout }) {
         <div className="flex items-center gap-4">
           <Zap className="text-cyber-neon w-8 h-8" />
           <div className="flex flex-col">
-            <span className="text-xl font-bold tracking-widest text-cyber-neon">MOG-PROTOCOL</span>
+            <span className="text-xl font-bold tracking-widest text-cyber-neon">OMOGLE-PROTOCOL</span>
             <span className="text-xs text-gray-400 mt-1">ROOM: <span className="text-white font-mono bg-black px-2 py-1 ml-1 border border-cyber-border rounded tracking-widest">{roomCode}</span></span>
           </div>
         </div>
