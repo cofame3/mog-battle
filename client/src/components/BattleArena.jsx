@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock } from 'lucide-react';
+import { PayPalButtons } from '@paypal/react-paypal-js';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 import LightPillar from './LightPillar';
 import Leaderboard from './Leaderboard';
@@ -9,7 +10,7 @@ import Leaderboard from './Leaderboard';
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const socket = io(SOCKET_URL, { autoConnect: false });
 
-export default function BattleArena({ user, setUser, onLogout, t }) {
+export default function BattleArena({ user, setUser, onLogout, t, lang }) {
   const [appState, setAppState] = useState('lobby'); // lobby, arena
   const [lobbyMode, setLobbyMode] = useState('initial'); // initial, friend_join, searching
   const [gameMode, setGameMode] = useState(null); // solo, random, friend, photo
@@ -486,10 +487,7 @@ export default function BattleArena({ user, setUser, onLogout, t }) {
 
   useEffect(() => {
     if (battleState === 'result' && myResult && user && !user.isGuest && !statsPostedRef.current) {
-      if (gameMode === 'solo') {
-        statsPostedRef.current = true;
-        postStats(true, myResult.analysis.total, 400);
-      } else if (opponentResult) {
+      if (gameMode === 'random' && opponentResult) {
         statsPostedRef.current = true;
         let isWin;
         if (myResult.analysis.total > opponentResult.analysis.total) isWin = true;
@@ -829,7 +827,7 @@ export default function BattleArena({ user, setUser, onLogout, t }) {
 
           </div>
 
-          {myResult && <ResultPanel t={t} analysis={myResult.analysis} isWinner={gameMode === 'solo' ? true : (opponentResult ? myResult.analysis.total > opponentResult.analysis.total : null)} eloChangeData={eloChangeData} />}
+          {myResult && <ResultPanel t={t} lang={lang} user={user} setUser={setUser} analysis={myResult.analysis} isWinner={gameMode === 'solo' ? true : (opponentResult ? myResult.analysis.total > opponentResult.analysis.total : null)} eloChangeData={eloChangeData} isSolo={gameMode === 'solo'} />}
         </div>
 
         {/* Player 2 (Opponent) */}
@@ -863,10 +861,10 @@ export default function BattleArena({ user, setUser, onLogout, t }) {
             </div>
 
             {opponentResult && (
-              <ResultPanel 
-                t={t} 
-                analysis={opponentResult.analysis} 
-                isWinner={myResult ? opponentResult.analysis.total > myResult.analysis.total : null} 
+              <ResultPanel
+                t={t}
+                analysis={opponentResult.analysis}
+                isWinner={myResult ? opponentResult.analysis.total > myResult.analysis.total : null}
                 eloChangeData={eloChangeData ? {
                   newElo: opponentElo,
                   change: -eloChangeData.change
@@ -884,7 +882,14 @@ export default function BattleArena({ user, setUser, onLogout, t }) {
   );
 }
 
-function ResultPanel({ t, analysis, isWinner, eloChangeData }) {
+function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user, setUser }) {
+  const [advice, setAdvice] = useState(null);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+
+  useEffect(() => {
+    setAdvice(null);
+  }, [analysis]);
+
   const getVerdictText = () => {
     if (analysis.error) return t.ru ? 'ОШИБКА' : 'ERROR';
     if (isWinner === true) return "BRUTALIZED";
@@ -920,6 +925,80 @@ function ResultPanel({ t, analysis, isWinner, eloChangeData }) {
           <ScoreBar label={t.symmetry.toUpperCase()} value={analysis.symmetry} />
           <ScoreBar label={t.jawline.toUpperCase()} value={analysis.jawline} />
           <ScoreBar label={t.eyes.toUpperCase()} value={analysis.eyes} />
+        </div>
+      )}
+
+      {isSolo && !analysis.error && (
+        <div className="mt-4 pt-4 border-t border-cyber-border/50 relative overflow-hidden group">
+          <div className="text-xs font-black text-yellow-500 mb-2 flex items-center gap-1">
+            {advice ? advice.title : (lang === 'ru' ? "💎 ПРЕМИУМ АНАЛИЗ" : "💎 PREMIUM ANALYSIS")}
+          </div>
+
+          <div className={`text-sm text-gray-300 space-y-2 ${!advice ? 'blur-sm select-none' : ''}`}>
+            {advice ? (
+              advice.points.map((p, i) => <p key={i}>• {p}</p>)
+            ) : (
+              <>
+                <p>• {lang === 'ru' ? "Твоя симметрия лица скрыта. Доступно только в премиум анализе, исправь осанку." : "Your facial symmetry is hidden. Available only in premium analysis, fix your posture."}</p>
+                <p>• {lang === 'ru' ? "Слабо выраженная челюсть. Узнай свой реальный потенциал." : "Weak jawline definition. Find out your real potential."}</p>
+                <p>• {lang === 'ru' ? "Скрытые рекомендации по улучшению взгляда и формы глаз." : "Hidden recommendations for improving your gaze and eye shape."}</p>
+              </>
+            )}
+          </div>
+
+          {!advice && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[4px] p-4">
+              <div className="mb-4 text-center">
+                <div className="text-yellow-500 font-black tracking-widest mb-1 flex items-center justify-center gap-2">
+                  <Lock size={16} /> UNLOCK PREMIUM AI ADVICE
+                </div>
+                <div className="text-xs text-gray-300">Get personalized looksmaxxing tips.</div>
+              </div>
+
+              <div className="w-full max-w-xs relative z-50 flex flex-col gap-2">
+                <PayPalButtons
+                    style={{ layout: "horizontal", color: "gold", shape: "pill", label: "pay", height: 40 }}
+                    createOrder={(data, actions) => {
+                      return actions.order.create({
+                        purchase_units: [{
+                          amount: { currency_code: "USD", value: "2.00" },
+                          description: "MogBattle Premium Advice Token"
+                        }]
+                      });
+                    }}
+                    onApprove={async (data, actions) => {
+                      try {
+                        const token = localStorage.getItem('mog_token');
+                        // Use relative or full URL properly
+                        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                        const response = await fetch(`${apiUrl}/api/paypal/capture-order`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`
+                          },
+                          body: JSON.stringify({ orderID: data.orderID, analysis, lang })
+                        });
+
+                        const result = await response.json();
+                        if (result.ok) {
+                          setAdvice(result.advice);
+                        } else {
+                          alert("Capture failed: " + (result.error || "Unknown error"));
+                        }
+                      } catch (err) {
+                        console.error("Server capture error:", err);
+                        alert("Server capture failed: " + err.message);
+                      }
+                    }}
+                    onError={(err) => {
+                      console.error("PayPal Checkout onError", err);
+                      alert("Payment Error: " + err.message);
+                    }}
+                  />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

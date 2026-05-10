@@ -9,9 +9,14 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const { generatePremiumAdvice } = require('./utils/premiumAdvice');
 
 const app = express();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
+const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
+
 app.use(cors());
 app.use(express.json());
 
@@ -49,6 +54,7 @@ const userSchema = new mongoose.Schema({
   losses: { type: Number, default: 0 },
   bestScore: { type: Number, default: 0 },
   elo: { type: Number, default: 400 },
+  adviceTokens: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -62,7 +68,7 @@ async function findUser(username) {
 
 async function createUser(username, hashedPassword) {
   if (useInMemory) {
-    const user = { username, password: hashedPassword, wins: 0, losses: 0, bestScore: 0, elo: 400 };
+    const user = { username, password: hashedPassword, wins: 0, losses: 0, bestScore: 0, elo: 400, adviceTokens: 0 };
     inMemoryUsers.set(username.toLowerCase(), user);
     return user;
   }
@@ -231,9 +237,108 @@ app.get('/api/me', async (req, res) => {
     const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const user = await findUser(username);
     if (!user) return res.status(404).json({ error: 'Не найден' });
-    res.json({ username: user.username, wins: user.wins, losses: user.losses, bestScore: user.bestScore, elo: user.elo || 400 });
+    res.json({ username: user.username, wins: user.wins, losses: user.losses, bestScore: user.bestScore, elo: user.elo || 400, adviceTokens: user.adviceTokens || 0 });
   } catch {
     res.status(401).json({ error: 'Неверный токен' });
+  }
+});
+
+// ─── PayPal API ──────────────────────────────────────────────────────────────
+async function generatePayPalAccessToken() {
+  const auth = Buffer.from(PAYPAL_CLIENT_ID + ':' + PAYPAL_SECRET).toString('base64');
+  const response = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: 'POST',
+    body: 'grant_type=client_credentials',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+  const data = await response.json();
+  return data.access_token;
+}
+
+app.post('/api/paypal/create-order', async (req, res) => {
+  try {
+    const accessToken = await generatePayPalAccessToken();
+    const payload = {
+      intent: 'CAPTURE',
+      purchase_units: [{ amount: { currency_code: 'USD', value: '2.00' }, description: 'MogBattle Premium Advice Token' }],
+    };
+    const response = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error('PayPal create order error:', error);
+    res.status(500).json({ error: 'Failed to create order' });
+  }
+});
+
+app.post('/api/paypal/capture-order', async (req, res) => {
+  try {
+    const { orderID, analysis, lang } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Нет токена' });
+    
+    const { username } = jwt.verify(authHeader.replace('Bearer ', ''), JWT_SECRET);
+    const accessToken = await generatePayPalAccessToken();
+    
+    const response = await fetch(`${PAYPAL_API}/v2/checkout/orders/${orderID}/capture`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const data = await response.json();
+
+    if (data.status === 'COMPLETED') {
+      // Начислить токен
+      if (useInMemory) {
+        const user = inMemoryUsers.get(username.toLowerCase());
+        if (user) user.adviceTokens = (user.adviceTokens || 0) + 1;
+      } else {
+        await User.updateOne({ username }, { $inc: { adviceTokens: 1 } });
+      }
+      const advice = generatePremiumAdvice(analysis, lang);
+      res.json({ ok: true, data, advice });
+    } else {
+      res.status(400).json({ error: 'Order not completed', details: data });
+    }
+  } catch (error) {
+    console.error('PayPal capture error:', error);
+    res.status(500).json({ error: 'Failed to capture order' });
+  }
+});
+
+app.post('/api/use-token', async (req, res) => {
+  try {
+    const { analysis, lang } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Нет токена' });
+    const { username } = jwt.verify(authHeader.replace('Bearer ', ''), JWT_SECRET);
+    
+    const user = await findUser(username);
+    if (!user || !user.adviceTokens || user.adviceTokens <= 0) {
+      return res.status(403).json({ error: 'Нет жетонов для использования' });
+    }
+
+    if (useInMemory) {
+      user.adviceTokens--;
+    } else {
+      await User.updateOne({ username }, { $inc: { adviceTokens: -1 } });
+    }
+    const advice = generatePremiumAdvice(analysis, lang);
+    res.json({ ok: true, advice });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
