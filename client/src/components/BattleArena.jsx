@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy } from 'lucide-react';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 import LightPillar from './LightPillar';
+import Leaderboard from './Leaderboard';
 
 // Connect to the signaling server dynamically so it works on local network devices, or via env
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const socket = io(SOCKET_URL, { autoConnect: false });
 
-export default function BattleArena({ user, onLogout, t }) {
+export default function BattleArena({ user, setUser, onLogout, t }) {
   const [appState, setAppState] = useState('lobby'); // lobby, arena
   const [lobbyMode, setLobbyMode] = useState('initial'); // initial, friend_join, searching
   const [gameMode, setGameMode] = useState(null); // solo, random, friend, photo
@@ -22,8 +23,11 @@ export default function BattleArena({ user, onLogout, t }) {
   const [isReady, setIsReady] = useState(false);
   const [opponentReady, setOpponentReady] = useState(false);
   const [opponentName, setOpponentName] = useState('SUBJECT_02');
+  const [opponentElo, setOpponentElo] = useState(400);
   const [countdown, setCountdown] = useState(null);
   const [battleState, setBattleState] = useState('idle'); // idle, readying, battling, result
+  const [eloChangeData, setEloChangeData] = useState(null);
+  const statsPostedRef = useRef(false);
 
   const [myResult, setMyResult] = useState(null);
   const [opponentResult, setOpponentResult] = useState(null);
@@ -86,6 +90,7 @@ export default function BattleArena({ user, onLogout, t }) {
       if (typeof payload === 'object') {
         setOpponentReady(payload.isReady);
         if (payload.username) setOpponentName(payload.username);
+        if (payload.elo) setOpponentElo(payload.elo);
       } else {
         setOpponentReady(payload);
       }
@@ -321,10 +326,10 @@ export default function BattleArena({ user, onLogout, t }) {
     } else if (gameMode !== null) {
       if (battleState === 'idle' && opponentStream) {
         setIsReady(true);
-        socket.emit('set_ready', { isReady: true, roomCode, username: user ? user.username : 'GUEST' });
+        socket.emit('set_ready', { isReady: true, roomCode, username: user ? user.username : 'GUEST', elo: user ? user.elo : 400 });
       }
     }
-  }, [battleState, opponentStream, gameMode, roomCode]);
+  }, [battleState, opponentStream, gameMode, roomCode, user]);
 
   useEffect(() => {
     if (gameMode === 'photo' && battleState === 'analyzing' && imageRef.current?.complete) {
@@ -449,17 +454,51 @@ export default function BattleArena({ user, onLogout, t }) {
   };
 
   // Отправить статистику на сервер
-  const postStats = async (win, score) => {
+  const postStats = async (win, score, oppElo) => {
     const token = localStorage.getItem('mog_token');
     if (!token) return;
     try {
-      await fetch(`${SOCKET_URL}/api/stats`, {
+      const res = await fetch(`${SOCKET_URL}/api/stats`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ win, score }),
+        body: JSON.stringify({ win, score, opponentElo: oppElo }),
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.elo !== undefined) {
+          setEloChangeData({ newElo: data.elo, change: data.eloChange });
+          setOpponentElo((prev) => prev - data.eloChange);
+          if (setUser && user) {
+            const updatedUser = { ...user, elo: data.elo };
+            setUser(updatedUser);
+            localStorage.setItem('mog_user', JSON.stringify(updatedUser));
+          }
+        }
+      }
     } catch { }
   };
+
+  useEffect(() => {
+    if (battleState === 'idle') {
+      statsPostedRef.current = false;
+    }
+  }, [battleState]);
+
+  useEffect(() => {
+    if (battleState === 'result' && myResult && user && !user.isGuest && !statsPostedRef.current) {
+      if (gameMode === 'solo') {
+        statsPostedRef.current = true;
+        postStats(true, myResult.analysis.total, 400);
+      } else if (opponentResult) {
+        statsPostedRef.current = true;
+        let isWin;
+        if (myResult.analysis.total > opponentResult.analysis.total) isWin = true;
+        else if (myResult.analysis.total < opponentResult.analysis.total) isWin = false;
+        else isWin = null;
+        postStats(isWin, myResult.analysis.total, opponentElo);
+      }
+    }
+  }, [battleState, myResult, opponentResult, gameMode, opponentElo]);
 
   const resetBattle = () => {
     if (gameMode === 'photo') {
@@ -468,6 +507,7 @@ export default function BattleArena({ user, onLogout, t }) {
     }
     setMyResult(null);
     setOpponentResult(null);
+    setEloChangeData(null);
     setBattleState('idle');
     if (gameMode === 'solo') setOpponentReady(true);
   };
@@ -504,7 +544,14 @@ export default function BattleArena({ user, onLogout, t }) {
         {user && (
           <div className="absolute top-6 right-6 z-20 flex items-center gap-4 bg-black/60 border border-cyber-border px-4 py-2 rounded-lg backdrop-blur-md shadow-[0_0_15px_rgba(0,255,157,0.1)]">
             <User size={16} className="text-gray-400" />
-            <span className="text-sm font-bold text-cyber-neon tracking-widest">{user.username}</span>
+            <span className="text-sm font-bold text-cyber-neon tracking-widest flex items-center gap-2">
+              {user.username}
+              {!user.isGuest && (
+                <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded flex items-center gap-1">
+                  ⚡ {user.elo || 400}
+                </span>
+              )}
+            </span>
             {user.isGuest && (
               <span className="text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">GUEST</span>
             )}
@@ -566,7 +613,18 @@ export default function BattleArena({ user, onLogout, t }) {
                 <Users size={20} />
                 {t.friend}
               </button>
+              <button
+                onClick={() => setLobbyMode('leaderboard')}
+                className="w-full flex items-center justify-center gap-2 bg-transparent border border-yellow-500 text-yellow-500 font-black uppercase tracking-widest py-4 rounded hover:bg-yellow-500 hover:text-black hover:shadow-[0_0_20px_rgba(234,179,8,0.6)] transition-all mt-2"
+              >
+                <Trophy size={20} />
+                {t.leaderboard || "РЕЙТИНГ"}
+              </button>
             </div>
+          )}
+
+          {lobbyMode === 'leaderboard' && (
+            <Leaderboard t={t} onClose={() => setLobbyMode('initial')} currentUser={user} />
           )}
 
           {lobbyMode === 'searching' && (
@@ -647,8 +705,13 @@ export default function BattleArena({ user, onLogout, t }) {
         </div>
         <div className="flex items-center gap-6">
           {user && (
-            <span className="text-sm font-bold text-cyber-neon tracking-widest hidden md:block uppercase">
+            <span className="text-sm font-bold text-cyber-neon tracking-widest hidden md:flex items-center gap-2 uppercase">
               {user.username}
+              {!user.isGuest && (
+                <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded flex items-center gap-1">
+                  ⚡ {user.elo || 400}
+                </span>
+              )}
               {user.isGuest && (
                 <span className="ml-2 text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">{t.guestBadge}</span>
               )}
@@ -766,7 +829,7 @@ export default function BattleArena({ user, onLogout, t }) {
 
           </div>
 
-          {myResult && <ResultPanel t={t} analysis={myResult.analysis} isWinner={gameMode === 'solo' ? true : (opponentResult ? myResult.analysis.total > opponentResult.analysis.total : null)} />}
+          {myResult && <ResultPanel t={t} analysis={myResult.analysis} isWinner={gameMode === 'solo' ? true : (opponentResult ? myResult.analysis.total > opponentResult.analysis.total : null)} eloChangeData={eloChangeData} />}
         </div>
 
         {/* Player 2 (Opponent) */}
@@ -775,7 +838,7 @@ export default function BattleArena({ user, onLogout, t }) {
             <div className="absolute top-0 left-0 w-full p-2 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center">
               <span className="text-sm font-bold text-gray-300 flex items-center gap-2">
                 <ShieldAlert size={16} className="text-cyber-accent" />
-                {opponentName.toUpperCase()} ({t.opponent})
+                {opponentName.toUpperCase()} <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded ml-2">⚡ {opponentElo}</span>
               </span>
             </div>
 
@@ -799,7 +862,17 @@ export default function BattleArena({ user, onLogout, t }) {
               )}
             </div>
 
-            {opponentResult && <ResultPanel t={t} analysis={opponentResult.analysis} isWinner={myResult ? opponentResult.analysis.total > myResult.analysis.total : null} />}
+            {opponentResult && (
+              <ResultPanel 
+                t={t} 
+                analysis={opponentResult.analysis} 
+                isWinner={myResult ? opponentResult.analysis.total > myResult.analysis.total : null} 
+                eloChangeData={eloChangeData ? {
+                  newElo: opponentElo,
+                  change: -eloChangeData.change
+                } : null}
+              />
+            )}
           </div>
         )}
 
@@ -811,15 +884,27 @@ export default function BattleArena({ user, onLogout, t }) {
   );
 }
 
-function ResultPanel({ t, analysis, isWinner }) {
+function ResultPanel({ t, analysis, isWinner, eloChangeData }) {
+  const getVerdictText = () => {
+    if (analysis.error) return t.ru ? 'ОШИБКА' : 'ERROR';
+    if (isWinner === true) return "BRUTALIZED";
+    if (isWinner === false) return "DESTROYED";
+    return t.ru ? 'НИЧЬЯ' : 'DRAW';
+  };
+
   return (
     <div className="p-4 border-t border-cyber-border bg-black/50 relative z-30 animate-reveal">
       <div className="flex justify-between items-end mb-4">
         <div>
           <div className="text-xs text-gray-400 mb-1">AI VERDICT</div>
-          <div className={`text-2xl font-black ${analysis.error ? 'text-red-500 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]' : isWinner ? 'text-cyber-neon drop-shadow-[0_0_10px_rgba(0,255,157,0.8)]' : isWinner === false ? 'text-gray-500' : 'text-cyber-accent'}`}>
-            {analysis.error ? (t.ru ? 'ОШИБКА' : 'ERROR') : (t.ru ? (isWinner ? 'ПОБЕДА' : isWinner === false ? 'ПОРАЖЕНИЕ' : 'НИЧЬЯ') : analysis.verdict)}
+          <div className={`text-2xl font-black ${analysis.error ? 'text-red-500 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]' : isWinner ? 'text-cyber-neon drop-shadow-[0_0_10px_rgba(0,255,157,0.8)] animate-pulse' : isWinner === false ? 'text-red-500 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]' : 'text-gray-500'}`}>
+            {getVerdictText()}
           </div>
+          {eloChangeData && !analysis.error && (
+            <div className={`text-sm font-bold mt-1 tracking-widest ${eloChangeData.change >= 0 ? 'text-cyber-neon' : 'text-red-500'}`}>
+              ELO: {eloChangeData.newElo} ({eloChangeData.change > 0 ? '+' : ''}{eloChangeData.change})
+            </div>
+          )}
         </div>
         {!analysis.error && (
           <div className="text-right">

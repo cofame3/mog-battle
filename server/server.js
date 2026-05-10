@@ -48,6 +48,7 @@ const userSchema = new mongoose.Schema({
   wins: { type: Number, default: 0 },
   losses: { type: Number, default: 0 },
   bestScore: { type: Number, default: 0 },
+  elo: { type: Number, default: 400 },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -61,26 +62,53 @@ async function findUser(username) {
 
 async function createUser(username, hashedPassword) {
   if (useInMemory) {
-    const user = { username, password: hashedPassword, wins: 0, losses: 0, bestScore: 0 };
+    const user = { username, password: hashedPassword, wins: 0, losses: 0, bestScore: 0, elo: 400 };
     inMemoryUsers.set(username.toLowerCase(), user);
     return user;
   }
   return User.create({ username, password: hashedPassword });
 }
 
-async function updateStats(username, { win, score }) {
+async function updateStats(username, { win, score, opponentElo }) {
+  const K = 32;
+  const oppElo = opponentElo || 400;
+
   if (useInMemory) {
-    const user = inMemoryUsers.get(username.toLowerCase());
-    if (!user) return;
-    if (win) user.wins++; else user.losses++;
+    let user = inMemoryUsers.get(username.toLowerCase());
+    if (!user) {
+      user = { username, password: '', wins: 0, losses: 0, bestScore: 0, elo: 400 };
+      inMemoryUsers.set(username.toLowerCase(), user);
+    }
+    
+    let currentElo = user.elo || 400;
+    let expected = 1 / (1 + Math.pow(10, (oppElo - currentElo) / 400));
+    let actual = win === true ? 1 : (win === false ? 0 : 0.5);
+    user.elo = Math.round(currentElo + K * (actual - expected));
+    
+    if (win === true) user.wins++; 
+    else if (win === false) user.losses++;
+    
     if (score > (user.bestScore || 0)) user.bestScore = score;
-    return;
+    return { elo: user.elo, eloChange: user.elo - currentElo };
   }
-  const update = win
-    ? { $inc: { wins: 1 } }
-    : { $inc: { losses: 1 } };
+
+  const user = await User.findOne({ username });
+  if (!user) return;
+
+  let currentElo = user.elo || 400;
+  let expected = 1 / (1 + Math.pow(10, (oppElo - currentElo) / 400));
+  let actual = win === true ? 1 : (win === false ? 0 : 0.5);
+  let newElo = Math.round(currentElo + K * (actual - expected));
+
+  const update = {};
+  if (win === true) update.$inc = { wins: 1 };
+  else if (win === false) update.$inc = { losses: 1 };
+  update.$set = { elo: newElo };
+  
   if (score) update.$max = { bestScore: score };
   await User.updateOne({ username }, update);
+  
+  return { elo: newElo, eloChange: newElo - currentElo };
 }
 
 // ─── REST API Routes ─────────────────────────────────────────────────────────
@@ -137,6 +165,7 @@ app.post('/api/login', async (req, res) => {
       wins: user.wins,
       losses: user.losses,
       bestScore: user.bestScore,
+      elo: user.elo || 400,
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -172,6 +201,7 @@ app.post('/api/google-auth', async (req, res) => {
       wins: user.wins || 0,
       losses: user.losses || 0,
       bestScore: user.bestScore || 0,
+      elo: user.elo || 400,
     });
   } catch (err) {
     console.error('Google Auth error:', err);
@@ -185,9 +215,9 @@ app.post('/api/stats', async (req, res) => {
     const auth = req.headers.authorization;
     if (!auth) return res.status(401).json({ error: 'Нет токена' });
     const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { win, score } = req.body;
-    await updateStats(username, { win, score });
-    res.json({ ok: true });
+    const { win, score, opponentElo } = req.body;
+    const statsResult = await updateStats(username, { win, score, opponentElo });
+    res.json({ ok: true, elo: statsResult?.elo, eloChange: statsResult?.eloChange });
   } catch {
     res.status(401).json({ error: 'Неверный токен' });
   }
@@ -201,9 +231,27 @@ app.get('/api/me', async (req, res) => {
     const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const user = await findUser(username);
     if (!user) return res.status(404).json({ error: 'Не найден' });
-    res.json({ username: user.username, wins: user.wins, losses: user.losses, bestScore: user.bestScore });
+    res.json({ username: user.username, wins: user.wins, losses: user.losses, bestScore: user.bestScore, elo: user.elo || 400 });
   } catch {
     res.status(401).json({ error: 'Неверный токен' });
+  }
+});
+
+// GET /api/leaderboard  (получить топ-20 игроков)
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    if (useInMemory) {
+      const allUsers = Array.from(inMemoryUsers.values());
+      const sorted = allUsers.sort((a, b) => (b.elo || 400) - (a.elo || 400)).slice(0, 20);
+      return res.json(sorted.map(u => ({ username: u.username, bestScore: u.bestScore || 0, elo: u.elo || 400, wins: u.wins || 0, losses: u.losses || 0 })));
+    }
+    const topUsers = await User.find({}, { username: 1, bestScore: 1, elo: 1, wins: 1, losses: 1, _id: 0 })
+      .sort({ elo: -1 })
+      .limit(20);
+    res.json(topUsers);
+  } catch (err) {
+    console.error('Leaderboard error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 

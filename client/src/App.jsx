@@ -54,7 +54,7 @@ function App() {
       {!user ? (
         <AuthForm onAuth={setUser} lang={lang} t={t} />
       ) : (
-        <BattleArena user={user} onLogout={handleLogout} lang={lang} t={t} />
+        <BattleArena user={user} setUser={setUser} onLogout={handleLogout} lang={lang} t={t} />
       )}
     </div>
   );

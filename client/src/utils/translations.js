@@ -51,7 +51,15 @@ export const translations = {
     loser: "ПОРАЖЕНИЕ",
     draw: "НИЧЬЯ",
     guestBadge: "ГОСТЬ",
-    guestAlert: "⚠ ГОСТЕВОЙ РЕЖИМ АКТИВЕН\nСТАТИСТИКА НЕ СОХРАНЯЕТСЯ"
+    guestAlert: "⚠ ГОСТЕВОЙ РЕЖИМ АКТИВЕН\nСТАТИСТИКА НЕ СОХРАНЯЕТСЯ",
+
+    // Leaderboard
+    leaderboard: "РЕЙТИНГ",
+    rank: "МЕСТО",
+    score: "ОЧКИ",
+    wins: "ПОБЕДЫ",
+    close: "ЗАКРЫТЬ",
+    loadingLeaderboard: "ЗАГРУЗКА РЕЙТИНГА..."
   },
   en: {
     // Auth
@@ -105,6 +113,14 @@ export const translations = {
     loser: "LOSER",
     draw: "DRAW",
     guestBadge: "GUEST",
-    guestAlert: "⚠ GUEST MODE ACTIVE\nSTATS ARE NOT SAVED"
+    guestAlert: "⚠ GUEST MODE ACTIVE\nSTATS ARE NOT SAVED",
+
+    // Leaderboard
+    leaderboard: "LEADERBOARD",
+    rank: "RANK",
+    score: "SCORE",
+    wins: "WINS",
+    close: "CLOSE",
+    loadingLeaderboard: "LOADING LEADERBOARD..."
   }
 };
