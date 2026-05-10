@@ -199,6 +199,9 @@ export default function AuthForm({ onAuth }) {
             >
               ПРОДОЛЖИТЬ КАК ГОСТЬ
             </button>
+            <p className="text-[9px] text-center text-gray-600 mt-2 tracking-widest uppercase italic">
+              * Статистика побед не будет сохранена на сервере
+            </p>
           </form>
 
           {/* Guest hint */}

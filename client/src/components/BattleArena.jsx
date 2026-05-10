@@ -531,6 +531,14 @@ export default function BattleArena({ user, onLogout }) {
 
           {lobbyMode === 'initial' && (
             <div className="space-y-4">
+              {user.isGuest && (
+                <div className="bg-cyber-accent/5 border border-cyber-accent/30 rounded-lg p-3 mb-6 text-center">
+                  <p className="text-[10px] text-cyber-accent font-bold tracking-widest leading-tight">
+                    ⚠ GUEST MODE ACTIVE<br/>
+                    STATS ARE NOT SAVED TO THE PERMANENT DATABASE
+                  </p>
+                </div>
+              )}
               <button
                 onClick={joinSolo}
                 className="w-full flex items-center justify-center gap-2 bg-transparent border border-white text-white font-black uppercase tracking-widest py-4 rounded hover:bg-white hover:text-black transition-all"
