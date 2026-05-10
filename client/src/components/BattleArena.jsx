@@ -520,7 +520,7 @@ export default function BattleArena({ user, onLogout, t }) {
           </div>
         )}
 
-        <div className="relative z-10 w-full max-w-md bg-cyber-panel border border-cyber-border rounded-xl p-8 shadow-[0_0_30px_rgba(0,255,157,0.1)]">
+        <div className="relative z-10 w-full max-w-md bg-cyber-panel border border-cyber-border rounded-xl p-8 shadow-[0_0_30px_rgba(0,255,157,0.1)] animate-reveal">
           <div className="text-center mb-8">
             <img src="/logo.jpg" alt="Omogle Logo" className="w-24 h-24 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(0,255,157,0.5)] object-contain" />
             <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
@@ -813,7 +813,7 @@ export default function BattleArena({ user, onLogout, t }) {
 
 function ResultPanel({ t, analysis, isWinner }) {
   return (
-    <div className="p-4 border-t border-cyber-border bg-black/50 relative z-30">
+    <div className="p-4 border-t border-cyber-border bg-black/50 relative z-30 animate-reveal">
       <div className="flex justify-between items-end mb-4">
         <div>
           <div className="text-xs text-gray-400 mb-1">AI VERDICT</div>

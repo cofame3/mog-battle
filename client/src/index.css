@@ -7,7 +7,9 @@
   --color-cyber-panel: #111111;
   --color-cyber-border: #333333;
   --font-mono: "Fira Code", monospace;
-  --animate-spin-slow: spin 3s linear infinite;
+  --animate-spin-slow: spin 8s linear infinite;
+  --animate-glitch: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both;
+  --animate-reveal: reveal 0.5s ease-out forwards;
 }
 
 @layer base {
@@ -21,4 +23,21 @@
       linear-gradient(to bottom, rgba(5,5,5,1) 0%, rgba(10,10,10,1) 100%);
     overflow-x: hidden;
   }
+}
+@keyframes glitch {
+  0% { transform: translate(0); text-shadow: -2px 0 var(--color-cyber-accent), 2px 0 var(--color-cyber-neon); }
+  25% { transform: translate(-1px, 1px); }
+  50% { transform: translate(1px, -1px); text-shadow: 1px 0 var(--color-cyber-accent), -1px 0 var(--color-cyber-neon); }
+  75% { transform: translate(-1px, -1px); }
+  100% { transform: translate(0); text-shadow: none; }
+}
+
+@keyframes reveal {
+  0% { opacity: 0; transform: translateY(10px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
