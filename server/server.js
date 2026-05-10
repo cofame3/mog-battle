@@ -1,3 +1,6 @@
+require('dotenv').config();
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -5,8 +8,10 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 
 const app = express();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 app.use(cors());
 app.use(express.json());
 
@@ -136,6 +141,41 @@ app.post('/api/login', async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// POST /api/google-auth
+app.post('/api/google-auth', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) return res.status(400).json({ error: 'No credential provided' });
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { name, sub: googleId } = payload;
+
+    let user = await findUser(name);
+    
+    if (!user) {
+      const randomPass = await bcrypt.hash(Math.random().toString(36), 10);
+      user = await createUser(name, randomPass);
+    }
+
+    const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({
+      token,
+      username: user.username,
+      wins: user.wins || 0,
+      losses: user.losses || 0,
+      bestScore: user.bestScore || 0,
+    });
+  } catch (err) {
+    console.error('Google Auth error:', err);
+    res.status(401).json({ error: 'Invalid Google token' });
   }
 });
 

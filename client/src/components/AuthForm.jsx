@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, User, Lock, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 import LightPillar from './LightPillar';
 
 const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : `http://${window.location.hostname}:3001/api`;
@@ -63,6 +64,38 @@ export default function AuthForm({ onAuth, t }) {
     localStorage.setItem('mog_user', JSON.stringify(guestData));
     // При гостевом входе mog_token не устанавливается
     onAuth(guestData);
+  };
+
+  const handleGoogleSuccess = async (response) => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${API.replace('/api', '')}/api/google-auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Google Auth Failed');
+        return;
+      }
+
+      localStorage.setItem('mog_token', data.token);
+      localStorage.setItem('mog_user', JSON.stringify({
+        username: data.username,
+        wins: data.wins || 0,
+        losses: data.losses || 0,
+        bestScore: data.bestScore || 0,
+      }));
+
+      onAuth(data);
+    } catch (err) {
+      setError('Google Login Error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -202,6 +235,17 @@ export default function AuthForm({ onAuth, t }) {
             <p className="text-[9px] text-center text-gray-600 mt-2 tracking-widest uppercase italic">
               {t.guestWarning}
             </p>
+
+            <div className="mt-6 flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError('Google Login Failed')}
+                theme="filled_black"
+                shape="pill"
+                text="continue_with"
+                width="300"
+              />
+            </div>
           </form>
 
           {/* Guest hint */}
