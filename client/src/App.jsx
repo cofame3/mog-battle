@@ -10,7 +10,7 @@ function App() {
   useEffect(() => {
     const stored = localStorage.getItem('mog_user');
     const token = localStorage.getItem('mog_token');
-    if (stored && token) {
+    if (stored) {
       try {
         setUser(JSON.parse(stored));
       } catch {

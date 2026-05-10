@@ -505,6 +505,9 @@ export default function BattleArena({ user, onLogout }) {
           <div className="absolute top-6 right-6 z-20 flex items-center gap-4 bg-black/60 border border-cyber-border px-4 py-2 rounded-lg backdrop-blur-md shadow-[0_0_15px_rgba(0,255,157,0.1)]">
             <User size={16} className="text-gray-400" />
             <span className="text-sm font-bold text-cyber-neon tracking-widest">{user.username}</span>
+            {user.isGuest && (
+              <span className="text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">GUEST</span>
+            )}
             {onLogout && (
               <button
                 onClick={onLogout}
@@ -639,6 +642,9 @@ export default function BattleArena({ user, onLogout }) {
           {user && (
             <span className="text-sm font-bold text-cyber-neon tracking-widest hidden md:block">
               {user.username}
+              {user.isGuest && (
+                <span className="ml-2 text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">GUEST</span>
+              )}
             </span>
           )}
           {stream && (

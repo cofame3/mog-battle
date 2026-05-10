@@ -49,6 +49,22 @@ export default function AuthForm({ onAuth }) {
     }
   };
 
+  const handleGuest = () => {
+    const guestId = Math.floor(1000 + Math.random() * 9000);
+    const guestName = `GUEST_${guestId}`;
+    const guestData = {
+      username: guestName,
+      wins: 0,
+      losses: 0,
+      bestScore: 0,
+      isGuest: true
+    };
+    
+    localStorage.setItem('mog_user', JSON.stringify(guestData));
+    // При гостевом входе mog_token не устанавливается
+    onAuth(guestData);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background */}
@@ -168,6 +184,20 @@ export default function AuthForm({ onAuth }) {
               ) : (
                 'СОЗДАТЬ АККАУНТ'
               )}
+            </button>
+
+            <div className="relative flex py-2 items-center">
+              <div className="flex-grow border-t border-cyber-border/30"></div>
+              <span className="flex-shrink-0 mx-4 text-gray-600 text-[10px] font-bold tracking-[0.3em] uppercase">ИЛИ</span>
+              <div className="flex-grow border-t border-cyber-border/30"></div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGuest}
+              className="w-full py-3 rounded-lg font-bold uppercase tracking-widest border-2 border-cyber-border text-gray-400 hover:border-cyber-accent hover:text-white hover:bg-cyber-accent/5 transition-all flex items-center justify-center gap-2"
+            >
+              ПРОДОЛЖИТЬ КАК ГОСТЬ
             </button>
           </form>
 
