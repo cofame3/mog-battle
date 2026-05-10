@@ -79,7 +79,7 @@ export default function AuthForm({ onAuth }) {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Zap className="w-16 h-16 text-cyber-neon mx-auto mb-4 animate-pulse" />
+          <img src="/logo.jpg" alt="Omogle Logo" className="w-32 h-32 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(0,255,157,0.5)] object-contain" />
           <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
             OMOGLE
           </h1>
