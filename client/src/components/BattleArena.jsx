@@ -8,7 +8,7 @@ import LightPillar from './LightPillar';
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const socket = io(SOCKET_URL, { autoConnect: false });
 
-export default function BattleArena({ user, onLogout }) {
+export default function BattleArena({ user, onLogout, t }) {
   const [appState, setAppState] = useState('lobby'); // lobby, arena
   const [lobbyMode, setLobbyMode] = useState('initial'); // initial, friend_join, searching
   const [gameMode, setGameMode] = useState(null); // solo, random, friend, photo
@@ -526,16 +526,15 @@ export default function BattleArena({ user, onLogout }) {
             <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
               OMOGLE
             </h1>
-            <p className="text-gray-400 mt-2 text-sm tracking-widest">AESTHETIC EVALUATION PROTOCOL</p>
+            <p className="text-gray-400 mt-2 text-sm tracking-widest uppercase">{t.protocol}</p>
           </div>
 
           {lobbyMode === 'initial' && (
             <div className="space-y-4">
               {user.isGuest && (
                 <div className="bg-cyber-accent/5 border border-cyber-accent/30 rounded-lg p-3 mb-6 text-center">
-                  <p className="text-[10px] text-cyber-accent font-bold tracking-widest leading-tight">
-                    ⚠ GUEST MODE ACTIVE<br/>
-                    STATS ARE NOT SAVED TO THE PERMANENT DATABASE
+                  <p className="text-[10px] text-cyber-accent font-bold tracking-widest leading-tight whitespace-pre-line">
+                    {t.guestAlert}
                   </p>
                 </div>
               )}
@@ -544,28 +543,28 @@ export default function BattleArena({ user, onLogout }) {
                 className="w-full flex items-center justify-center gap-2 bg-transparent border border-white text-white font-black uppercase tracking-widest py-4 rounded hover:bg-white hover:text-black transition-all"
               >
                 <User size={20} />
-                SOLO (TEST MOG SCORE)
+                {t.solo}
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full flex items-center justify-center gap-2 bg-transparent border border-cyber-neon text-cyber-neon font-black uppercase tracking-widest py-4 rounded hover:bg-cyber-neon hover:text-black transition-all"
               >
                 <Upload size={20} />
-                UPLOAD PHOTO
+                {t.upload}
               </button>
               <button
                 onClick={joinRandom}
                 className="w-full flex items-center justify-center gap-2 bg-cyber-accent text-black font-black uppercase tracking-widest py-4 rounded hover:shadow-[0_0_20px_rgba(255,0,85,0.6)] hover:bg-white transition-all"
               >
                 <Shuffle size={20} />
-                1 VS 1 (RANDOM)
+                {t.random}
               </button>
               <button
                 onClick={() => setLobbyMode('friend_join')}
                 className="w-full flex items-center justify-center gap-2 bg-cyber-neon text-black font-black uppercase tracking-widest py-4 rounded hover:shadow-[0_0_20px_rgba(0,255,157,0.6)] hover:bg-white transition-all"
               >
                 <Users size={20} />
-                PLAY WITH FRIEND
+                {t.friend}
               </button>
             </div>
           )}
@@ -574,13 +573,13 @@ export default function BattleArena({ user, onLogout }) {
             <div className="flex flex-col items-center justify-center py-8 space-y-6">
               <Cpu className="w-16 h-16 text-cyber-accent animate-spin-slow" />
               <div className="text-xl font-bold tracking-widest text-cyber-accent animate-pulse">
-                SEARCHING OPPONENT...
+                {t.searching}
               </div>
               <button
                 onClick={returnHome}
                 className="border border-gray-600 text-gray-400 font-bold tracking-widest px-6 py-2 rounded hover:bg-gray-800 transition-colors"
               >
-                CANCEL
+                {t.cancel}
               </button>
             </div>
           )}
@@ -592,12 +591,12 @@ export default function BattleArena({ user, onLogout }) {
                   onClick={createPrivateRoom}
                   className="flex-1 bg-cyber-border text-white font-bold uppercase tracking-widest py-3 rounded hover:bg-gray-700 transition-colors text-sm"
                 >
-                  CREATE NEW
+                  {t.createRoom}
                 </button>
               </div>
               <div className="relative flex py-2 items-center">
                 <div className="flex-grow border-t border-gray-700"></div>
-                <span className="flex-shrink-0 mx-4 text-gray-500 text-xs tracking-widest font-bold">OR JOIN EXISTING</span>
+                <span className="flex-shrink-0 mx-4 text-gray-500 text-xs tracking-widest font-bold uppercase">{t.orJoin}</span>
                 <div className="flex-grow border-t border-gray-700"></div>
               </div>
               <div>
@@ -605,7 +604,7 @@ export default function BattleArena({ user, onLogout }) {
                   type="text"
                   value={roomCodeInput}
                   onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
-                  placeholder="ENTER CODE"
+                  placeholder={t.enterCode}
                   className="w-full bg-black border-2 border-cyber-border rounded px-4 py-3 text-white font-mono text-center tracking-[0.2em] focus:border-cyber-neon focus:outline-none transition-colors"
                   maxLength={10}
                   onKeyDown={(e) => e.key === 'Enter' && joinPrivateRoom(roomCodeInput)}
@@ -617,14 +616,14 @@ export default function BattleArena({ user, onLogout }) {
                   onClick={() => setLobbyMode('initial')}
                   className="flex-1 border border-gray-600 text-gray-400 font-bold tracking-widest py-4 rounded hover:bg-gray-800 transition-colors"
                 >
-                  BACK
+                  {t.back}
                 </button>
                 <button
                   onClick={() => joinPrivateRoom(roomCodeInput)}
                   disabled={!roomCodeInput.trim()}
                   className="flex-[2] bg-cyber-neon text-black font-black uppercase tracking-widest py-4 rounded hover:shadow-[0_0_20px_rgba(0,255,157,0.6)] hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  JOIN
+                  {t.joinRoom}
                 </button>
               </div>
             </div>
@@ -643,15 +642,15 @@ export default function BattleArena({ user, onLogout }) {
           <img src="/logo.jpg" alt="Omogle Logo" className="w-10 h-10 drop-shadow-[0_0_8px_rgba(0,255,157,0.4)] object-contain" />
           <div className="flex flex-col">
             <span className="text-xl font-bold tracking-widest text-cyber-neon">OMOGLE-PROTOCOL</span>
-            <span className="text-xs text-gray-400 mt-1">ROOM: <span className="text-white font-mono bg-black px-2 py-1 ml-1 border border-cyber-border rounded tracking-widest">{roomCode}</span></span>
+            <span className="text-xs text-gray-400 mt-1 uppercase">{t.room}: <span className="text-white font-mono bg-black px-2 py-1 ml-1 border border-cyber-border rounded tracking-widest">{roomCode}</span></span>
           </div>
         </div>
         <div className="flex items-center gap-6">
           {user && (
-            <span className="text-sm font-bold text-cyber-neon tracking-widest hidden md:block">
+            <span className="text-sm font-bold text-cyber-neon tracking-widest hidden md:block uppercase">
               {user.username}
               {user.isGuest && (
-                <span className="ml-2 text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">GUEST</span>
+                <span className="ml-2 text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">{t.guestBadge}</span>
               )}
             </span>
           )}
@@ -670,8 +669,8 @@ export default function BattleArena({ user, onLogout }) {
           )}
 
           {gameMode !== 'solo' && gameMode !== 'photo' && (
-            <div className="text-sm">
-              <span className="text-gray-400">USERS: </span>
+            <div className="text-sm uppercase">
+              <span className="text-gray-400">{t.users}: </span>
               <span className="text-white font-bold">{playersCount}/2</span>
             </div>
           )}
@@ -684,14 +683,14 @@ export default function BattleArena({ user, onLogout }) {
                   onClick={findNextRandom}
                   className="px-6 py-2 rounded font-bold uppercase border border-cyber-neon text-cyber-neon hover:bg-cyber-neon hover:text-black transition-all"
                 >
-                  NEXT OPPONENT
+                  {t.nextOpponent}
                 </button>
               ) : (
                 <button
                   onClick={resetBattle}
                   className="px-6 py-2 rounded font-bold uppercase border border-cyber-accent text-cyber-accent hover:bg-cyber-accent hover:text-black transition-all"
                 >
-                  REMATCH
+                  {t.rematch}
                 </button>
               )}
             </div>
@@ -703,8 +702,8 @@ export default function BattleArena({ user, onLogout }) {
       {battleState === 'analyzing' && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
           <Cpu className="w-24 h-24 text-cyber-neon animate-pulse mb-6" />
-          <div className="text-3xl font-bold tracking-widest text-cyber-neon animate-pulse text-center">
-            EXTRACTING FACIAL TOPOLOGY...
+          <div className="text-3xl font-bold tracking-widest text-cyber-neon animate-pulse text-center uppercase">
+            {t.extracting}
           </div>
         </div>
       )}
@@ -724,7 +723,7 @@ export default function BattleArena({ user, onLogout }) {
           <div className="absolute top-0 left-0 w-full p-2 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center">
             <span className="text-sm font-bold text-gray-300 flex items-center gap-2">
               <Crosshair size={16} className="text-cyber-neon" />
-              {user ? user.username.toUpperCase() : 'SUBJECT_01'} (YOU)
+              {user ? user.username.toUpperCase() : 'SUBJECT_01'} ({t.you})
             </span>
           </div>
 
@@ -759,7 +758,7 @@ export default function BattleArena({ user, onLogout }) {
             )}
             {liveScore && !myResult && !uploadedImage && (
               <div className="absolute top-4 right-4 z-30 bg-black/60 border border-cyber-neon px-3 py-1 rounded flex flex-col items-end shadow-[0_0_10px_rgba(0,255,157,0.3)] backdrop-blur-sm">
-                <span className="text-[10px] font-bold text-cyber-neon tracking-widest animate-pulse">LIVE ESTIMATE</span>
+                <span className="text-[10px] font-bold text-cyber-neon tracking-widest animate-pulse uppercase">{t.liveEstimate}</span>
                 <span className="text-xl font-mono font-black text-white">{liveScore}</span>
                 <span className={`text-[10px] font-black tracking-widest ${getTier(parseFloat(liveScore)).color}`}>{getTier(parseFloat(liveScore)).label}</span>
               </div>
@@ -767,7 +766,7 @@ export default function BattleArena({ user, onLogout }) {
 
           </div>
 
-          {myResult && <ResultPanel analysis={myResult.analysis} isWinner={gameMode === 'solo' ? true : (opponentResult ? myResult.analysis.total > opponentResult.analysis.total : null)} />}
+          {myResult && <ResultPanel t={t} analysis={myResult.analysis} isWinner={gameMode === 'solo' ? true : (opponentResult ? myResult.analysis.total > opponentResult.analysis.total : null)} />}
         </div>
 
         {/* Player 2 (Opponent) */}
@@ -776,7 +775,7 @@ export default function BattleArena({ user, onLogout }) {
             <div className="absolute top-0 left-0 w-full p-2 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center">
               <span className="text-sm font-bold text-gray-300 flex items-center gap-2">
                 <ShieldAlert size={16} className="text-cyber-accent" />
-                {opponentName.toUpperCase()} (OPPONENT)
+                {opponentName.toUpperCase()} ({t.opponent})
               </span>
             </div>
 
@@ -793,14 +792,14 @@ export default function BattleArena({ user, onLogout }) {
               {!opponentResult && !opponentStream && (
                 <div className="text-gray-600 flex flex-col items-center gap-4">
                   <Camera size={48} className="opacity-20 animate-pulse" />
-                  <span className="text-sm tracking-widest text-center px-4">
-                    {playersCount < 2 ? "WAITING FOR OPPONENT TO JOIN ROOM..." : "CONNECTING VIDEO FEED..."}
+                  <span className="text-sm tracking-widest text-center px-4 uppercase">
+                    {playersCount < 2 ? t.searchingOpponent : t.connecting}
                   </span>
                 </div>
               )}
             </div>
 
-            {opponentResult && <ResultPanel analysis={opponentResult.analysis} isWinner={myResult ? opponentResult.analysis.total > myResult.analysis.total : null} />}
+            {opponentResult && <ResultPanel t={t} analysis={opponentResult.analysis} isWinner={myResult ? opponentResult.analysis.total > myResult.analysis.total : null} />}
           </div>
         )}
 
@@ -812,19 +811,19 @@ export default function BattleArena({ user, onLogout }) {
   );
 }
 
-function ResultPanel({ analysis, isWinner }) {
+function ResultPanel({ t, analysis, isWinner }) {
   return (
     <div className="p-4 border-t border-cyber-border bg-black/50 relative z-30">
       <div className="flex justify-between items-end mb-4">
         <div>
           <div className="text-xs text-gray-400 mb-1">AI VERDICT</div>
           <div className={`text-2xl font-black ${analysis.error ? 'text-red-500 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)]' : isWinner ? 'text-cyber-neon drop-shadow-[0_0_10px_rgba(0,255,157,0.8)]' : isWinner === false ? 'text-gray-500' : 'text-cyber-accent'}`}>
-            {analysis.verdict}
+            {analysis.error ? (t.ru ? 'ОШИБКА' : 'ERROR') : (t.ru ? (isWinner ? 'ПОБЕДА' : isWinner === false ? 'ПОРАЖЕНИЕ' : 'НИЧЬЯ') : analysis.verdict)}
           </div>
         </div>
         {!analysis.error && (
           <div className="text-right">
-            <div className="text-xs text-gray-400 mb-1">MOG SCORE</div>
+            <div className="text-xs text-gray-400 mb-1 uppercase">MOG SCORE</div>
             <div className="text-4xl font-black text-white">{analysis.total}</div>
             <div className={`text-xs font-black tracking-widest mt-1 ${getTier(analysis.total).color}`}>{getTier(analysis.total).label}</div>
           </div>
@@ -833,9 +832,9 @@ function ResultPanel({ analysis, isWinner }) {
 
       {!analysis.error && (
         <div className="space-y-2">
-          <ScoreBar label="SYMMETRY" value={analysis.symmetry} />
-          <ScoreBar label="JAWLINE" value={analysis.jawline} />
-          <ScoreBar label="EYE AREA" value={analysis.eyes} />
+          <ScoreBar label={t.symmetry.toUpperCase()} value={analysis.symmetry} />
+          <ScoreBar label={t.jawline.toUpperCase()} value={analysis.jawline} />
+          <ScoreBar label={t.eyes.toUpperCase()} value={analysis.eyes} />
         </div>
       )}
     </div>

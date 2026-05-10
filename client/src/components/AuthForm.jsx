@@ -4,7 +4,7 @@ import LightPillar from './LightPillar';
 
 const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : `http://${window.location.hostname}:3001/api`;
 
-export default function AuthForm({ onAuth }) {
+export default function AuthForm({ onAuth, t }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +27,7 @@ export default function AuthForm({ onAuth }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Ошибка');
+        setError(data.error || (t.ru ? 'Ошибка' : 'Error'));
         setLoading(false);
         return;
       }
@@ -43,7 +43,7 @@ export default function AuthForm({ onAuth }) {
 
       onAuth({ username: data.username, wins: data.wins || 0, losses: data.losses || 0, bestScore: data.bestScore || 0 });
     } catch (err) {
-      setError('Сервер недоступен. Убедись, что server.js запущен.');
+      setError(t.ru ? 'Сервер недоступен. Убедись, что server.js запущен.' : 'Server unavailable. Make sure server.js is running.');
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ export default function AuthForm({ onAuth }) {
           <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
             OMOGLE
           </h1>
-          <p className="text-gray-400 mt-2 text-sm tracking-widest">AESTHETIC EVALUATION PROTOCOL</p>
+          <p className="text-gray-400 mt-2 text-sm tracking-widest uppercase">{t.protocol}</p>
         </div>
 
         {/* Card */}
@@ -114,7 +114,7 @@ export default function AuthForm({ onAuth }) {
                 }`}
             >
               <LogIn size={16} />
-              Войти
+              {t.login}
             </button>
             <button
               onClick={() => { setMode('register'); setError(''); }}
@@ -124,7 +124,7 @@ export default function AuthForm({ onAuth }) {
                 }`}
             >
               <UserPlus size={16} />
-              Регистрация
+              {t.register}
             </button>
           </div>
 
@@ -136,7 +136,7 @@ export default function AuthForm({ onAuth }) {
                 type="text"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                placeholder="НИКНЕЙМ"
+                placeholder={t.username}
                 maxLength={20}
                 autoComplete="username"
                 className="w-full bg-black border-2 border-cyber-border rounded-lg px-4 py-3 pl-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600 uppercase"
@@ -150,7 +150,7 @@ export default function AuthForm({ onAuth }) {
                 type={showPass ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="ПАРОЛЬ"
+                placeholder={t.password}
                 maxLength={50}
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 className="w-full bg-black border-2 border-cyber-border rounded-lg px-4 py-3 pl-10 pr-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600"
@@ -178,17 +178,17 @@ export default function AuthForm({ onAuth }) {
               className="w-full py-4 rounded-lg font-black uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-cyber-neon text-black hover:shadow-[0_0_25px_rgba(0,255,157,0.5)] hover:bg-white active:scale-[0.98]"
             >
               {loading ? (
-                <span className="animate-pulse">ЗАГРУЗКА...</span>
+                <span className="animate-pulse">{t.loading}</span>
               ) : mode === 'login' ? (
-                'ВОЙТИ В СИСТЕМУ'
+                t.loginBtn
               ) : (
-                'СОЗДАТЬ АККАУНТ'
+                t.registerBtn
               )}
             </button>
 
             <div className="relative flex py-2 items-center">
               <div className="flex-grow border-t border-cyber-border/30"></div>
-              <span className="flex-shrink-0 mx-4 text-gray-600 text-[10px] font-bold tracking-[0.3em] uppercase">ИЛИ</span>
+              <span className="flex-shrink-0 mx-4 text-gray-600 text-[10px] font-bold tracking-[0.3em] uppercase">{t.or}</span>
               <div className="flex-grow border-t border-cyber-border/30"></div>
             </div>
 
@@ -197,16 +197,16 @@ export default function AuthForm({ onAuth }) {
               onClick={handleGuest}
               className="w-full py-3 rounded-lg font-bold uppercase tracking-widest border-2 border-cyber-border text-gray-400 hover:border-cyber-accent hover:text-white hover:bg-cyber-accent/5 transition-all flex items-center justify-center gap-2"
             >
-              ПРОДОЛЖИТЬ КАК ГОСТЬ
+              {t.guestBtn}
             </button>
             <p className="text-[9px] text-center text-gray-600 mt-2 tracking-widest uppercase italic">
-              * Статистика побед не будет сохранена на сервере
+              {t.guestWarning}
             </p>
           </form>
 
           {/* Guest hint */}
           <p className="text-center text-gray-600 text-xs mt-6 tracking-wider">
-            Данные хранятся на сервере · JWT авторизация
+            {t.ru ? 'Данные хранятся на сервере · JWT авторизация' : 'Data stored on server · JWT authorization'}
           </p>
         </div>
       </div>
