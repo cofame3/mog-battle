@@ -4,8 +4,11 @@ const AgeVerification = ({ lang }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    // Проверка на поисковых ботов (чтобы они видели контент для индексации)
+    const isBot = /bot|googlebot|crawler|spider|robot|crawling/i.test(navigator.userAgent);
+    
     const isVerified = localStorage.getItem('mog_age_verified');
-    if (!isVerified) {
+    if (!isVerified && !isBot) {
       setIsVisible(true);
       // Блокируем скролл пока открыто окно
       document.body.style.overflow = 'hidden';
