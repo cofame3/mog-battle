@@ -93,9 +93,15 @@ async function createUser(username, hashedPassword) {
   return User.create({ username, password: hashedPassword });
 }
 
-async function updateStats(username, { win, score, opponentElo }) {
+async function updateStats(username, { win, score, opponentElo, opponentUsername }) {
   const K = 32;
-  const oppElo = opponentElo || 400;
+  let oppElo = opponentElo || 400;
+
+  // If opponentUsername is provided, try to get their real ELO from DB to prevent desyncs
+  if (opponentUsername) {
+    const opp = await findUser(opponentUsername);
+    if (opp) oppElo = opp.elo || 400;
+  }
 
   if (useInMemory) {
     let user = inMemoryUsers.get(username.toLowerCase());
@@ -243,8 +249,8 @@ app.post('/api/stats', async (req, res) => {
     const auth = req.headers.authorization;
     if (!auth) return res.status(401).json({ error: 'Нет токена' });
     const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { win, score, opponentElo } = req.body;
-    const statsResult = await updateStats(username, { win, score, opponentElo });
+    const { win, score, opponentElo, opponentUsername } = req.body;
+    const statsResult = await updateStats(username, { win, score, opponentElo, opponentUsername });
     res.json({ ok: true, elo: statsResult?.elo, eloChange: statsResult?.eloChange });
   } catch {
     res.status(401).json({ error: 'Неверный токен' });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings, Shield, ChevronRight } from 'lucide-react';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 import LightPillar from './LightPillar';
@@ -11,6 +11,8 @@ import { getMogRank } from '../utils/ranks';
 // Connect to the signaling server dynamically so it works on local network devices, or via env
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const socket = io(SOCKET_URL, { autoConnect: false });
+
+const BATTLE_DURATION = 10; // 10 seconds for battle
 
 export default function BattleArena({ user, setUser, onLogout, t, lang }) {
   const [appState, setAppState] = useState('lobby'); // lobby, arena
@@ -37,6 +39,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
   const [playersCount, setPlayersCount] = useState(0);
   const [liveScore, setLiveScore] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+  const lastDrawTimeRef = useRef(0);
 
   useEffect(() => {
     if (!stream || battleState === 'result') {
@@ -143,6 +146,13 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
       socket.off('receiving_returned_signal');
     };
   }, [stream]);
+
+  // Синхронное открытие результатов в 1 на 1
+  useEffect(() => {
+    if (battleState === 'analyzing' && myResult && opponentResult) {
+      setBattleState('result');
+    }
+  }, [myResult, opponentResult, battleState]);
 
   // Keep streamRef in sync
   useEffect(() => {
@@ -346,17 +356,25 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
     setIsReady(false);
     if (gameMode !== 'solo') setOpponentReady(false);
 
-    let time = 15;
-    setCountdown(time);
+    const startTime = Date.now();
+    const endTime = startTime + BATTLE_DURATION * 1000;
+    
+    setCountdown(BATTLE_DURATION);
 
     const interval = setInterval(() => {
-      time -= 1;
-      setCountdown(time);
-      if (time === 0) {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((endTime - now) / 1000));
+      
+      setCountdown(prev => {
+        if (prev !== remaining) return remaining;
+        return prev;
+      });
+      
+      if (now >= endTime) {
         clearInterval(interval);
         takeSnapshotAndAnalyze();
       }
-    }, 1000);
+    }, 100);
   };
 
   useEffect(() => {
@@ -365,6 +383,14 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
 
     const drawLiveMesh = async () => {
       if (battleState !== 'battling' || !videoRef.current || !liveCanvasRef.current) return;
+
+      // Throttle to ~15 FPS to reduce CPU load and prevent timer freezing
+      const now = Date.now();
+      if (now - lastDrawTimeRef.current < 66) {
+        if (isActive) animationFrameId = requestAnimationFrame(drawLiveMesh);
+        return;
+      }
+      lastDrawTimeRef.current = now;
 
       const video = videoRef.current;
       const canvas = liveCanvasRef.current;
@@ -449,12 +475,18 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
     const myData = { image: imageSrc, analysis };
     setMyResult(myData);
 
-    if (gameMode !== 'solo') {
+    if (gameMode !== 'solo' && gameMode !== 'photo') {
       socket.emit('submit_snapshot', myData);
-      // Статистика обновится в resetBattle/результате
-    }
 
-    setBattleState('result');
+      // Если результат оппонента уже пришел, открываем финальный экран
+      // Если нет - продолжаем висеть в "analyzing", пока не сработает useEffect или socket.on
+      if (opponentResult) {
+        setBattleState('result');
+      }
+    } else {
+      // В соло или фото режиме открываем сразу
+      setBattleState('result');
+    }
   };
 
   // Отправить статистику на сервер
@@ -465,7 +497,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
       const res = await fetch(`${SOCKET_URL}/api/stats`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ win, score, opponentElo: oppElo }),
+        body: JSON.stringify({ win, score, opponentElo: oppElo, opponentUsername: opponentName }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -551,7 +583,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
             )}
             <span className="text-sm font-bold text-cyber-neon tracking-widest flex items-center gap-2">
               {user.username}
-              {!user.isGuest && (
+              {!user.isGuest && lobbyMode !== 'friend_join' && (
                 <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded flex items-center gap-1">
                   ⚡ {user.elo || 400}
                 </span>
@@ -699,7 +731,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
             </div>
           )}
         </div>
-        
+
         {lobbyMode === 'leaderboard' && (
           <Leaderboard t={t} onClose={() => setLobbyMode('initial')} currentUser={user} />
         )}
@@ -735,7 +767,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
                 <div className="flex flex-col">
                   <span className="text-sm font-black text-white tracking-widest leading-none uppercase">{user.username}</span>
                   <div className="flex items-center gap-2 mt-1">
-                    {!user.isGuest && (
+                    {!user.isGuest && gameMode !== 'friend' && (
                       <>
                         <span className="text-[10px] text-yellow-500 font-bold">⚡ {user.elo || 400}</span>
                         <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border ${getMogRank(user.elo).color} ${getMogRank(user.elo).bg} ${getMogRank(user.elo).border}`}>
@@ -802,9 +834,14 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
       {battleState === 'analyzing' && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
           <Cpu className="w-24 h-24 text-cyber-neon animate-pulse mb-6" />
-          <div className="text-3xl font-bold tracking-widest text-cyber-neon animate-pulse text-center uppercase">
-            {t.extracting}
+          <div className="text-3xl font-bold tracking-widest text-cyber-neon animate-pulse text-center uppercase px-4">
+            {myResult ? (lang === 'ru' ? 'ОЖИДАНИЕ ОППОНЕНТА...' : 'WAITING FOR OPPONENT...') : t.extracting}
           </div>
+          {myResult && (
+            <div className="mt-4 text-gray-500 font-bold tracking-widest animate-pulse">
+              {lang === 'ru' ? 'ВАШ АНАЛИЗ ЗАВЕРШЕН' : 'YOUR ANALYSIS COMPLETE'}
+            </div>
+          )}
         </div>
       )}
 
@@ -866,7 +903,18 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
 
           </div>
 
-          {myResult && <ResultPanel t={t} lang={lang} user={user} setUser={setUser} analysis={myResult.analysis} isWinner={gameMode === 'solo' ? true : (opponentResult ? myResult.analysis.total > opponentResult.analysis.total : null)} eloChangeData={eloChangeData} isSolo={gameMode === 'solo'} />}
+          {myResult && (
+            <ResultPanel
+              t={t}
+              lang={lang}
+              user={user}
+              setUser={setUser}
+              analysis={myResult.analysis}
+              isWinner={gameMode === 'solo' ? true : (opponentResult ? (myResult.analysis.total > opponentResult.analysis.total ? true : (myResult.analysis.total < opponentResult.analysis.total ? false : null)) : null)}
+              eloChangeData={eloChangeData}
+              isSolo={gameMode === 'solo'}
+            />
+          )}
         </div>
 
         {/* Player 2 (Opponent) */}
@@ -875,7 +923,12 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
             <div className="absolute top-0 left-0 w-full p-2 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center">
               <span className="text-sm font-bold text-gray-300 flex items-center gap-2">
                 <ShieldAlert size={16} className="text-cyber-accent" />
-                {opponentName.toUpperCase()} <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded ml-2">⚡ {opponentElo}</span>
+                {opponentName.toUpperCase()} 
+                {gameMode === 'random' && (
+                  <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-2 py-0.5 rounded ml-2 font-bold flex items-center gap-1">
+                    ⚡ ELO: {opponentElo}
+                  </span>
+                )}
               </span>
             </div>
 
@@ -902,8 +955,9 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
             {opponentResult && (
               <ResultPanel
                 t={t}
+                lang={lang}
                 analysis={opponentResult.analysis}
-                isWinner={myResult ? opponentResult.analysis.total > myResult.analysis.total : null}
+                isWinner={myResult ? (opponentResult.analysis.total > myResult.analysis.total ? true : (opponentResult.analysis.total < myResult.analysis.total ? false : null)) : null}
                 eloChangeData={eloChangeData ? {
                   newElo: opponentElo,
                   change: -eloChangeData.change
@@ -914,6 +968,36 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
         )}
 
       </div>
+
+      {/* Compact Timer Overlay - Moved to bottom to avoid overlapping */}
+      {countdown !== null && battleState === 'battling' && (
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center pointer-events-none scale-75 md:scale-90">
+          <div className="relative flex items-center justify-center w-16 h-16">
+            <svg className="w-full h-full -rotate-90">
+              <circle
+                cx="50%" cy="50%" r="45%"
+                fill="none" stroke="rgba(0,255,157,0.1)" strokeWidth="4"
+              />
+              <circle
+                cx="50%" cy="50%" r="45%"
+                fill="none" stroke="#00ff9d" strokeWidth="4"
+                strokeDasharray="283%"
+                strokeDashoffset={`${((BATTLE_DURATION - countdown) / BATTLE_DURATION) * 283}%`}
+                className="transition-all duration-1000 ease-linear"
+                style={{ filter: 'drop-shadow(0 0 8px #00ff9d)' }}
+              />
+            </svg>
+            <span className="absolute text-3xl font-black text-white font-mono drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
+              {countdown}
+            </span>
+          </div>
+          <div className="mt-2 px-3 py-1 bg-black/60 border border-cyber-neon/30 rounded backdrop-blur-md">
+            <span className="text-[8px] font-black text-cyber-neon tracking-[0.3em] uppercase opacity-80">
+              {t.timerLabel || 'SECONDS'}
+            </span>
+          </div>
+        </div>
+      )}
 
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
       <canvas ref={canvasRef} className="hidden" />
@@ -946,8 +1030,17 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
             {getVerdictText()}
           </div>
           {eloChangeData && !analysis.error && (
-            <div className={`text-sm font-bold mt-1 tracking-widest ${eloChangeData.change >= 0 ? 'text-cyber-neon' : 'text-red-500'}`}>
-              ELO: {eloChangeData.newElo} ({eloChangeData.change > 0 ? '+' : ''}{eloChangeData.change})
+            <div className={`mt-3 p-3 rounded-lg bg-black/60 border ${eloChangeData.change > 0 ? 'border-cyber-neon/30' : (eloChangeData.change < 0 ? 'border-red-500/30' : 'border-gray-500/30')} animate-reveal`}>
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em]">Rank Change</span>
+                <span className={`text-sm font-black ${eloChangeData.change > 0 ? 'text-cyber-neon' : (eloChangeData.change < 0 ? 'text-red-500' : 'text-gray-400')}`}>
+                  {eloChangeData.change > 0 ? '+' : ''}{eloChangeData.change}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-[10px]">
+                <span className="text-gray-500 uppercase tracking-widest font-bold">New Rating</span>
+                <span className="text-white font-mono font-bold">⚡ {eloChangeData.newElo}</span>
+              </div>
             </div>
           )}
         </div>
