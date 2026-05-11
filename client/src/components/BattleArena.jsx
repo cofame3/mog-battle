@@ -6,6 +6,7 @@ import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 import LightPillar from './LightPillar';
 import Leaderboard from './Leaderboard';
 import ProfileSettings from './ProfileSettings';
+import { getMogRank } from '../utils/ranks';
 
 // Connect to the signaling server dynamically so it works on local network devices, or via env
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
@@ -722,22 +723,33 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
         </div>
         <div className="flex items-center gap-6">
           {user && (
-            <span className="text-sm font-bold text-cyber-neon tracking-widest hidden md:flex items-center gap-2 uppercase">
-              {user.avatarUrl ? (
-                <img src={`${SOCKET_URL}${user.avatarUrl}`} alt="avatar" className="w-5 h-5 rounded-full object-cover border border-cyber-neon" />
-              ) : (
-                <User size={14} className="text-gray-400" />
-              )}
-              {user.username}
-              {!user.isGuest && (
-                <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded flex items-center gap-1">
-                  ⚡ {user.elo || 400}
-                </span>
-              )}
-              {user.isGuest && (
-                <span className="ml-2 text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">{t.guestBadge}</span>
-              )}
-            </span>
+            <div className="hidden md:flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                {user.avatarUrl ? (
+                  <img src={`${SOCKET_URL}${user.avatarUrl}`} alt="avatar" className="w-8 h-8 rounded-full object-cover border border-white/10" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                    <User size={16} className="text-gray-400" />
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  <span className="text-sm font-black text-white tracking-widest leading-none uppercase">{user.username}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    {!user.isGuest && (
+                      <>
+                        <span className="text-[10px] text-yellow-500 font-bold">⚡ {user.elo || 400}</span>
+                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded border ${getMogRank(user.elo).color} ${getMogRank(user.elo).bg} ${getMogRank(user.elo).border}`}>
+                          {getMogRank(user.elo).name}
+                        </span>
+                      </>
+                    )}
+                    {user.isGuest && (
+                      <span className="text-[8px] bg-white/10 text-gray-400 border border-white/20 px-1 rounded font-black uppercase">GUEST</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
           {stream && (
             <button onClick={toggleMic} className={`transition-colors ${isMicMuted ? 'text-red-400' : 'text-cyber-neon hover:text-white'}`} title="Микрофон">
