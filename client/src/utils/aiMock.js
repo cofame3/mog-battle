@@ -188,13 +188,32 @@ export const analyzeAppearance = async (mediaElement) => {
       else if (total >= 35) verdict = "SUB-3";
       else verdict = "IT'S OVER";
 
+      // Extra measurements for PSL report
+      const jawRatioFinal = jawRatio.toFixed(2);
+      const rightCanthalTilt = ((rightInner.y - rightOuter.y) / distance(rightOuter, rightInner) * 100).toFixed(1);
+      const leftCanthalTilt = ((leftInner.y - leftOuter.y) / distance(leftInner, leftOuter) * 100).toFixed(1);
+      
+      // Philtrum (nose tip to upper lip)
+      const noseTipPt = keypoints[4];
+      const upperLipPt = keypoints[0];
+      const philtrumRatio = noseTipPt && upperLipPt ? (distance(noseTipPt, upperLipPt) / distance(noseBridge, chin)).toFixed(2) : null;
+
       return { 
         symmetry: Math.max(10, Math.min(99, finalSym)), 
         jawline: Math.max(10, Math.min(99, finalJaw)), 
         eyes: Math.max(10, Math.min(99, finalEyes)), 
         total: Math.max(10, Math.min(99, total)), 
         verdict, 
-        error: false 
+        error: false,
+        keypoints,
+        psl: {
+          canthalTiltR: parseFloat(rightCanthalTilt),
+          canthalTiltL: parseFloat(leftCanthalTilt),
+          jawRatio: parseFloat(jawRatioFinal),
+          philtrumRatio: philtrumRatio ? parseFloat(philtrumRatio) : null,
+          cheekWidth,
+          jawWidth,
+        }
       };
 
     } catch (e) {

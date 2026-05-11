@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings, Shield, ChevronRight, Info } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings, Shield, ChevronRight, Info, Scan } from 'lucide-react';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 import LightPillar from './LightPillar';
 import Leaderboard from './Leaderboard';
 import ProfileSettings from './ProfileSettings';
+import PSLReport from './PSLReport';
 import { getMogRank, RANK_TIERS } from '../utils/ranks';
 
 // Connect to the signaling server dynamically so it works on local network devices, or via env
@@ -436,15 +437,35 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       if (faces && faces.length > 0) {
-        const keypoints = faces[0].keypoints;
-        ctx.fillStyle = '#00ff9d'; // cyber-neon
-        for (let i = 0; i < keypoints.length; i++) {
-          const x = keypoints[i].x;
-          const y = keypoints[i].y;
+        const kp = faces[0].keypoints;
+
+        // ── Only essential landmarks (~30 points) ──
+        const drawDot = (idx, color, radius, glow) => {
+          const pt = kp[idx];
+          if (!pt) return;
+          ctx.save();
+          ctx.fillStyle = color;
+          if (glow) { ctx.shadowColor = color; ctx.shadowBlur = glow; }
           ctx.beginPath();
-          ctx.arc(x, y, 1.5, 0, 2 * Math.PI);
+          ctx.arc(pt.x, pt.y, radius, 0, 2 * Math.PI);
           ctx.fill();
-        }
+          ctx.restore();
+        };
+
+        // Eyes — corners
+        [33, 133, 362, 263].forEach(i => drawDot(i, '#00ff9d', 3, 12));
+        // Eyebrows — peaks
+        [70, 63, 105, 300, 293, 334].forEach(i => drawDot(i, 'rgba(255,0,85,0.8)', 2.5, 10));
+        // Nose — bridge & tip
+        [6, 4].forEach(i => drawDot(i, '#00ff9d', 2.5, 8));
+        // Jaw — angles + chin
+        [132, 361, 152].forEach(i => drawDot(i, '#00ff9d', 3, 12));
+        // Cheekbones
+        [234, 454].forEach(i => drawDot(i, 'rgba(0,255,157,0.5)', 2.5, 8));
+        // Lips — corners + center
+        [61, 291, 0, 17].forEach(i => drawDot(i, 'rgba(255,0,85,0.7)', 2, 8));
+        // Forehead top
+        drawDot(10, 'rgba(0,255,157,0.5)', 2.5, 8);
       }
 
       if (isActive) {
@@ -826,7 +847,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-8">
+    <div className="w-full max-w-7xl mx-auto px-4 pt-8 pb-32">
       {/* Header Info */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-black/80 backdrop-blur-xl border border-white/10 p-4 rounded-[1.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.3)] gap-4">
         <div className="flex items-center gap-4">
@@ -993,6 +1014,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
               user={user}
               setUser={setUser}
               analysis={myResult.analysis}
+              snapshotImage={myResult.image}
               isWinner={gameMode === 'solo' || gameMode === 'photo' ? true : (opponentResult ? (myResult.analysis.total > opponentResult.analysis.total ? true : (myResult.analysis.total < opponentResult.analysis.total ? false : null)) : null)}
               eloChangeData={gameMode === 'solo' || gameMode === 'photo' ? null : eloChangeData}
               isSolo={gameMode === 'solo' || gameMode === 'photo'}
@@ -1047,6 +1069,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
                 t={t}
                 lang={lang}
                 analysis={opponentResult.analysis}
+                snapshotImage={opponentResult.image}
                 isWinner={myResult ? (opponentResult.analysis.total > myResult.analysis.total ? true : (opponentResult.analysis.total < myResult.analysis.total ? false : null)) : null}
                 eloChangeData={eloChangeData ? {
                   newElo: opponentElo,
@@ -1096,13 +1119,58 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
   );
 }
 
-function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user, setUser }) {
+function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user, setUser, snapshotImage }) {
   const [advice, setAdvice] = useState(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
+  const [showPSL, setShowPSL] = useState(false);
+  const [pslGateMsg, setPslGateMsg] = useState(null);
+  const [pslTimer, setPslTimer] = useState('');
 
   useEffect(() => {
     setAdvice(null);
+    setPslGateMsg(null);
   }, [analysis]);
+
+  // Countdown timer for daily PSL gate
+  useEffect(() => {
+    if (pslGateMsg !== 'daily') return;
+    const tick = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const diff = midnight - now;
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setPslTimer(`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [pslGateMsg]);
+
+  // Check if PSL scan is available
+  const handlePSLClick = () => {
+    // Gate 1: Must be registered
+    if (!user || user.isGuest) {
+      setPslGateMsg(lang === 'ru' ? 'signup' : 'signup');
+      return;
+    }
+    // Gate 2: 1 per day
+    const storageKey = `psl_last_scan_${user.username}`;
+    const lastScan = localStorage.getItem(storageKey);
+    if (lastScan) {
+      const lastDate = new Date(lastScan).toDateString();
+      const today = new Date().toDateString();
+      if (lastDate === today) {
+        setPslGateMsg('daily');
+        return;
+      }
+    }
+    // Allow scan & record timestamp
+    localStorage.setItem(storageKey, new Date().toISOString());
+    setShowPSL(true);
+  };
 
   const getVerdictText = () => {
     if (analysis.error) return t.ru ? 'ОШИБКА' : 'ERROR';
@@ -1148,81 +1216,170 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
           <ScoreBar label={t.symmetry.toUpperCase()} value={analysis.symmetry} />
           <ScoreBar label={t.jawline.toUpperCase()} value={analysis.jawline} />
           <ScoreBar label={t.eyes.toUpperCase()} value={analysis.eyes} />
+
+          {/* PSL Scan Button — Solo/Photo only */}
+          {snapshotImage && isSolo && (
+            <>
+              <button
+                onClick={handlePSLClick}
+                className="w-full mt-3 flex items-center justify-center gap-2 text-xs font-black tracking-[0.2em] uppercase py-2.5 rounded-lg border border-cyber-neon/40 text-cyber-neon bg-cyber-neon/5 hover:bg-cyber-neon/15 hover:border-cyber-neon/70 transition-all"
+              >
+                <Scan size={14} />
+                {lang === 'ru' ? 'PSL СКАН' : 'VIEW PSL SCAN'}
+                <span className="text-[8px] ml-1 bg-cyber-neon/20 px-1.5 py-0.5 rounded text-cyber-neon/80">FREE</span>
+              </button>
+
+              {/* Gate: Sign up required */}
+              {pslGateMsg === 'signup' && (
+                <div className="mt-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-center animate-reveal">
+                  <div className="text-yellow-500 font-black text-xs tracking-widest mb-1">
+                    {lang === 'ru' ? '🔒 НУЖНА РЕГИСТРАЦИЯ' : '🔒 SIGN UP REQUIRED'}
+                  </div>
+                  <div className="text-[10px] text-gray-400">
+                    {lang === 'ru'
+                      ? 'Создай бесплатный аккаунт чтобы открыть PSL скан + систему рангов'
+                      : 'Create a free account to unlock PSL scan + ranking system'}
+                  </div>
+                </div>
+              )}
+
+              {/* Gate: Daily limit with timer */}
+              {pslGateMsg === 'daily' && (
+                <div className="mt-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-center animate-reveal">
+                  <div className="text-blue-400 font-black text-xs tracking-widest mb-1">
+                    {lang === 'ru' ? '⏳ 1 СКАН В СУТКИ' : '⏳ 1 SCAN PER DAY'}
+                  </div>
+                  <div className="text-[10px] text-gray-400 mb-2">
+                    {lang === 'ru'
+                      ? 'Ты уже использовал свой бесплатный скан сегодня.'
+                      : 'You already used your free scan today.'}
+                  </div>
+                  <div className="inline-flex items-center gap-2 bg-black/40 border border-blue-500/20 rounded-lg px-3 py-1.5">
+                    <span className="text-[9px] text-gray-500 font-bold tracking-widest uppercase">
+                      {lang === 'ru' ? 'СЛЕДУЮЩИЙ ЧЕРЕЗ' : 'NEXT IN'}
+                    </span>
+                    <span className="text-lg font-mono font-black text-blue-400">{pslTimer}</span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
+      {showPSL && snapshotImage && (
+        <PSLReport
+          imageSrc={snapshotImage}
+          analysis={analysis}
+          onClose={() => setShowPSL(false)}
+          lang={lang}
+        />
+      )}
+
       {isSolo && !analysis.error && (
-        <div className="mt-4 pt-4 border-t border-cyber-border/50 group">
-          <div className="text-xs font-black text-yellow-500 mb-2 flex items-center gap-1">
-            {advice ? advice.title : (lang === 'ru' ? "💎 ПРЕМИУМ АНАЛИЗ" : "💎 PREMIUM ANALYSIS")}
-          </div>
-
-          <div className="relative overflow-hidden rounded-lg">
-            <div className={`text-sm text-gray-300 space-y-2 ${!advice ? 'blur-sm select-none' : ''}`}>
-              {advice ? (
-                advice.points.map((p, i) => <p key={i}>• {p}</p>)
-              ) : (
-                <>
-                  <p>• {lang === 'ru' ? "Твоя симметрия лица скрыта. Доступно только в премиум анализе, исправь осанку." : "Your facial symmetry is hidden. Available only in premium analysis, fix your posture."}</p>
-                  <p>• {lang === 'ru' ? "Слабо выраженная челюсть. Узнай свой реальный потенциал." : "Weak jawline definition. Find out your real potential."}</p>
-                  <p>• {lang === 'ru' ? "Скрытые рекомендации по улучшению взгляда и формы глаз." : "Hidden recommendations for improving your gaze and eye shape."}</p>
-                </>
-              )}
-            </div>
-
-            {!advice && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[4px] p-4">
-                <div className="mb-4 text-center">
-                  <div className="text-yellow-500 font-black tracking-widest mb-1 flex items-center justify-center gap-2">
-                    <Lock size={16} /> UNLOCK PREMIUM AI ADVICE
+        <div className="mt-4 pt-4 border-t border-yellow-500/20">
+          {advice ? (
+            /* ── Unlocked content ── */
+            <div>
+              <div className="text-sm font-black text-yellow-500 mb-3 flex items-center gap-2">
+                {advice.title}
+              </div>
+              <div className="space-y-4">
+                {advice.sections ? advice.sections.map((sec, i) => (
+                  <div key={i} className="bg-white/[0.02] rounded-lg p-3 border border-white/5">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black tracking-widest text-white flex items-center gap-1.5">
+                        {sec.icon} {sec.title}
+                      </span>
+                      {sec.score && (
+                        <span className="text-[10px] font-mono font-bold text-cyber-neon bg-cyber-neon/10 px-2 py-0.5 rounded">{sec.score}</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 mb-2">{sec.content}</p>
+                    {sec.exercises && (
+                      <ul className="space-y-1.5">
+                        {sec.exercises.map((ex, j) => (
+                          <li key={j} className="text-xs text-gray-300 leading-relaxed">{ex}</li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                  <div className="text-xs text-gray-300">Get personalized looksmaxxing tips.</div>
+                )) : (
+                  advice.points && advice.points.map((p, i) => <p key={i} className="text-sm text-gray-300">• {p}</p>)
+                )}
+              </div>
+            </div>
+          ) : (
+            /* ── Locked — clean card ── */
+            <div className="rounded-2xl border-2 border-yellow-500/30 bg-gradient-to-b from-yellow-500/[0.06] to-transparent p-5 text-center">
+              <div className="text-3xl font-black text-yellow-400 mb-2 flex items-center justify-center gap-2">
+                <Lock size={22} /> $2
+              </div>
+              <div className="text-sm font-black text-white tracking-widest mb-1 uppercase">
+                {lang === 'ru' ? '💎 ПРЕМИУМ АНАЛИЗ' : '💎 PREMIUM ANALYSIS'}
+              </div>
+              <div className="text-xs text-gray-400 mb-4">
+                {lang === 'ru' ? '6 секций • Упражнения • 30-дневный план' : '6 sections • Exercises • 30-day plan'}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 mb-5 text-left">
+                <div className="flex items-center gap-2 text-[11px] text-gray-300">
+                  <span className="text-yellow-500">✓</span> {lang === 'ru' ? 'Упражнения для челюсти' : 'Jaw exercises'}
                 </div>
-
-                <div className="w-full max-w-xs relative z-50 flex flex-col gap-2">
-                  <PayPalButtons
-                    style={{ layout: "horizontal", color: "gold", shape: "pill", label: "pay", height: 40 }}
-                    createOrder={(data, actions) => {
-                      return actions.order.create({
-                        purchase_units: [{
-                          amount: { currency_code: "USD", value: "2.00" },
-                          description: "MogBattle Premium Advice Token"
-                        }]
-                      });
-                    }}
-                    onApprove={async (data, actions) => {
-                      try {
-                        const token = localStorage.getItem('mog_token');
-                        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-                        const response = await fetch(`${apiUrl}/api/paypal/capture-order`, {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Bearer ${token}`
-                          },
-                          body: JSON.stringify({ orderID: data.orderID, analysis, lang })
-                        });
-
-                        const result = await response.json();
-                        if (result.ok) {
-                          setAdvice(result.advice);
-                        } else {
-                          alert("Capture failed: " + (result.error || "Unknown error"));
-                        }
-                      } catch (err) {
-                        console.error("Server capture error:", err);
-                        alert("Server capture failed: " + err.message);
-                      }
-                    }}
-                    onError={(err) => {
-                      console.error("PayPal Checkout onError", err);
-                      alert("Payment Error: " + err.message);
-                    }}
-                  />
+                <div className="flex items-center gap-2 text-[11px] text-gray-300">
+                  <span className="text-yellow-500">✓</span> {lang === 'ru' ? 'Советы по взгляду' : 'Eye improvement tips'}
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-gray-300">
+                  <span className="text-yellow-500">✓</span> {lang === 'ru' ? 'Стиль и груминг' : 'Style & grooming'}
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-gray-300">
+                  <span className="text-yellow-500">✓</span> {lang === 'ru' ? '30-дневный план' : '30-day plan'}
                 </div>
               </div>
-            )}
-          </div>
+
+              <div className="w-full max-w-xs mx-auto relative z-50">
+                <PayPalButtons
+                  style={{ layout: "horizontal", color: "gold", shape: "pill", label: "pay", height: 45 }}
+                  createOrder={(data, actions) => {
+                    return actions.order.create({
+                      purchase_units: [{
+                        amount: { currency_code: "USD", value: "2.00" },
+                        description: "MogBattle Premium Analysis"
+                      }]
+                    });
+                  }}
+                  onApprove={async (data, actions) => {
+                    try {
+                      const token = localStorage.getItem('mog_token');
+                      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                      const response = await fetch(`${apiUrl}/api/paypal/capture-order`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ orderID: data.orderID, analysis, lang })
+                      });
+
+                      const result = await response.json();
+                      if (result.ok) {
+                        setAdvice(result.advice);
+                      } else {
+                        alert("Capture failed: " + (result.error || "Unknown error"));
+                      }
+                    } catch (err) {
+                      console.error("Server capture error:", err);
+                      alert("Server capture failed: " + err.message);
+                    }
+                  }}
+                  onError={(err) => {
+                    console.error("PayPal Checkout onError", err);
+                    alert("Payment Error: " + err.message);
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
