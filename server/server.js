@@ -531,10 +531,10 @@ io.on('connection', (socket) => {
     io.to(payload.callerID).emit('receiving_returned_signal', { signal: payload.signal, id: socket.id });
   });
 
-  socket.on('set_ready', ({ isReady, roomCode, username }) => {
+  socket.on('set_ready', ({ isReady, roomCode, username, elo }) => {
     if (!rooms[roomCode]) return;
     rooms[roomCode].readyStates[socket.id] = isReady;
-    socket.to(roomCode).emit('opponent_ready', { isReady, username });
+    socket.to(roomCode).emit('opponent_ready', { isReady, username, elo });
 
     const playerIds = Object.keys(rooms[roomCode].players);
     if (playerIds.length >= 2) {
