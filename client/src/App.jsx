@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import BattleArena from './components/BattleArena';
 import AuthForm from './components/AuthForm';
 import AgeVerification from './components/AgeVerification';
 import LegalModal from './components/LegalModal';
+import FAQ from './components/FAQ';
+import Terms from './components/Terms';
+import Privacy from './components/Privacy';
+import Footer from './components/Footer';
 import { translations } from './utils/translations';
 
 function App() {
@@ -11,6 +16,7 @@ function App() {
   const [lang, setLang] = useState(localStorage.getItem('mog_lang') || 'ru');
   const [isGlitching, setIsGlitching] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
+  const location = useLocation();
 
   const t = translations[lang];
 
@@ -21,6 +27,11 @@ function App() {
     setIsGlitching(true);
     setTimeout(() => setIsGlitching(false), 300);
   };
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   // Восстановить сессию при перезагрузке страницы
   useEffect(() => {
@@ -45,22 +56,32 @@ function App() {
   if (checking) return null;
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative flex flex-col">
       <AgeVerification lang={lang} />
       {/* Language Toggle */}
       <button
         onClick={toggleLang}
-        className={`fixed top-6 left-6 z-50 bg-black/60 border border-cyber-border px-3 py-1 rounded text-xs font-black tracking-widest text-cyber-neon hover:bg-cyber-neon hover:text-black transition-all backdrop-blur-md ${isGlitching ? 'animate-glitch' : ''}`}
+        className={`fixed top-6 left-6 z-[100] bg-black/60 border border-cyber-border px-3 py-1 rounded text-xs font-black tracking-widest text-cyber-neon hover:bg-cyber-neon hover:text-black transition-all backdrop-blur-md ${isGlitching ? 'animate-glitch' : ''}`}
       >
         {lang.toUpperCase()}
       </button>
 
-      {!user ? (
-        <AuthForm onAuth={setUser} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
-      ) : (
-        <BattleArena user={user} setUser={setUser} onLogout={handleLogout} lang={lang} t={t} />
-      )}
+      <div className="flex-1">
+        <Routes>
+          <Route path="/" element={
+            !user ? (
+              <AuthForm onAuth={setUser} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
+            ) : (
+              <BattleArena user={user} setUser={setUser} onLogout={handleLogout} lang={lang} t={t} />
+            )
+          } />
+          <Route path="/faq" element={<FAQ lang={lang} />} />
+          <Route path="/terms" element={<Terms lang={lang} />} />
+          <Route path="/privacy" element={<Privacy lang={lang} />} />
+        </Routes>
+      </div>
 
+      <Footer lang={lang} />
       {showLegal && <LegalModal lang={lang} onClose={() => setShowLegal(false)} />}
     </div>
   );

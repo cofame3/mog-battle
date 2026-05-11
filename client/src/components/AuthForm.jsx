@@ -264,6 +264,20 @@ export default function AuthForm({ onAuth, t, onShowLegal }) {
         <p className="text-center text-gray-600 text-[10px] mt-6 tracking-wider opacity-50">
           {t.ru ? 'Данные хранятся на сервере · JWT авторизация' : 'Data stored on server · JWT authorization'}
         </p>
+
+        {/* SEO Block */}
+        <div className="mt-12 pt-8 border-t border-white/5 space-y-4 text-[11px] text-gray-500 leading-relaxed font-sans italic opacity-60">
+          <p>
+            {t.ru 
+              ? "Omogle — это передовая платформа для оценки внешности с использованием искусственного интеллекта. Наш AI Face Rating анализирует черты вашего лица, такие как симметрия, линия челюсти и наклон глаз (canthal tilt), чтобы дать объективную оценку вашей привлекательности. Это не просто инструмент для анализа, а настоящая Beauty Battle Arena, где вы можете соревноваться с другими пользователями в реальном времени."
+              : "Omogle is a cutting-edge platform for facial evaluation using artificial intelligence. Our AI Face Rating analyzes your facial features, such as symmetry, jawline, and canthal tilt, to provide an objective assessment of your attractiveness. This is more than just an analysis tool; it's a real Beauty Battle Arena where you can compete with others in real-time."}
+          </p>
+          <p>
+            {t.ru
+              ? "Оцени свою внешность по фото и узнай, насколько ты соответствуешь современным стандартам красоты. Наш искусственный интеллект рейтинг лиц использует новейшие технологии компьютерного зрения, чтобы помочь тебе в пути к looksmaxxing. Вступай в битву и докажи, что ты настоящий Гигачад!"
+              : "Rate your appearance from a photo and find out how well you match modern beauty standards. Our artificial intelligence face rating uses the latest computer vision technologies to help you on your looksmaxxing journey. Enter the battle and prove you're a true Gigachad!"}
+          </p>
+        </div>
       </div>
     </div>
   );
