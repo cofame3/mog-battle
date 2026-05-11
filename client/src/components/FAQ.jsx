@@ -32,8 +32,24 @@ export default function FAQ({ lang }) {
     }
   ];
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.a
+      }
+    }))
+  };
+
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden font-sans">
+      <script type="application/ld+json">
+        {JSON.stringify(faqSchema)}
+      </script>
       {/* Background Effect */}
       <div className="absolute inset-0 z-0 opacity-30">
         <LightPillar topColor="#00ff9d" bottomColor="#ff0055" />

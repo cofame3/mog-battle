@@ -134,7 +134,7 @@ export default function AuthForm({ onAuth, t, onShowLegal }) {
         <div className="text-center mb-8">
           <img src="/logo.jpg" alt="Omogle Logo" className="w-32 h-32 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(0,255,157,0.5)] object-cover rounded-[2rem]" />
           <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
-            OMOGLE
+            OMOGLE — AI FACE RATING
           </h1>
           <p className="text-gray-400 mt-2 text-sm tracking-widest uppercase">{t.protocol}</p>
         </div>

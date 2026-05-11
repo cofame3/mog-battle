@@ -4,11 +4,19 @@ const AgeVerification = ({ lang }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Проверка на поисковых ботов (чтобы они видели контент для индексации)
-    const isBot = /bot|googlebot|crawler|spider|robot|crawling/i.test(navigator.userAgent);
+    // Расширенная проверка на ботов и краулеров мессенджеров
+    const botPatterns = /bot|googlebot|crawler|spider|robot|crawling|telegrambot|facebookexternalhit|whatsapp|slackbot|discordbot|twitterbot/i;
+    const isBot = botPatterns.test(navigator.userAgent);
     
     const isVerified = localStorage.getItem('mog_age_verified');
-    if (!isVerified && !isBot) {
+    
+    // Если это бот, мы вообще не показываем модалку
+    if (isBot) {
+      setIsVisible(false);
+      return;
+    }
+
+    if (!isVerified) {
       setIsVisible(true);
       // Блокируем скролл пока открыто окно
       document.body.style.overflow = 'hidden';
