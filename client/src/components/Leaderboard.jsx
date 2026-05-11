@@ -25,9 +25,9 @@ export default function Leaderboard({ t, onClose, currentUser }) {
   }, []);
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-reveal">
-      <div className="relative w-full max-w-lg bg-cyber-panel border border-cyber-border rounded-xl shadow-[0_0_30px_rgba(0,255,157,0.2)] flex flex-col max-h-[80vh]">
-        
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-reveal">
+      <div className="relative w-full max-w-lg bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col max-h-[85vh]">
+
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-cyber-border bg-black/40 rounded-t-xl">
           <div className="flex items-center gap-2">
@@ -36,7 +36,7 @@ export default function Leaderboard({ t, onClose, currentUser }) {
               {t.leaderboard}
             </h2>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-400 hover:text-white transition-colors"
           >
@@ -57,7 +57,7 @@ export default function Leaderboard({ t, onClose, currentUser }) {
           ) : (
             leaders.map((player, index) => {
               const isCurrentUser = currentUser && player.username === currentUser.username;
-              
+
               // Top 3 medals
               let rankColor = "text-gray-500";
               if (index === 0) rankColor = "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]";
@@ -65,24 +65,39 @@ export default function Leaderboard({ t, onClose, currentUser }) {
               else if (index === 2) rankColor = "text-amber-600 drop-shadow-[0_0_8px_rgba(217,119,6,0.8)]";
 
               return (
-                <div 
+                <div
                   key={index}
-                  className={`flex items-center justify-between p-3 rounded border transition-all ${
-                    isCurrentUser 
-                      ? 'bg-cyber-neon/10 border-cyber-neon shadow-[0_0_10px_rgba(0,255,157,0.3)]' 
+                  className={`flex items-center justify-between p-3 rounded border transition-all ${isCurrentUser
+                      ? 'bg-cyber-neon/10 border-cyber-neon shadow-[0_0_10px_rgba(0,255,157,0.3)]'
                       : 'bg-black/40 border-cyber-border hover:border-gray-500'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`font-black w-6 text-center ${rankColor}`}>
                       {index < 3 ? <Medal size={20} className="mx-auto" /> : `#${index + 1}`}
                     </div>
+
+                    {/* Аватар */}
+                    <div className="w-8 h-8 rounded-full border border-cyber-border overflow-hidden bg-black flex items-center justify-center">
+                      {player.avatarUrl ? (
+                        <img
+                          src={`${SOCKET_URL}${player.avatarUrl}`}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-gray-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                        </div>
+                      )}
+                    </div>
+
                     <div className={`font-bold tracking-widest ${isCurrentUser ? 'text-cyber-neon' : 'text-white'}`}>
                       {player.username}
-                      {isCurrentUser && <span className="ml-2 text-[10px] bg-cyber-neon text-black px-1 rounded">YOU</span>}
+                      {isCurrentUser && <span className="ml-2 text-[10px] bg-cyber-neon text-black px-1 rounded uppercase">You</span>}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-4 text-right">
                     <div className="flex flex-col">
                       <span className="text-[10px] text-gray-500 font-bold tracking-wider">ELO</span>

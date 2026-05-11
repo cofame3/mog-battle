@@ -5,7 +5,7 @@ import LightPillar from './LightPillar';
 
 const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : `http://${window.location.hostname}:3001/api`;
 
-export default function AuthForm({ onAuth, t }) {
+export default function AuthForm({ onAuth, t, onShowLegal }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -40,9 +40,11 @@ export default function AuthForm({ onAuth, t }) {
         wins: data.wins || 0,
         losses: data.losses || 0,
         bestScore: data.bestScore || 0,
+        avatarUrl: data.avatarUrl || '',
+        lastNicknameChange: data.lastNicknameChange || null,
       }));
 
-      onAuth({ username: data.username, wins: data.wins || 0, losses: data.losses || 0, bestScore: data.bestScore || 0 });
+      onAuth({ username: data.username, wins: data.wins || 0, losses: data.losses || 0, bestScore: data.bestScore || 0, avatarUrl: data.avatarUrl || '', lastNicknameChange: data.lastNicknameChange || null });
     } catch (err) {
       setError(t.ru ? 'Сервер недоступен. Убедись, что server.js запущен.' : 'Server unavailable. Make sure server.js is running.');
     } finally {
@@ -60,7 +62,7 @@ export default function AuthForm({ onAuth, t }) {
       bestScore: 0,
       isGuest: true
     };
-    
+
     localStorage.setItem('mog_user', JSON.stringify(guestData));
     // При гостевом входе mog_token не устанавливается
     onAuth(guestData);
@@ -88,6 +90,8 @@ export default function AuthForm({ onAuth, t }) {
         wins: data.wins || 0,
         losses: data.losses || 0,
         bestScore: data.bestScore || 0,
+        avatarUrl: data.avatarUrl || '',
+        lastNicknameChange: data.lastNicknameChange || null,
       }));
 
       onAuth(data);
@@ -125,134 +129,141 @@ export default function AuthForm({ onAuth, t }) {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-reveal">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/logo.jpg" alt="Omogle Logo" className="w-32 h-32 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(0,255,157,0.5)] object-contain" />
+          <img src="/logo.jpg" alt="Omogle Logo" className="w-32 h-32 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(0,255,157,0.5)] object-cover rounded-[2rem]" />
           <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
             OMOGLE
           </h1>
           <p className="text-gray-400 mt-2 text-sm tracking-widest uppercase">{t.protocol}</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-cyber-panel border border-cyber-border rounded-xl p-8 shadow-[0_0_40px_rgba(0,255,157,0.08)]">
-          {/* Tabs */}
-          <div className="flex mb-8 border border-cyber-border rounded-lg overflow-hidden">
+        {/* Tabs */}
+        <div className="flex mb-8 border border-white/10 rounded-xl overflow-hidden bg-white/5 backdrop-blur-sm">
+          <button
+            onClick={() => { setMode('login'); setError(''); }}
+            className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'login'
+              ? 'bg-cyber-neon text-black'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+          >
+            <LogIn size={16} />
+            {t.login}
+          </button>
+          <button
+            onClick={() => { setMode('register'); setError(''); }}
+            className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'register'
+              ? 'bg-cyber-neon text-black'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+          >
+            <UserPlus size={16} />
+            {t.register}
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Username */}
+          <div className="relative">
+            <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <input
+              type="text"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder={t.username}
+              maxLength={20}
+              autoComplete="username"
+              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pl-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600 uppercase"
+            />
+          </div>
+
+          {/* Password */}
+          <div className="relative">
+            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <input
+              type={showPass ? 'text' : 'password'}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder={t.password}
+              maxLength={50}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pl-10 pr-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600"
+            />
             <button
-              onClick={() => { setMode('login'); setError(''); }}
-              className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'login'
-                  ? 'bg-cyber-neon text-black'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
+              type="button"
+              onClick={() => setShowPass(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
             >
-              <LogIn size={16} />
-              {t.login}
-            </button>
-            <button
-              onClick={() => { setMode('register'); setError(''); }}
-              className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'register'
-                  ? 'bg-cyber-neon text-black'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
-            >
-              <UserPlus size={16} />
-              {t.register}
+              {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Username */}
-            <div className="relative">
-              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-              <input
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                placeholder={t.username}
-                maxLength={20}
-                autoComplete="username"
-                className="w-full bg-black border-2 border-cyber-border rounded-lg px-4 py-3 pl-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600 uppercase"
-              />
+          {/* Error */}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/50 rounded-xl px-4 py-3 text-red-400 text-xs font-bold tracking-wide">
+              ⚠ {error}
             </div>
+          )}
 
-            {/* Password */}
-            <div className="relative">
-              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-              <input
-                type={showPass ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder={t.password}
-                maxLength={50}
-                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                className="w-full bg-black border-2 border-cyber-border rounded-lg px-4 py-3 pl-10 pr-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600"
-              />
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading || !username.trim() || !password}
+            className="w-full py-3.5 rounded-xl font-black uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-cyber-neon text-black hover:shadow-[0_0_25px_rgba(0,255,157,0.5)] hover:bg-white active:scale-[0.98]"
+          >
+            {loading ? (
+              <span className="animate-pulse">{t.loading}</span>
+            ) : mode === 'login' ? (
+              t.loginBtn
+            ) : (
+              t.registerBtn
+            )}
+          </button>
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-white/5"></div>
+            <span className="flex-shrink-0 mx-4 text-gray-600 text-[10px] font-bold tracking-[0.3em] uppercase">{t.or}</span>
+            <div className="flex-grow border-t border-white/5"></div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGuest}
+            className="w-full py-2.5 rounded-xl font-bold uppercase tracking-widest border border-white/10 text-gray-400 hover:border-cyber-accent hover:text-white hover:bg-cyber-accent/5 transition-all flex items-center justify-center gap-2 text-sm"
+          >
+            {t.guestBtn}
+          </button>
+          <p className="text-[8px] text-center text-gray-600 mt-1 tracking-widest uppercase italic leading-tight">
+            {t.guestWarning}
+          </p>
+
+          <div className="mt-4 flex flex-col items-center gap-3">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError('Google Login Failed')}
+              theme="filled_black"
+              shape="pill"
+              text="continue_with"
+              width="280"
+            />
+            <p className="text-[9px] text-gray-500 font-mono tracking-widest uppercase opacity-60">
+              {t.ru ? 'Продолжая, вы принимаете' : 'By joining, you agree to our'}{' '}
               <button
                 type="button"
-                onClick={() => setShowPass(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                onClick={onShowLegal}
+                className="text-cyber-neon/80 hover:text-cyber-neon hover:underline transition-colors"
               >
-                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                Terms of Use
               </button>
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/50 rounded-lg px-4 py-3 text-red-400 text-sm font-bold tracking-wide">
-                ⚠ {error}
-              </div>
-            )}
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading || !username.trim() || !password}
-              className="w-full py-4 rounded-lg font-black uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-cyber-neon text-black hover:shadow-[0_0_25px_rgba(0,255,157,0.5)] hover:bg-white active:scale-[0.98]"
-            >
-              {loading ? (
-                <span className="animate-pulse">{t.loading}</span>
-              ) : mode === 'login' ? (
-                t.loginBtn
-              ) : (
-                t.registerBtn
-              )}
-            </button>
-
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-cyber-border/30"></div>
-              <span className="flex-shrink-0 mx-4 text-gray-600 text-[10px] font-bold tracking-[0.3em] uppercase">{t.or}</span>
-              <div className="flex-grow border-t border-cyber-border/30"></div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGuest}
-              className="w-full py-3 rounded-lg font-bold uppercase tracking-widest border-2 border-cyber-border text-gray-400 hover:border-cyber-accent hover:text-white hover:bg-cyber-accent/5 transition-all flex items-center justify-center gap-2"
-            >
-              {t.guestBtn}
-            </button>
-            <p className="text-[9px] text-center text-gray-600 mt-2 tracking-widest uppercase italic">
-              {t.guestWarning}
             </p>
+          </div>
+        </form>
 
-            <div className="mt-6 flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setError('Google Login Failed')}
-                theme="filled_black"
-                shape="pill"
-                text="continue_with"
-                width="300"
-              />
-            </div>
-          </form>
-
-          {/* Guest hint */}
-          <p className="text-center text-gray-600 text-xs mt-6 tracking-wider">
-            {t.ru ? 'Данные хранятся на сервере · JWT авторизация' : 'Data stored on server · JWT authorization'}
-          </p>
-        </div>
+        {/* Guest hint */}
+        <p className="text-center text-gray-600 text-[10px] mt-6 tracking-wider opacity-50">
+          {t.ru ? 'Данные хранятся на сервере · JWT авторизация' : 'Data stored on server · JWT authorization'}
+        </p>
       </div>
     </div>
   );

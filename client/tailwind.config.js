@@ -17,6 +17,14 @@ export default {
       },
       fontFamily: {
         mono: ['"Fira Code"', 'monospace']
+      },
+      keyframes: {
+        shimmer: {
+          '100%': { transform: 'translateX(100%)' }
+        }
+      },
+      animation: {
+        shimmer: 'shimmer 1.5s infinite'
       }
     },
   },

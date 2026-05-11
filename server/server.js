@@ -9,6 +9,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { generatePremiumAdvice } = require('./utils/premiumAdvice');
 
 const app = express();
@@ -19,6 +22,19 @@ const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
 
 app.use(cors());
 app.use(express.json());
+
+// ─── Multer Config for Uploads ──────────────────────────────────────────────
+if (!fs.existsSync('uploads')) fs.mkdirSync('uploads');
+app.use('/uploads', express.static('uploads'));
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + ext);
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ─── MongoDB ────────────────────────────────────────────────────────────────
 // Если нет реальной MongoDB, используем in-memory заглушку
@@ -55,6 +71,8 @@ const userSchema = new mongoose.Schema({
   bestScore: { type: Number, default: 0 },
   elo: { type: Number, default: 400 },
   adviceTokens: { type: Number, default: 0 },
+  avatarUrl: { type: String, default: '' },
+  lastNicknameChange: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
 });
 
@@ -68,7 +86,7 @@ async function findUser(username) {
 
 async function createUser(username, hashedPassword) {
   if (useInMemory) {
-    const user = { username, password: hashedPassword, wins: 0, losses: 0, bestScore: 0, elo: 400, adviceTokens: 0 };
+    const user = { username, password: hashedPassword, wins: 0, losses: 0, bestScore: 0, elo: 400, adviceTokens: 0, avatarUrl: '', lastNicknameChange: null };
     inMemoryUsers.set(username.toLowerCase(), user);
     return user;
   }
@@ -172,6 +190,8 @@ app.post('/api/login', async (req, res) => {
       losses: user.losses,
       bestScore: user.bestScore,
       elo: user.elo || 400,
+      avatarUrl: user.avatarUrl || '',
+      lastNicknameChange: user.lastNicknameChange || null,
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -208,6 +228,8 @@ app.post('/api/google-auth', async (req, res) => {
       losses: user.losses || 0,
       bestScore: user.bestScore || 0,
       elo: user.elo || 400,
+      avatarUrl: user.avatarUrl || '',
+      lastNicknameChange: user.lastNicknameChange || null,
     });
   } catch (err) {
     console.error('Google Auth error:', err);
@@ -237,9 +259,95 @@ app.get('/api/me', async (req, res) => {
     const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const user = await findUser(username);
     if (!user) return res.status(404).json({ error: 'Не найден' });
-    res.json({ username: user.username, wins: user.wins, losses: user.losses, bestScore: user.bestScore, elo: user.elo || 400, adviceTokens: user.adviceTokens || 0 });
+    res.json({ 
+      username: user.username, 
+      wins: user.wins, 
+      losses: user.losses, 
+      bestScore: user.bestScore, 
+      elo: user.elo || 400, 
+      adviceTokens: user.adviceTokens || 0,
+      avatarUrl: user.avatarUrl || '',
+      lastNicknameChange: user.lastNicknameChange || null,
+    });
   } catch {
     res.status(401).json({ error: 'Неверный токен' });
+  }
+});
+
+// ─── Profile APIs ────────────────────────────────────────────────────────────
+
+app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
+  try {
+    const auth = req.headers.authorization;
+    if (!auth) return res.status(401).json({ error: 'Нет токена' });
+    const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    
+    if (!req.file) return res.status(400).json({ error: 'Файл не загружен' });
+    
+    const avatarUrl = `/uploads/${req.file.filename}`;
+    
+    if (useInMemory) {
+      const user = inMemoryUsers.get(username.toLowerCase());
+      if (user) user.avatarUrl = avatarUrl;
+    } else {
+      await User.updateOne({ username }, { $set: { avatarUrl } });
+    }
+    
+    res.json({ ok: true, avatarUrl });
+  } catch (err) {
+    console.error('Avatar upload error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/profile/username', async (req, res) => {
+  try {
+    const auth = req.headers.authorization;
+    if (!auth) return res.status(401).json({ error: 'Нет токена' });
+    const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    
+    const { newUsername } = req.body;
+    if (!newUsername || newUsername.length < 3) {
+      return res.status(400).json({ error: 'Имя минимум 3 символа' });
+    }
+    
+    const user = await findUser(username);
+    if (!user) return res.status(404).json({ error: 'Не найден' });
+    
+    // Проверка 7 дней
+    if (user.lastNicknameChange) {
+      const diffMs = Date.now() - new Date(user.lastNicknameChange).getTime();
+      const diffDays = diffMs / (1000 * 60 * 60 * 24);
+      if (diffDays < 7) {
+        return res.status(400).json({ error: `Сменить ник можно будет через ${Math.ceil(7 - diffDays)} дн.` });
+      }
+    }
+    
+    // Проверка уникальности
+    const exists = await findUser(newUsername);
+    if (exists && exists.username.toLowerCase() !== username.toLowerCase()) {
+      return res.status(409).json({ error: 'Это имя уже занято' });
+    }
+    
+    const now = new Date();
+    
+    if (useInMemory) {
+      const u = inMemoryUsers.get(username.toLowerCase());
+      inMemoryUsers.delete(username.toLowerCase());
+      u.username = newUsername;
+      u.lastNicknameChange = now;
+      inMemoryUsers.set(newUsername.toLowerCase(), u);
+    } else {
+      await User.updateOne({ username }, { $set: { username: newUsername, lastNicknameChange: now } });
+    }
+    
+    // Создаем новый токен с новым именем
+    const token = jwt.sign({ username: newUsername }, JWT_SECRET, { expiresIn: '7d' });
+    
+    res.json({ ok: true, username: newUsername, lastNicknameChange: now, token });
+  } catch (err) {
+    console.error('Username change error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 
@@ -300,17 +408,11 @@ app.post('/api/paypal/capture-order', async (req, res) => {
     const data = await response.json();
 
     if (data.status === 'COMPLETED') {
-      // Начислить токен
-      if (useInMemory) {
-        const user = inMemoryUsers.get(username.toLowerCase());
-        if (user) user.adviceTokens = (user.adviceTokens || 0) + 1;
-      } else {
-        await User.updateOne({ username }, { $inc: { adviceTokens: 1 } });
-      }
       const advice = generatePremiumAdvice(analysis, lang);
       res.json({ ok: true, data, advice });
     } else {
-      res.status(400).json({ error: 'Order not completed', details: data });
+      console.error('PayPal Order Not Completed. Status:', data.status, 'Details:', JSON.stringify(data));
+      res.status(400).json({ error: `Order status is ${data.status}`, details: data });
     }
   } catch (error) {
     console.error('PayPal capture error:', error);
@@ -348,9 +450,16 @@ app.get('/api/leaderboard', async (req, res) => {
     if (useInMemory) {
       const allUsers = Array.from(inMemoryUsers.values());
       const sorted = allUsers.sort((a, b) => (b.elo || 400) - (a.elo || 400)).slice(0, 20);
-      return res.json(sorted.map(u => ({ username: u.username, bestScore: u.bestScore || 0, elo: u.elo || 400, wins: u.wins || 0, losses: u.losses || 0 })));
+      return res.json(sorted.map(u => ({ 
+        username: u.username, 
+        bestScore: u.bestScore || 0, 
+        elo: u.elo || 400, 
+        wins: u.wins || 0, 
+        losses: u.losses || 0,
+        avatarUrl: u.avatarUrl || '' 
+      })));
     }
-    const topUsers = await User.find({}, { username: 1, bestScore: 1, elo: 1, wins: 1, losses: 1, _id: 0 })
+    const topUsers = await User.find({}, { username: 1, bestScore: 1, elo: 1, wins: 1, losses: 1, avatarUrl: 1, _id: 0 })
       .sort({ elo: -1 })
       .limit(20);
     res.json(topUsers);

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import BattleArena from './components/BattleArena';
 import AuthForm from './components/AuthForm';
+import AgeVerification from './components/AgeVerification';
+import LegalModal from './components/LegalModal';
 import { translations } from './utils/translations';
 
 function App() {
@@ -8,6 +10,7 @@ function App() {
   const [checking, setChecking] = useState(true);
   const [lang, setLang] = useState(localStorage.getItem('mog_lang') || 'ru');
   const [isGlitching, setIsGlitching] = useState(false);
+  const [showLegal, setShowLegal] = useState(false);
 
   const t = translations[lang];
 
@@ -43,6 +46,7 @@ function App() {
 
   return (
     <div className="min-h-screen relative">
+      <AgeVerification lang={lang} />
       {/* Language Toggle */}
       <button
         onClick={toggleLang}
@@ -52,10 +56,12 @@ function App() {
       </button>
 
       {!user ? (
-        <AuthForm onAuth={setUser} lang={lang} t={t} />
+        <AuthForm onAuth={setUser} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
       ) : (
         <BattleArena user={user} setUser={setUser} onLogout={handleLogout} lang={lang} t={t} />
       )}
+
+      {showLegal && <LegalModal lang={lang} onClose={() => setShowLegal(false)} />}
     </div>
   );
 }

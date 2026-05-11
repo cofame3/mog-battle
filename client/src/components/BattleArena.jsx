@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings } from 'lucide-react';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 import LightPillar from './LightPillar';
 import Leaderboard from './Leaderboard';
+import ProfileSettings from './ProfileSettings';
 
 // Connect to the signaling server dynamically so it works on local network devices, or via env
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
@@ -34,6 +35,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
   const [opponentResult, setOpponentResult] = useState(null);
   const [playersCount, setPlayersCount] = useState(0);
   const [liveScore, setLiveScore] = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     if (!stream || battleState === 'result') {
@@ -541,7 +543,11 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
         {/* User Info / Logout Top Bar */}
         {user && (
           <div className="absolute top-6 right-6 z-20 flex items-center gap-4 bg-black/60 border border-cyber-border px-4 py-2 rounded-lg backdrop-blur-md shadow-[0_0_15px_rgba(0,255,157,0.1)]">
-            <User size={16} className="text-gray-400" />
+            {user.avatarUrl ? (
+              <img src={`${SOCKET_URL}${user.avatarUrl}`} alt="avatar" className="w-6 h-6 rounded-full object-cover border border-cyber-neon" />
+            ) : (
+              <User size={16} className="text-gray-400" />
+            )}
             <span className="text-sm font-bold text-cyber-neon tracking-widest flex items-center gap-2">
               {user.username}
               {!user.isGuest && (
@@ -554,20 +560,29 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
               <span className="text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">GUEST</span>
             )}
             {onLogout && (
-              <button
-                onClick={onLogout}
-                className="ml-2 text-gray-500 hover:text-red-400 transition-colors border-l border-gray-700 pl-4"
-                title="Выйти из аккаунта"
-              >
-                <LogOut size={18} />
-              </button>
+              <>
+                <button
+                  onClick={() => setShowProfile(true)}
+                  className="ml-2 text-gray-500 hover:text-white transition-colors border-l border-gray-700 pl-4"
+                  title="Настройки профиля"
+                >
+                  <Settings size={18} />
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="ml-2 text-gray-500 hover:text-red-400 transition-colors border-l border-gray-700 pl-4"
+                  title="Выйти из аккаунта"
+                >
+                  <LogOut size={18} />
+                </button>
+              </>
             )}
           </div>
         )}
 
-        <div className="relative z-10 w-full max-w-md bg-cyber-panel border border-cyber-border rounded-xl p-8 shadow-[0_0_30px_rgba(0,255,157,0.1)] animate-reveal">
+        <div className="relative z-10 w-full max-w-md bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-reveal">
           <div className="text-center mb-8">
-            <img src="/logo.jpg" alt="Omogle Logo" className="w-24 h-24 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(0,255,157,0.5)] object-contain" />
+            <img src="/logo.jpg" alt="Omogle Logo" className="w-24 h-24 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(0,255,157,0.5)] object-cover rounded-3xl" />
             <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
               OMOGLE
             </h1>
@@ -621,9 +636,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
             </div>
           )}
 
-          {lobbyMode === 'leaderboard' && (
-            <Leaderboard t={t} onClose={() => setLobbyMode('initial')} currentUser={user} />
-          )}
+
 
           {lobbyMode === 'searching' && (
             <div className="flex flex-col items-center justify-center py-8 space-y-6">
@@ -685,7 +698,13 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
             </div>
           )}
         </div>
+        
+        {lobbyMode === 'leaderboard' && (
+          <Leaderboard t={t} onClose={() => setLobbyMode('initial')} currentUser={user} />
+        )}
+
         <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
+        {showProfile && <ProfileSettings user={user} setUser={setUser} onClose={() => setShowProfile(false)} t={t} lang={lang} />}
       </div>
     );
   }
@@ -693,9 +712,9 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
   return (
     <div className="w-full max-w-7xl mx-auto px-4 py-8">
       {/* Header Info */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-cyber-panel border border-cyber-border p-4 rounded-lg shadow-[0_0_15px_rgba(0,255,157,0.1)] gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-black/80 backdrop-blur-xl border border-white/10 p-4 rounded-[1.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.3)] gap-4">
         <div className="flex items-center gap-4">
-          <img src="/logo.jpg" alt="Omogle Logo" className="w-10 h-10 drop-shadow-[0_0_8px_rgba(0,255,157,0.4)] object-contain" />
+          <img src="/logo.jpg" alt="Omogle Logo" className="w-10 h-10 drop-shadow-[0_0_8px_rgba(0,255,157,0.4)] object-cover rounded-xl" />
           <div className="flex flex-col">
             <span className="text-xl font-bold tracking-widest text-cyber-neon">OMOGLE-PROTOCOL</span>
             <span className="text-xs text-gray-400 mt-1 uppercase">{t.room}: <span className="text-white font-mono bg-black px-2 py-1 ml-1 border border-cyber-border rounded tracking-widest">{roomCode}</span></span>
@@ -704,6 +723,11 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
         <div className="flex items-center gap-6">
           {user && (
             <span className="text-sm font-bold text-cyber-neon tracking-widest hidden md:flex items-center gap-2 uppercase">
+              {user.avatarUrl ? (
+                <img src={`${SOCKET_URL}${user.avatarUrl}`} alt="avatar" className="w-5 h-5 rounded-full object-cover border border-cyber-neon" />
+              ) : (
+                <User size={14} className="text-gray-400" />
+              )}
               {user.username}
               {!user.isGuest && (
                 <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded flex items-center gap-1">
@@ -722,6 +746,9 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
           )}
           <button onClick={returnHome} className="text-gray-400 hover:text-white transition-colors" title="Return Home">
             <Home size={24} />
+          </button>
+          <button onClick={() => setShowProfile(true)} className="text-gray-500 hover:text-white transition-colors" title="Settings">
+            <Settings size={20} />
           </button>
           {onLogout && (
             <button onClick={onLogout} className="text-gray-500 hover:text-red-400 transition-colors" title="Выйти">
@@ -878,6 +905,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
 
       <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
       <canvas ref={canvasRef} className="hidden" />
+      {showProfile && <ProfileSettings user={user} setUser={setUser} onClose={() => setShowProfile(false)} t={t} lang={lang} />}
     </div>
   );
 }
@@ -958,44 +986,44 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
 
                 <div className="w-full max-w-xs relative z-50 flex flex-col gap-2">
                   <PayPalButtons
-                      style={{ layout: "horizontal", color: "gold", shape: "pill", label: "pay", height: 40 }}
-                      createOrder={(data, actions) => {
-                        return actions.order.create({
-                          purchase_units: [{
-                            amount: { currency_code: "USD", value: "2.00" },
-                            description: "MogBattle Premium Advice Token"
-                          }]
+                    style={{ layout: "horizontal", color: "gold", shape: "pill", label: "pay", height: 40 }}
+                    createOrder={(data, actions) => {
+                      return actions.order.create({
+                        purchase_units: [{
+                          amount: { currency_code: "USD", value: "2.00" },
+                          description: "MogBattle Premium Advice Token"
+                        }]
+                      });
+                    }}
+                    onApprove={async (data, actions) => {
+                      try {
+                        const token = localStorage.getItem('mog_token');
+                        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                        const response = await fetch(`${apiUrl}/api/paypal/capture-order`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${token}`
+                          },
+                          body: JSON.stringify({ orderID: data.orderID, analysis, lang })
                         });
-                      }}
-                      onApprove={async (data, actions) => {
-                        try {
-                          const token = localStorage.getItem('mog_token');
-                          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-                          const response = await fetch(`${apiUrl}/api/paypal/capture-order`, {
-                            method: 'POST',
-                            headers: {
-                              'Content-Type': 'application/json',
-                              Authorization: `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ orderID: data.orderID, analysis, lang })
-                          });
 
-                          const result = await response.json();
-                          if (result.ok) {
-                            setAdvice(result.advice);
-                          } else {
-                            alert("Capture failed: " + (result.error || "Unknown error"));
-                          }
-                        } catch (err) {
-                          console.error("Server capture error:", err);
-                          alert("Server capture failed: " + err.message);
+                        const result = await response.json();
+                        if (result.ok) {
+                          setAdvice(result.advice);
+                        } else {
+                          alert("Capture failed: " + (result.error || "Unknown error"));
                         }
-                      }}
-                      onError={(err) => {
-                        console.error("PayPal Checkout onError", err);
-                        alert("Payment Error: " + err.message);
-                      }}
-                    />
+                      } catch (err) {
+                        console.error("Server capture error:", err);
+                        alert("Server capture failed: " + err.message);
+                      }
+                    }}
+                    onError={(err) => {
+                      console.error("PayPal Checkout onError", err);
+                      alert("Payment Error: " + err.message);
+                    }}
+                  />
                 </div>
               </div>
             )}
