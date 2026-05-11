@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings, Shield, ChevronRight } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings, Shield, ChevronRight, Info } from 'lucide-react';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 import LightPillar from './LightPillar';
 import Leaderboard from './Leaderboard';
 import ProfileSettings from './ProfileSettings';
-import { getMogRank } from '../utils/ranks';
+import { getMogRank, RANK_TIERS } from '../utils/ranks';
 
 // Connect to the signaling server dynamically so it works on local network devices, or via env
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
@@ -38,7 +38,9 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
   const [opponentResult, setOpponentResult] = useState(null);
   const [playersCount, setPlayersCount] = useState(0);
   const [liveScore, setLiveScore] = useState(null);
+  const [opponentLiveScore, setOpponentLiveScore] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [showRankInfo, setShowRankInfo] = useState(false);
   const lastDrawTimeRef = useRef(0);
 
   useEffect(() => {
@@ -65,6 +67,30 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
 
     return () => clearInterval(interval);
   }, [stream, battleState]);
+
+  // Opponent live score estimate (1v1 only)
+  useEffect(() => {
+    if (!opponentStream || battleState !== 'battling') {
+      setOpponentLiveScore(null);
+      return;
+    }
+
+    const target = Math.random() * 55 + 40;
+    let current = target + (Math.random() * 20 - 10);
+    if (current > 99.9) current = 99.9;
+    if (current < 10.0) current = 10.0;
+
+    const interval = setInterval(() => {
+      const drift = (target - current) * 0.15;
+      const noise = (Math.random() * 4 - 2);
+      current += drift + noise;
+      if (current > 99.9) current = 99.9;
+      if (current < 10.0) current = 10.0;
+      setOpponentLiveScore(current.toFixed(1));
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [opponentStream, battleState]);
 
   const videoRef = useRef(null);
   const opponentVideoRef = useRef(null);
@@ -595,8 +621,15 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
             {onLogout && (
               <>
                 <button
+                  onClick={() => setShowRankInfo(true)}
+                  className="ml-2 text-gray-500 hover:text-yellow-400 transition-colors border-l border-gray-700 pl-4"
+                  title="Rank Info"
+                >
+                  <Info size={18} />
+                </button>
+                <button
                   onClick={() => setShowProfile(true)}
-                  className="ml-2 text-gray-500 hover:text-white transition-colors border-l border-gray-700 pl-4"
+                  className="ml-2 text-gray-500 hover:text-white transition-colors"
                   title="Настройки профиля"
                 >
                   <Settings size={18} />
@@ -738,6 +771,56 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
 
         <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
         {showProfile && <ProfileSettings user={user} setUser={setUser} onClose={() => setShowProfile(false)} t={t} lang={lang} />}
+
+        {/* Rank Info Modal */}
+        {showRankInfo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowRankInfo(false)}>
+            <div className="w-full max-w-sm bg-black/90 border border-white/10 rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)] animate-reveal" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-black tracking-widest text-white uppercase flex items-center gap-2">
+                  <Trophy size={20} className="text-yellow-500" />
+                  {lang === 'ru' ? 'СИСТЕМА РАНГОВ' : 'RANK SYSTEM'}
+                </h2>
+                <button onClick={() => setShowRankInfo(false)} className="text-gray-500 hover:text-white transition-colors text-xl font-bold">✕</button>
+              </div>
+              <div className="space-y-2">
+                {[...RANK_TIERS].reverse().map((tier, i) => {
+                  const isCurrentRank = user && !user.isGuest && getMogRank(user.elo).name === tier.name;
+                  return (
+                    <div
+                      key={tier.name}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-lg border transition-all ${
+                        isCurrentRank
+                          ? `${tier.bg} ${tier.border} shadow-[0_0_15px_rgba(255,255,255,0.05)]`
+                          : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`text-sm font-black tracking-widest ${tier.color}`}>
+                          {tier.name}
+                        </span>
+                        {isCurrentRank && (
+                          <span className="text-[8px] bg-white/10 text-white px-1.5 py-0.5 rounded font-black animate-pulse">
+                            {lang === 'ru' ? 'ВЫ' : 'YOU'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500 font-mono font-bold">
+                        {tier.maxElo === Infinity ? `${tier.minElo}+` : `${tier.minElo} — ${tier.maxElo}`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              {user && !user.isGuest && (
+                <div className="mt-4 pt-4 border-t border-white/5 text-center">
+                  <span className="text-[10px] text-gray-500 tracking-widest uppercase font-bold">{lang === 'ru' ? 'ВАШ ELO' : 'YOUR ELO'}: </span>
+                  <span className={`text-sm font-black ${getMogRank(user.elo).color}`}>⚡ {user.elo || 400}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -910,9 +993,9 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
               user={user}
               setUser={setUser}
               analysis={myResult.analysis}
-              isWinner={gameMode === 'solo' ? true : (opponentResult ? (myResult.analysis.total > opponentResult.analysis.total ? true : (myResult.analysis.total < opponentResult.analysis.total ? false : null)) : null)}
-              eloChangeData={eloChangeData}
-              isSolo={gameMode === 'solo'}
+              isWinner={gameMode === 'solo' || gameMode === 'photo' ? true : (opponentResult ? (myResult.analysis.total > opponentResult.analysis.total ? true : (myResult.analysis.total < opponentResult.analysis.total ? false : null)) : null)}
+              eloChangeData={gameMode === 'solo' || gameMode === 'photo' ? null : eloChangeData}
+              isSolo={gameMode === 'solo' || gameMode === 'photo'}
             />
           )}
         </div>
@@ -948,6 +1031,13 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
                   <span className="text-sm tracking-widest text-center px-4 uppercase">
                     {playersCount < 2 ? t.searchingOpponent : t.connecting}
                   </span>
+                </div>
+              )}
+              {opponentLiveScore && !opponentResult && opponentStream && (
+                <div className="absolute top-4 right-4 z-30 bg-black/60 border border-cyber-accent px-3 py-1 rounded flex flex-col items-end shadow-[0_0_10px_rgba(255,0,85,0.3)] backdrop-blur-sm">
+                  <span className="text-[10px] font-bold text-cyber-accent tracking-widest animate-pulse uppercase">{t.liveEstimate}</span>
+                  <span className="text-xl font-mono font-black text-white">{opponentLiveScore}</span>
+                  <span className={`text-[10px] font-black tracking-widest ${getTier(parseFloat(opponentLiveScore)).color}`}>{getTier(parseFloat(opponentLiveScore)).label}</span>
                 </div>
               )}
             </div>
