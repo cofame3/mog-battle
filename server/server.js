@@ -18,7 +18,7 @@ const app = express();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
-const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
+const PAYPAL_API = 'https://api-m.paypal.com';
 
 app.use(cors());
 app.use(express.json());
