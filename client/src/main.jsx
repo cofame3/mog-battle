@@ -5,7 +5,7 @@ import { PayPalScriptProvider } from '@paypal/react-paypal-js'
 import './index.css'
 import App from './App.jsx'
 
-const PAYPAL_CLIENT_ID = "ASLvrx5hslmnAbx8Wo0ZCAM8W3l0jpmoYF8E-zYD-7Q-PbTPE6gQ6UjqtwT4Wyzxc84jzzb6LB0MqsbR";
+const PAYPAL_CLIENT_ID = "ASpQz7ruPUDFRYW1Ej8OOzo6BUZ5YvnRDA0JemrXE5wgRGR_HEvRsgOHSIQE5sqN-deB9dLdehAlSVum";
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
