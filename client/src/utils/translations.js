@@ -59,7 +59,11 @@ export const translations = {
     score: "ОЧКИ",
     wins: "ПОБЕДЫ",
     close: "ЗАКРЫТЬ",
-    loadingLeaderboard: "ЗАГРУЗКА РЕЙТИНГА..."
+    loadingLeaderboard: "ЗАГРУЗКА РЕЙТИНГА...",
+    
+    // SEO
+    seoTitle: "Omogle — AI оценка внешности и битвы лиц онлайн",
+    seoDesc: "Узнай свой рейтинг внешности с помощью нейросети и сразись в битве лиц на Omogle. Бесплатная AI-оценка красоты онлайн."
   },
   en: {
     // Auth
@@ -121,6 +125,10 @@ export const translations = {
     score: "SCORE",
     wins: "WINS",
     close: "CLOSE",
-    loadingLeaderboard: "LOADING LEADERBOARD..."
+    loadingLeaderboard: "LOADING LEADERBOARD...",
+
+    // SEO
+    seoTitle: "Omogle — AI Face Rating & Online Beauty Battles",
+    seoDesc: "Get your face rated by AI and compete in beauty battles on Omogle. Free AI facial analysis and looksmaxxing tools online."
   }
 };

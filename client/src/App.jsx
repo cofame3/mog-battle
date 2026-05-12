@@ -31,7 +31,35 @@ function App() {
   // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Update canonical link
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) {
+      const path = location.pathname === '/' ? '' : location.pathname;
+      canonical.setAttribute('href', `https://omogle.me${path}`);
+    }
   }, [location.pathname]);
+
+  // Update Meta Tags and Lang dynamically
+  useEffect(() => {
+    // HTML Lang
+    document.documentElement.lang = lang;
+    
+    // Title
+    document.title = t.seoTitle || "Omogle — AI Face Rating";
+    
+    // Description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', t.seoDesc || "");
+    }
+    
+    // Open Graph Title/Desc
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', t.seoTitle || "");
+    
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', t.seoDesc || "");
+  }, [lang, t]);
 
   // Восстановить сессию при перезагрузке страницы
   useEffect(() => {
