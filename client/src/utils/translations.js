@@ -11,7 +11,7 @@ export const translations = {
     guestWarning: "* Статистика побед не будет сохранена на сервере",
     loading: "ЗАГРУЗКА...",
     or: "ИЛИ",
-    protocol: "AI FACE RATING & BATTLE ARENA",
+    protocol: "AI FACE RATING & MOG BATTLE",
 
     // Lobby
     solo: "СОЛО (ТЕСТ MOG SCORE)",
@@ -62,7 +62,7 @@ export const translations = {
     loadingLeaderboard: "ЗАГРУЗКА РЕЙТИНГА...",
     
     // SEO
-    seoTitle: "Omogle — AI оценка внешности и битвы лиц онлайн",
+    seoTitle: "Omogle — AI Face Rating & Mog Battle",
     seoDesc: "Узнай свой рейтинг внешности с помощью нейросети и сразись в битве лиц на Omogle. Бесплатная AI-оценка красоты онлайн."
   },
   en: {
@@ -77,7 +77,7 @@ export const translations = {
     guestWarning: "* Win stats won't be saved on server",
     loading: "LOADING...",
     or: "OR",
-    protocol: "AI FACE RATING & BATTLE ARENA",
+    protocol: "AI FACE RATING & MOG BATTLE",
 
     // Lobby
     solo: "SOLO (TEST MOG SCORE)",
@@ -128,7 +128,7 @@ export const translations = {
     loadingLeaderboard: "LOADING LEADERBOARD...",
 
     // SEO
-    seoTitle: "Omogle — AI Face Rating & Online Beauty Battles",
+    seoTitle: "Omogle — AI Face Rating & Mog Battle",
     seoDesc: "Get your face rated by AI and compete in beauty battles on Omogle. Free AI facial analysis and looksmaxxing tools online."
   }
 };
