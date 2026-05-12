@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings, Shield, ChevronRight, Info, Scan } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings, Shield, ChevronRight, Info, Scan, Gift } from 'lucide-react';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 import LightPillar from './LightPillar';
@@ -15,7 +15,7 @@ const socket = io(SOCKET_URL, { autoConnect: false });
 
 const BATTLE_DURATION = 10; // 10 seconds for battle
 
-export default function BattleArena({ user, setUser, onLogout, t, lang }) {
+export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDaily }) {
   const [appState, setAppState] = useState('lobby'); // lobby, arena
   const [lobbyMode, setLobbyMode] = useState('initial'); // initial, friend_join, searching
   const [gameMode, setGameMode] = useState(null); // solo, random, friend, photo
@@ -649,6 +649,16 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
                   <Info size={18} />
                 </button>
                 <button
+                  onClick={onShowDaily}
+                  className="relative ml-2 text-gray-500 hover:text-cyber-neon transition-all"
+                  title={lang === 'ru' ? 'Награды' : 'Daily Rewards'}
+                >
+                  <Gift size={18} />
+                  {localStorage.getItem('mog_last_claim') !== new Date().toDateString() && (
+                    <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-cyber-neon rounded-full shadow-[0_0_8px_rgba(0,255,157,0.8)] animate-pulse" />
+                  )}
+                </button>
+                <button
                   onClick={() => setShowProfile(true)}
                   className="ml-2 text-gray-500 hover:text-white transition-colors"
                   title="Настройки профиля"
@@ -894,6 +904,16 @@ export default function BattleArena({ user, setUser, onLogout, t, lang }) {
           )}
           <button onClick={returnHome} className="text-gray-400 hover:text-white transition-colors" title="Return Home">
             <Home size={24} />
+          </button>
+          <button 
+            onClick={onShowDaily} 
+            className="relative text-gray-500 hover:text-white transition-colors" 
+            title={lang === 'ru' ? 'Награды' : 'Daily Rewards'}
+          >
+            <Gift size={20} />
+            {localStorage.getItem('mog_last_claim') !== new Date().toDateString() && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyber-neon rounded-full shadow-[0_0_8px_rgba(0,255,157,0.8)] animate-pulse" />
+            )}
           </button>
           <button onClick={() => setShowProfile(true)} className="text-gray-500 hover:text-white transition-colors" title="Settings">
             <Settings size={20} />
@@ -1151,12 +1171,23 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
 
   // Check if PSL scan is available
   const handlePSLClick = () => {
+    const hasTicket = localStorage.getItem('mog_premium_ticket') === 'true';
+
     // Gate 1: Must be registered
     if (!user || user.isGuest) {
       setPslGateMsg(lang === 'ru' ? 'signup' : 'signup');
       return;
     }
-    // Gate 2: 1 per day
+
+    // If has ticket, bypass all other gates
+    if (hasTicket) {
+      localStorage.removeItem('mog_premium_ticket');
+      setShowPSL(true);
+      return;
+    }
+
+    // Gate 2: 1 per day (TEMPORARILY DISABLED FOR TESTING)
+    /*
     const storageKey = `psl_last_scan_${user.username}`;
     const lastScan = localStorage.getItem(storageKey);
     if (lastScan) {
@@ -1167,8 +1198,10 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
         return;
       }
     }
-    // Allow scan & record timestamp
     localStorage.setItem(storageKey, new Date().toISOString());
+    */
+    
+    // Allow scan
     setShowPSL(true);
   };
 
@@ -1216,6 +1249,7 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
           <ScoreBar label={t.symmetry.toUpperCase()} value={analysis.symmetry} />
           <ScoreBar label={t.jawline.toUpperCase()} value={analysis.jawline} />
           <ScoreBar label={t.eyes.toUpperCase()} value={analysis.eyes} />
+          <ScoreBar label={t.nose.toUpperCase()} value={analysis.nose} />
 
           {/* PSL Scan Button — Solo/Photo only */}
           {snapshotImage && isSolo && (
@@ -1226,7 +1260,11 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
               >
                 <Scan size={14} />
                 {lang === 'ru' ? 'PSL СКАН' : 'VIEW PSL SCAN'}
-                <span className="text-[8px] ml-1 bg-cyber-neon/20 px-1.5 py-0.5 rounded text-cyber-neon/80">FREE</span>
+                {localStorage.getItem('mog_premium_ticket') === 'true' ? (
+                  <span className="text-[8px] ml-1 bg-yellow-500/20 px-1.5 py-0.5 rounded text-yellow-500 border border-yellow-500/30 animate-pulse">BONUS</span>
+                ) : (
+                  <span className="text-[8px] ml-1 bg-cyber-neon/20 px-1.5 py-0.5 rounded text-cyber-neon/80">FREE</span>
+                )}
               </button>
 
               {/* Gate: Sign up required */}
@@ -1337,7 +1375,30 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
                 </div>
               </div>
 
-              <div className="w-full max-w-xs mx-auto relative z-50">
+              <div className="w-full max-w-xs mx-auto relative z-50 space-y-3">
+                {localStorage.getItem('mog_analysis_ticket') === 'true' && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const token = localStorage.getItem('mog_token');
+                        const res = await fetch(`${SOCKET_URL}/api/use-analysis-ticket`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                          body: JSON.stringify({ analysis, lang })
+                        });
+                        const result = await res.json();
+                        if (result.ok) {
+                          localStorage.removeItem('mog_analysis_ticket');
+                          setAdvice(result.advice);
+                        }
+                      } catch (err) { console.error(err); }
+                    }}
+                    className="w-full py-3 rounded-full bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black uppercase tracking-widest text-[10px] shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:scale-105 transition-all animate-pulse"
+                  >
+                    {lang === 'ru' ? '🔓 ИСПОЛЬЗОВАТЬ БИЛЕТ' : '🔓 USE REWARD TICKET'}
+                  </button>
+                )}
+
                 <PayPalButtons
                   style={{ layout: "horizontal", color: "gold", shape: "pill", label: "pay", height: 45 }}
                   createOrder={(data, actions) => {

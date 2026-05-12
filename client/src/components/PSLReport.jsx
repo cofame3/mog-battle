@@ -38,8 +38,8 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
         ctx.shadowBlur = 6;
         ctx.setLineDash(dash);
         ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
+        ctx.moveTo(a.x * W, a.y * H);
+        ctx.lineTo(b.x * W, b.y * H);
         ctx.stroke();
         ctx.restore();
       };
@@ -52,7 +52,7 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
         ctx.shadowColor = color;
         ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, r, 0, 2 * Math.PI);
+        ctx.arc(p.x * W, p.y * H, r, 0, 2 * Math.PI);
         ctx.fill();
         ctx.restore();
       };
@@ -65,8 +65,8 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
         ctx.shadowBlur = 6;
         ctx.setLineDash(dash);
         ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
+        ctx.moveTo(p1.x * W, p1.y * H);
+        ctx.lineTo(p2.x * W, p2.y * H);
         ctx.stroke();
         ctx.restore();
       };
@@ -108,6 +108,11 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
       dot(4, '#ffc800', 3);
       dot(0, '#ffc800', 3);
 
+      // 6. NOSE — purple
+      line(102, 331, 'rgba(168,85,247,0.7)', 1.5, [5, 5]);
+      dot(102, '#a855f7', 3);
+      dot(331, '#a855f7', 3);
+
       setReady(true);
     };
     img.src = imageSrc;
@@ -115,23 +120,87 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
 
   // ── Rating helpers ──
   const getCanthalRating = (val) => {
-    if (val > 3) return { text: ru ? 'Положительный (Hunter Eyes)' : 'Positive (Hunter Eyes)', color: 'text-cyber-neon' };
-    if (val > 0) return { text: ru ? 'Нейтральный' : 'Neutral', color: 'text-yellow-400' };
-    return { text: ru ? 'Отрицательный (Prey Eyes)' : 'Negative (Prey Eyes)', color: 'text-red-400' };
+    if (val > 5.0) return { 
+      text: ru ? 'Положительный (Hunter Eyes)' : 'Positive (Hunter Eyes)', 
+      desc: ru ? 'Идеальный «хищный» наклон. Создает доминантный и уверенный взгляд.' : 'Ideal predator tilt. Creates a dominant and confident gaze.',
+      color: 'text-cyber-neon' 
+    };
+    if (val > 0.5) return { 
+      text: ru ? 'Нейтральный' : 'Neutral', 
+      desc: ru ? 'Сбалансированный разрез глаз. Подходит под любой типаж внешности.' : 'Balanced eye shape. Fits well with any facial type.',
+      color: 'text-yellow-400' 
+    };
+    return { 
+      text: ru ? 'Отрицательный (Prey Eyes)' : 'Negative (Prey Eyes)', 
+      desc: ru ? 'Нисходящий наклон. Придает взгляду более мягкий или уставший вид.' : 'Downward tilt. Gives the gaze a softer or more tired look.',
+      color: 'text-red-400' 
+    };
   };
 
   const getJawRating = (ratio) => {
-    if (ratio >= 0.90) return { text: ru ? 'Отлично' : 'Excellent', color: 'text-cyber-neon' };
-    if (ratio >= 0.85) return { text: ru ? 'Идеально' : 'Ideal', color: 'text-cyber-neon' };
-    if (ratio >= 0.78) return { text: ru ? 'Среднее' : 'Average', color: 'text-yellow-400' };
-    return { text: ru ? 'Ниже среднего' : 'Below Average', color: 'text-red-400' };
+    if (ratio >= 0.92) return { 
+      text: ru ? 'Отлично' : 'Excellent', 
+      desc: ru ? 'Элитная ширина челюсти. Мощная мужская костная структура.' : 'Elite jaw width. Powerful masculine bone structure.',
+      color: 'text-cyber-neon' 
+    };
+    if (ratio >= 0.90) return { 
+      text: ru ? 'Идеально' : 'Ideal', 
+      desc: ru ? 'Превосходное соотношение. Челюсть идеально гармонирует со скулами.' : 'Excellent ratio. The jaw harmonizes perfectly with the cheekbones.',
+      color: 'text-cyber-neon' 
+    };
+    if (ratio >= 0.85) return { 
+      text: ru ? 'Выше среднего' : 'Above Average', 
+      desc: ru ? 'Хорошая база. Челюсть заметная, но не доминирует в структуре.' : 'Good base. The jaw is noticeable but doesn\'t dominate the structure.',
+      color: 'text-yellow-400' 
+    };
+    return { 
+      text: ru ? 'Среднее' : 'Average', 
+      desc: ru ? 'Узковатая челюсть. Борода или жевательная смола помогут добавить объема.' : 'Narrower jaw. A beard or mastic gum can help add volume.',
+      color: 'text-red-400' 
+    };
   };
 
-  const getPhiltrumRating = (ratio) => {
-    if (!ratio) return { text: '—', color: 'text-gray-500' };
-    if (ratio <= 0.12) return { text: ru ? 'Короткий (идеально)' : 'Short (ideal)', color: 'text-cyber-neon' };
-    if (ratio <= 0.16) return { text: ru ? 'Средний' : 'Average', color: 'text-yellow-400' };
-    return { text: ru ? 'Длинный' : 'Long', color: 'text-red-400' };
+  const getSymDesc = (val) => {
+    if (val >= 85) return ru ? 'Почти идеальная симметрия. Твои черты лица очень сбалансированы.' : 'Near-perfect symmetry. Your facial features are highly balanced.';
+    if (val >= 70) return ru ? 'Хороший баланс. Небольшие асимметрии естественны и незаметны.' : 'Good balance. Minor asymmetries are natural and unnoticeable.';
+    if (val >= 50) return ru ? 'Средняя симметрия. Можно улучшить, следя за осанкой и привычками сна.' : 'Average symmetry. Can be improved by watching posture and sleep habits.';
+    return ru ? 'Заметная асимметрия. Часто вызвана сном на одном боку или жеванием на одной стороне.' : 'Noticeable asymmetry. Often caused by sleeping or chewing on one side.';
+  };
+
+  const getPhiltrumRating = (val) => {
+    if (val <= 0.12) return { 
+      text: ru ? 'Короткий (Идеал)' : 'Short (Ideal)', 
+      desc: ru ? 'Идеальная компактность средней части лица.' : 'Ideal compactness of the midface.',
+      color: 'text-cyber-neon' 
+    };
+    if (val <= 0.15) return { 
+      text: ru ? 'Средний' : 'Average', 
+      desc: ru ? 'Стандартная длина. Гармонично смотрится с большинством типов лиц.' : 'Standard length. Looks harmonious with most face types.',
+      color: 'text-yellow-400' 
+    };
+    return { 
+      text: ru ? 'Длинный' : 'Long', 
+      desc: ru ? 'Увеличенная дистанция. Может визуально удлинять лицо.' : 'Increased distance. Can visually elongate the face.',
+      color: 'text-red-400' 
+    };
+  };
+
+  const getNoseRating = (ratio) => {
+    if (ratio >= 0.25 && ratio <= 0.31) return {
+      text: ru ? 'Идеальный' : 'Ideal',
+      desc: ru ? 'Ширина носа идеально гармонирует с шириной лица.' : 'Nose width harmonizes perfectly with face width.',
+      color: 'text-cyber-neon'
+    };
+    if (ratio < 0.25) return {
+      text: ru ? 'Узкий' : 'Narrow',
+      desc: ru ? 'Утонченные черты. Очень компактный нос.' : 'Refined features. Very compact nose.',
+      color: 'text-yellow-400'
+    };
+    return {
+      text: ru ? 'Широкий' : 'Wide',
+      desc: ru ? 'Маскулинные черты. Нос занимает значительную часть лица.' : 'Masculine features. The nose occupies a significant part of the face.',
+      color: 'text-red-400'
+    };
   };
 
   const handleDownload = () => {
@@ -145,6 +214,7 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
   const canthalR = psl ? getCanthalRating(psl.canthalTiltR) : null;
   const jawR = psl ? getJawRating(psl.jawRatio) : null;
   const philR = psl ? getPhiltrumRating(psl.philtrumRatio) : null;
+  const noseR = psl ? getNoseRating(psl.noseRatio) : null;
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-lg overflow-y-auto" onClick={onClose}>
@@ -191,7 +261,7 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
 
           {/* Score bar */}
           <div className="px-5 py-4 border-t border-white/10 bg-white/[0.02]">
-            <div className="grid grid-cols-4 gap-3 text-center">
+            <div className="grid grid-cols-5 gap-2 text-center">
               <div>
                 <div className="text-[9px] text-gray-500 font-bold tracking-widest uppercase">TOTAL</div>
                 <div className="text-2xl font-black text-white">{analysis.total}</div>
@@ -211,6 +281,10 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
                 <div className="text-[9px] text-gray-500 font-bold tracking-widest uppercase">{ru ? 'СИММ.' : 'SYM.'}</div>
                 <div className="text-2xl font-black text-[#00ff9d]">{analysis.symmetry}</div>
               </div>
+              <div>
+                <div className="text-[9px] text-gray-500 font-bold tracking-widest uppercase">{ru ? 'НОС' : 'NOSE'}</div>
+                <div className="text-2xl font-black text-[#ff00ff]">{analysis.nose}</div>
+              </div>
             </div>
           </div>
 
@@ -221,35 +295,51 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
               title={ru ? 'Симметрия' : 'Symmetry'}
               value={`${analysis.symmetry}/100`}
               valueColor={analysis.symmetry >= 70 ? 'text-cyber-neon' : analysis.symmetry >= 50 ? 'text-yellow-400' : 'text-red-400'}
-              desc={ru ? 'Насколько ровно лицо относительно центральной оси.' : 'How evenly the face aligns to the center axis.'}
+              desc={getSymDesc(analysis.symmetry)}
+            />
+            <LegendRow
+              color="#ff00ff"
+              title={ru ? 'Пропорции носа' : 'Nose Proportions'}
+              value={`${analysis.nose}/100`}
+              valueColor={analysis.nose >= 70 ? 'text-cyber-neon' : analysis.nose >= 40 ? 'text-yellow-400' : 'text-red-400'}
+              desc={noseR ? noseR.desc : '—'}
             />
             <LegendRow
               color="#00e5ff"
               title={ru ? 'Кантальный наклон' : 'Canthal Tilt'}
               value={canthalR ? canthalR.text : '—'}
               valueColor={canthalR ? canthalR.color : 'text-gray-500'}
-              desc={ru ? 'Угол наклона глаз. Положительный = «хищный» взгляд.' : 'Eye slant angle. Positive = "hunter eyes" look.'}
+              desc={canthalR ? canthalR.desc : ''}
             />
             <LegendRow
               color="#ff0055" dash
               title={ru ? 'Скулы' : 'Cheekbones'}
               value={analysis.jawline >= 70 ? (ru ? 'Выражены' : 'Prominent') : (ru ? 'Средние' : 'Average')}
               valueColor={analysis.jawline >= 70 ? 'text-cyber-neon' : 'text-yellow-400'}
-              desc={ru ? 'Ширина скуловых костей. Широкие = доминантная структура.' : 'Cheekbone width. Wide = dominant facial structure.'}
+              desc={analysis.jawline >= 70 
+                ? (ru ? 'Широкие скулы обеспечивают отличную поддержку лица.' : 'Wide cheekbones provide excellent facial support.') 
+                : (ru ? 'Средняя ширина. Костная структура в пределах нормы.' : 'Average width. Bone structure is within normal range.')}
             />
             <LegendRow
               color="#50a0ff" dash
               title={ru ? 'Челюсть' : 'Jaw Ratio'}
-              value={jawR ? `${psl.jawRatio} — ${jawR.text}` : '—'}
+              value={jawR ? `${analysis.psl.jawRatio} — ${jawR.text}` : '—'}
               valueColor={jawR ? jawR.color : 'text-gray-500'}
-              desc={ru ? 'Соотношение челюсти к скулам. Идеал ≥ 0.85.' : 'Jaw-to-cheekbone ratio. Ideal ≥ 0.85.'}
+              desc={jawR ? jawR.desc : ''}
+            />
+            <LegendRow
+              color="#a855f7" dash
+              title={ru ? 'Нос' : 'Nose'}
+              value={noseR ? noseR.text : '—'}
+              valueColor={noseR ? noseR.color : 'text-gray-500'}
+              desc={noseR ? noseR.desc : ''}
             />
             <LegendRow
               color="#ffc800" dash
               title={ru ? 'Фильтрум' : 'Philtrum'}
               value={philR ? philR.text : '—'}
               valueColor={philR ? philR.color : 'text-gray-500'}
-              desc={ru ? 'Расстояние нос → губа. Короче = привлекательнее.' : 'Nose-to-lip distance. Shorter = more attractive.'}
+              desc={philR ? philR.desc : ''}
               last
             />
           </div>

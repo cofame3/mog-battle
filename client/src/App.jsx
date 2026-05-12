@@ -12,12 +12,15 @@ import Privacy from './components/Privacy';
 import Footer from './components/Footer';
 import { translations } from './utils/translations';
 
+import DailyRewards from './components/DailyRewards';
+
 function App() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
   const [lang, setLang] = useState(localStorage.getItem('mog_lang') || 'ru');
   const [isGlitching, setIsGlitching] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
+  const [showDaily, setShowDaily] = useState(false);
   const location = useLocation();
 
   const t = translations[lang];
@@ -68,7 +71,14 @@ function App() {
     const stored = localStorage.getItem('mog_user');
     if (stored) {
       try {
-        setUser(JSON.parse(stored));
+        const userData = JSON.parse(stored);
+        setUser(userData);
+        
+        // Check daily rewards
+        const lastClaim = localStorage.getItem('mog_last_claim');
+        if (lastClaim !== new Date().toDateString()) {
+          setShowDaily(true);
+        }
       } catch {
         localStorage.removeItem('mog_user');
         localStorage.removeItem('mog_token');
@@ -81,6 +91,12 @@ function App() {
     localStorage.removeItem('mog_token');
     localStorage.removeItem('mog_user');
     setUser(null);
+  };
+
+  const handleClaimReward = (reward) => {
+    console.log("Claimed reward:", reward);
+    // Here you can add logic to update user's points on server if needed
+    // For now, it just tracks locally via localStorage inside DailyRewards
   };
 
   if (checking) return null;
@@ -100,9 +116,22 @@ function App() {
         <Routes>
           <Route path="/" element={
             !user ? (
-              <AuthForm onAuth={setUser} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
+              <AuthForm onAuth={(u) => { 
+                setUser(u); 
+                // Show rewards immediately after login if not claimed
+                if (localStorage.getItem('mog_last_claim') !== new Date().toDateString()) {
+                  setShowDaily(true);
+                }
+              }} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
             ) : (
-              <BattleArena user={user} setUser={setUser} onLogout={handleLogout} lang={lang} t={t} />
+              <BattleArena 
+                user={user} 
+                setUser={setUser} 
+                onLogout={handleLogout} 
+                lang={lang} 
+                t={t} 
+                onShowDaily={() => setShowDaily(true)}
+              />
             )
           } />
           <Route path="/faq" element={<FAQ lang={lang} />} />
@@ -115,6 +144,13 @@ function App() {
 
       <Footer lang={lang} />
       {showLegal && <LegalModal lang={lang} onClose={() => setShowLegal(false)} />}
+      {showDaily && user && (
+        <DailyRewards 
+          lang={lang} 
+          onClaim={handleClaimReward} 
+          onClose={() => setShowDaily(false)} 
+        />
+      )}
     </div>
   );
 }
