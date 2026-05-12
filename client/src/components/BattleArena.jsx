@@ -1186,8 +1186,7 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
       return;
     }
 
-    // Gate 2: 1 per day (TEMPORARILY DISABLED FOR TESTING)
-    /*
+    // Gate 2: 1 per day limit
     const storageKey = `psl_last_scan_${user.username}`;
     const lastScan = localStorage.getItem(storageKey);
     if (lastScan) {
@@ -1199,7 +1198,6 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
       }
     }
     localStorage.setItem(storageKey, new Date().toISOString());
-    */
     
     // Allow scan
     setShowPSL(true);
