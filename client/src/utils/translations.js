@@ -11,7 +11,7 @@ export const translations = {
     guestWarning: "* Статистика побед не будет сохранена на сервере",
     loading: "ЗАГРУЗКА...",
     or: "ИЛИ",
-    protocol: "ПРОТОКОЛ ЭСТЕТИЧЕСКОЙ ОЦЕНКИ",
+    protocol: "AI FACE RATING & BATTLE ARENA",
 
     // Lobby
     solo: "СОЛО (ТЕСТ MOG SCORE)",
@@ -77,7 +77,7 @@ export const translations = {
     guestWarning: "* Win stats won't be saved on server",
     loading: "LOADING...",
     or: "OR",
-    protocol: "AESTHETIC EVALUATION PROTOCOL",
+    protocol: "AI FACE RATING & BATTLE ARENA",
 
     // Lobby
     solo: "SOLO (TEST MOG SCORE)",
