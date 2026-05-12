@@ -84,6 +84,55 @@ export default function FAQ({ lang }) {
           ))}
         </div>
 
+        {/* Pro Tips Section */}
+        <div className="mt-20">
+          <div className="flex items-center gap-3 mb-8">
+            <Zap className="text-cyber-neon w-6 h-6 animate-pulse" />
+            <h2 className="text-2xl font-black uppercase tracking-widest italic">
+              {isRu ? 'Как получить высший балл?' : 'How to Maximize Your Score?'}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                title: isRu ? "Ракурс" : "Angle",
+                desc: isRu ? "Держите телефон на уровне глаз. Снимок строго в анфас исключает искажение пропорций." : "Keep your device at eye level. A straight-on shot prevents facial proportion distortion."
+              },
+              {
+                title: isRu ? "Свет" : "Lighting",
+                desc: isRu ? "Естественный дневной свет — ваш лучший друг. Избегайте ламп сверху, создающих глубокие тени." : "Natural daylight is key. Avoid harsh overhead lights that create deep, unflattering shadows."
+              },
+              {
+                title: isRu ? "Мимика" : "Expression",
+                desc: isRu ? "Расслабьте лицо. Нейтральный взгляд или очень легкая улыбка дают самый точный результат." : "Relax your face. A neutral look or a very subtle smile produces the most reliable analysis."
+              },
+              {
+                title: isRu ? "Фон" : "Background",
+                desc: isRu ? "Используйте пустую стену. Лишние предметы в кадре могут сбивать алгоритмы детекции." : "Stand against a plain wall. Cluttered backgrounds can interfere with the AI detection accuracy."
+              },
+              {
+                title: isRu ? "Видимость" : "Visibility",
+                desc: isRu ? "Уберите волосы со лба и челюсти. Эти зоны критически важны для расчета эстетического рейтинга." : "Ensure your hair doesn't hide your jaw or forehead. These areas are vital for the rating calculation."
+              },
+              {
+                title: isRu ? "Честность" : "Authenticity",
+                desc: isRu ? "Никаких фильтров и очков. ИИ должен видеть вашу реальную структуру лица для честной оценки." : "No filters or sunglasses. The AI needs to analyze your actual facial structure for an honest result."
+              }
+            ].map((tip, i) => (
+              <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-5 hover:bg-white/10 transition-colors">
+                <h4 className="text-cyber-neon font-black text-xs uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-cyber-neon rounded-full" />
+                  {tip.title}
+                </h4>
+                <p className="text-gray-400 text-sm leading-snug">
+                  {tip.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-16 bg-gradient-to-br from-cyber-neon/10 to-transparent border border-white/5 rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
           <div>
             <h2 className="text-2xl font-black uppercase italic mb-2">
