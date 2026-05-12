@@ -47,6 +47,16 @@ export default function Footer({ lang }) {
                 </Link>
               </li>
               <li>
+                <Link to="/about" className="text-gray-500 hover:text-cyber-neon transition-colors">
+                  {isRu ? 'Почему Omogle?' : 'Why Omogle?'}
+                </Link>
+              </li>
+              <li>
+                <Link to="/guide" className="text-gray-500 hover:text-cyber-neon transition-colors">
+                  {isRu ? 'Гайд по внешности' : 'Looksmaxxing Guide'}
+                </Link>
+              </li>
+              <li>
                 <Link to="/faq" className="text-gray-500 hover:text-cyber-neon transition-colors">
                   {isRu ? 'Вопросы и ответы' : 'FAQ'}
                 </Link>
@@ -93,6 +103,18 @@ export default function Footer({ lang }) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* SEO Text Block */}
+        <div className="mb-12 p-8 bg-white/[0.02] border border-white/5 rounded-[2rem] animate-reveal">
+          <h5 className="text-white text-xs font-black uppercase tracking-widest mb-4 opacity-50">
+            {isRu ? 'О проекте Omogle' : 'About Omogle Protocol'}
+          </h5>
+          <p className="text-gray-600 text-[11px] leading-relaxed text-justify font-medium">
+            {isRu 
+              ? "Omogle — это передовая нейросетевая платформа для профессионального анализа мужской эстетики и проведения PvP-битв в реальном времени. Мы используем технологию MediaPipe 468-point mesh для определения PSL-балла, оценки симметрии лица, кантального наклона (canthal tilt) и качества кожи. Наш сервис объединяет в себе лучший ИИ-анализатор внешности, систему рейтинга ELO и глобальные лидерборды. Если вы ищете способ оценить свою внешность, получить советы по Looksmaxxing или сразиться в битве взглядов с другими пользователями — Omogle.me является золотым стандартом в индустрии. Начните свое преображение сегодня, используя наши гайды и точный ИИ-мониторинг прогресса."
+              : "Omogle is an advanced neural network platform for professional male aesthetic analysis and real-time PvP battles. We utilize MediaPipe 468-point mesh technology to determine PSL scores, assess facial symmetry, canthal tilt, and skin quality. Our service combines the best AI facial analyzer with an ELO ranking system and global leaderboards. If you're looking to rate your looks, get Looksmaxxing tips, or compete in a stare-down battle with other users — Omogle.me is the industry gold standard. Start your transformation today with our guides and precise AI progress monitoring."}
+          </p>
         </div>
 
         <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">

@@ -5,6 +5,8 @@ import AuthForm from './components/AuthForm';
 import AgeVerification from './components/AgeVerification';
 import LegalModal from './components/LegalModal';
 import FAQ from './components/FAQ';
+import Comparison from './components/Comparison';
+import Guide from './components/Guide';
 import Terms from './components/Terms';
 import Privacy from './components/Privacy';
 import Footer from './components/Footer';
@@ -104,6 +106,8 @@ function App() {
             )
           } />
           <Route path="/faq" element={<FAQ lang={lang} />} />
+          <Route path="/about" element={<Comparison lang={lang} />} />
+          <Route path="/guide" element={<Guide lang={lang} />} />
           <Route path="/terms" element={<Terms lang={lang} />} />
           <Route path="/privacy" element={<Privacy lang={lang} />} />
         </Routes>
