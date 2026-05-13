@@ -94,9 +94,21 @@ function App() {
   };
 
   const handleClaimReward = (reward) => {
-    console.log("Claimed reward:", reward);
-    // Here you can add logic to update user's points on server if needed
-    // For now, it just tracks locally via localStorage inside DailyRewards
+    setUser(prev => {
+      if (!prev) return prev;
+      const newUser = { ...prev };
+      
+      if (reward.type === 'premium') {
+        newUser.scans = (newUser.scans || 0) + reward.value;
+      } else if (reward.type === 'points') {
+        newUser.points = (newUser.points || 0) + reward.value;
+      } else if (reward.type === 'analysis') {
+        newUser.premiumEnabled = true;
+      }
+      
+      localStorage.setItem('mog_user', JSON.stringify(newUser));
+      return newUser;
+    });
   };
 
   if (checking) return null;

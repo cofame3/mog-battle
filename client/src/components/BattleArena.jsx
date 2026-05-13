@@ -631,13 +631,26 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
             <span className="text-sm font-bold text-cyber-neon tracking-widest flex items-center gap-2">
               {user.username}
               {!user.isGuest && lobbyMode !== 'friend_join' && (
-                <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded flex items-center gap-1">
-                  ⚡ {user.elo || 400}
-                </span>
+                <div className="flex gap-1">
+                  <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded flex items-center gap-1" title="Elo Rating">
+                    ⚡ {user.elo || 400}
+                  </span>
+                  <span className="text-[10px] text-cyber-neon bg-cyber-neon/10 border border-cyber-neon/30 px-1 rounded flex items-center gap-1" title="PSL Scans">
+                    <Scan size={10} /> {user.scans || 0}
+                  </span>
+                  <span className="text-[10px] text-cyber-accent bg-cyber-accent/10 border border-cyber-accent/30 px-1 rounded flex items-center gap-1" title="Mog Points">
+                    <Zap size={10} /> {user.points || 0}
+                  </span>
+                </div>
               )}
             </span>
             {user.isGuest && (
-              <span className="text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">GUEST</span>
+              <div className="flex gap-1">
+                <span className="text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">GUEST</span>
+                <span className="text-[10px] text-cyber-neon bg-cyber-neon/10 border border-cyber-neon/30 px-1 rounded flex items-center gap-1">
+                  <Scan size={10} /> {user.scans || 0}
+                </span>
+              </div>
             )}
             {onLogout && (
               <>

@@ -18,45 +18,61 @@ export default function DailyRewards({ onClaim, onClose, lang }) {
 
   useEffect(() => {
     const lastClaim = localStorage.getItem('mog_last_claim');
-    const currentStreak = parseInt(localStorage.getItem('mog_streak') || '0');
+    const savedStreak = parseInt(localStorage.getItem('mog_streak') || '0');
     const today = new Date().toDateString();
 
     if (lastClaim === today) {
+      // Already claimed today
       setClaimedToday(true);
-      setStreak(currentStreak);
+      setStreak(savedStreak || 1);
     } else {
-      // Check if missed a day
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      
-      if (lastClaim === yesterday.toDateString()) {
-        const nextStreak = currentStreak >= 7 ? 1 : currentStreak + 1;
-        setStreak(nextStreak);
-      } else {
+      // Haven't claimed today yet
+      if (!lastClaim) {
+        // First time ever
         setStreak(1);
+      } else {
+        const lastDate = new Date(lastClaim);
+        const todayDate = new Date(today);
+        
+        // Difference in days
+        const diffTime = Math.abs(todayDate - lastDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          // Claimed yesterday, continue streak
+          const nextStreak = savedStreak >= 7 ? 1 : savedStreak + 1;
+          setStreak(nextStreak);
+        } else {
+          // Missed a day or more, reset to 1
+          setStreak(1);
+        }
       }
     }
   }, []);
 
   const handleClaim = () => {
     const today = new Date().toDateString();
+    
+    // Save progress
     localStorage.setItem('mog_last_claim', today);
     localStorage.setItem('mog_streak', streak.toString());
     setClaimedToday(true);
     
     const reward = REWARDS[streak - 1];
     
-    // Give rewards
+    // Also save to specialized balance keys for fallback
     if (reward.type === 'premium') {
-      localStorage.setItem('mog_premium_ticket', 'true');
-    } else if (reward.type === 'analysis') {
-      localStorage.setItem('mog_analysis_ticket', 'true');
+      const current = parseInt(localStorage.getItem('mog_scans_balance') || '0');
+      localStorage.setItem('mog_scans_balance', (current + reward.value).toString());
+    } else if (reward.type === 'points') {
+      const current = parseInt(localStorage.getItem('mog_points_balance') || '0');
+      localStorage.setItem('mog_points_balance', (current + reward.value).toString());
     }
 
     onClaim(reward);
     
-    // Auto-close after 2 seconds
-    setTimeout(onClose, 2000);
+    // Close after a brief delay
+    setTimeout(onClose, 1500);
   };
 
   return (
