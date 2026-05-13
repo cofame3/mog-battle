@@ -104,7 +104,7 @@ export default function AuthForm({ onAuth, lang, t, onShowLegal }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 py-20 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-black z-0">
         <LightPillar
@@ -267,16 +267,16 @@ export default function AuthForm({ onAuth, lang, t, onShowLegal }) {
         </p>
 
         {/* SEO Block */}
-        <div className="mt-12 pt-8 border-t border-white/5 space-y-4 text-[11px] text-gray-500 leading-relaxed font-sans italic opacity-60">
+        <div className="mt-12 pt-8 border-t border-white/5 space-y-4 text-[11px] text-gray-500 leading-relaxed font-sans italic opacity-60 text-center">
           <p>
-            {t.ru 
-              ? "Ommoggle — это бесплатное приложение для случайного видеочата, общения с незнакомцами в реальном времени и профессиональной оценки внешности. Наш AI Face Rating анализирует черты вашего лица, такие как симметрия, линия челюсти и наклон глаз (canthal tilt), чтобы дать объективную оценку вашей привлекательности."
-              : "Ommoggle is a free random video chat app where you can talk to strangers live and get a professional face rating. Our AI Face Rating analyzes your facial features, such as symmetry, jawline, and canthal tilt, to provide an objective assessment of your attractiveness."}
+            {t.ru
+              ? "Omogle — это передовая платформа для оценки внешности с использованием искусственного интеллекта. Наш AI Face Rating анализирует черты вашего лица, такие как симметрия, линия челюсти и наклон глаз (canthal tilt), чтобы дать объективную оценку вашей привлекательности. Это не просто инструмент для анализа, а настоящая Beauty Battle Arena, где вы можете соревноваться с другими пользователями в реальном времени."
+              : "Omogle is a cutting-edge platform for facial evaluation using artificial intelligence. Our AI Face Rating analyzes your facial features, such as symmetry, jawline, and canthal tilt, to provide an objective assessment of your attractiveness. This is more than just an analysis tool; it's a real Beauty Battle Arena where you can compete with others in real-time."}
           </p>
           <p>
             {t.ru
               ? "Если вы искали omogle, ommoggle или ommoggle omoggle, вы попали по адресу. Это не просто видеочат, а настоящая Beauty Battle Arena для looksmaxxing. Вступай в битву и докажи, что ты настоящий Гигачад!"
-              : "If you found us by searching for omogle, ommoggle, or ommoggle omoggle, you are in the right place. This is more than just a random video chat; it's the ultimate Beauty Battle Arena for looksmaxxing. Enter the battle and prove you're a true Gigachad!"}
+              : "If you found us by searching for omogle, ommoggle, or ommoggle omoggle, you are in the right place. This is more than just a random video chat; it's the Mog Battle Arena for looksmaxxing. Enter the battle and prove you're a true Gigachad!"}
           </p>
         </div>
       </div>
