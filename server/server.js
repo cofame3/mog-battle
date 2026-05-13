@@ -612,6 +612,11 @@ io.on('connection', (socket) => {
       const playerCount = Object.keys(rooms[roomCode].players).length;
       io.to(roomCode).emit('room_update', playerCount);
       socket.to(roomCode).emit('opponent_ready', false);
+      
+      // Notify remaining player that opponent left (for mid-battle handling)
+      if (playerCount > 0) {
+        socket.to(roomCode).emit('opponent_left');
+      }
 
       if (playerCount === 0) delete rooms[roomCode];
     }

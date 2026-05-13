@@ -172,6 +172,20 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       }
     });
 
+    // Opponent left mid-battle
+    socket.on('opponent_left', () => {
+      // If we're in the middle of a battle or waiting for opponent's result
+      if (battleState === 'battling' || battleState === 'analyzing') {
+        // Give opponent a default "left" result so the battle resolves
+        setOpponentResult({
+          image: null,
+          analysis: { total: 0, symmetry: 0, jawline: 0, eyes: 0, nose: 0, error: true }
+        });
+        setOpponentName('DISCONNECTED');
+      }
+      setOpponentStream(null);
+    });
+
     return () => {
       socket.off('room_update');
       socket.off('opponent_ready');
@@ -181,8 +195,9 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       socket.off('user_joined');
       socket.off('user_joined_signal');
       socket.off('receiving_returned_signal');
+      socket.off('opponent_left');
     };
-  }, [stream]);
+  }, [stream, battleState]);
 
   // Синхронное открытие результатов в 1 на 1
   useEffect(() => {
@@ -190,6 +205,23 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       setBattleState('result');
     }
   }, [myResult, opponentResult, battleState]);
+
+  // Timeout: if stuck in 'analyzing' for 30s (opponent left without event), auto-resolve
+  useEffect(() => {
+    if (battleState !== 'analyzing' || gameMode === 'solo' || gameMode === 'photo') return;
+    
+    const timeout = setTimeout(() => {
+      if (!opponentResult) {
+        setOpponentResult({
+          image: null,
+          analysis: { total: 0, symmetry: 0, jawline: 0, eyes: 0, nose: 0, error: true }
+        });
+        setOpponentName('DISCONNECTED');
+      }
+    }, 20000);
+
+    return () => clearTimeout(timeout);
+  }, [battleState, gameMode, opponentResult]);
 
   // Keep streamRef in sync
   useEffect(() => {
@@ -939,6 +971,9 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
         </div>
 
         <div className="flex items-center gap-2">
+           <button onClick={toggleMic} className={`px-4 py-2 text-xs font-bold bg-transparent border rounded flex items-center gap-2 hover:bg-gray-800 transition ${isMicMuted ? 'text-red-400 border-red-500/50' : 'text-gray-300 border-[#333]'}`}>
+             {isMicMuted ? <MicOff size={14}/> : <Mic size={14}/>} {isMicMuted ? (lang === 'ru' ? 'Мик выкл' : 'Muted') : (lang === 'ru' ? 'Микрофон' : 'Mic')}
+           </button>
            <button onClick={() => setShowProfile(true)} className="px-4 py-2 text-xs font-bold text-gray-300 bg-transparent border border-[#333] rounded flex items-center gap-2 hover:bg-gray-800 transition"><User size={14}/> {lang === 'ru' ? 'Профиль' : 'Profile'}</button>
            <button onClick={returnHome} className="px-4 py-2 text-xs font-bold text-gray-300 bg-transparent border border-[#333] rounded flex items-center gap-2 hover:bg-gray-800 transition"><LogOut size={14}/> {lang === 'ru' ? 'В главное меню' : 'Main Menu'}</button>
         </div>
