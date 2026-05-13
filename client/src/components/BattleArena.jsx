@@ -112,6 +112,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   const imageRef = useRef(null);
   const liveCanvasRef = useRef(null);
   const battleStateRef = useRef(battleState);
+  const battleIdRef = useRef(0); // unique ID per battle to prevent stale async results
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -211,11 +212,15 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     battleStateRef.current = battleState;
   }, [battleState]);
 
-  // Timeout: if stuck in 'analyzing' for 30s (opponent left without event), auto-resolve
+  // Timeout: if stuck in 'analyzing' for 20s, auto-resolve
   useEffect(() => {
     if (battleState !== 'analyzing' || gameMode === 'solo' || gameMode === 'photo') return;
     
     const timeout = setTimeout(() => {
+      // Force-resolve: set missing results
+      if (!myResult) {
+        setMyResult({ image: null, analysis: { total: 50, symmetry: 50, jawline: 50, eyes: 50, nose: 50, error: true } });
+      }
       if (!opponentResult) {
         setOpponentResult({
           image: null,
@@ -226,7 +231,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     }, 20000);
 
     return () => clearTimeout(timeout);
-  }, [battleState, gameMode, opponentResult]);
+  }, [battleState, gameMode, opponentResult, myResult]);
 
   // Keep streamRef in sync
   useEffect(() => {
@@ -369,6 +374,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   };
 
   const returnHome = () => {
+    battleIdRef.current++; // Cancel any running async analysis
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
@@ -397,6 +403,9 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   };
 
   const findNextRandom = () => {
+    // Invalidate any running async analysis from the old battle
+    battleIdRef.current++;
+    
     if (peerRef.current) {
       peerRef.current.close();
       peerRef.current = null;
@@ -579,36 +588,41 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   };
 
   const takeSnapshotAndAnalyze = async () => {
+    const currentBattleId = battleIdRef.current;
     setCountdown(null);
     setBattleState('analyzing');
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas) return;
+    if (!video || !canvas) {
+      // Fallback: if video/canvas not available, set error result
+      setMyResult({ image: null, analysis: { total: 0, symmetry: 0, jawline: 0, eyes: 0, nose: 0, error: true } });
+      return;
+    }
 
-    // Pass the actual video element for Face Detection
-    const analysis = await analyzeAppearance(video);
+    try {
+      const analysis = await analyzeAppearance(video);
 
-    // Fallback to taking a snapshot for the result screen / sending to opponent
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const imageSrc = canvas.toDataURL('image/jpeg', 0.8);
+      // Guard: if battle was reset while analysis was running, discard result
+      if (battleIdRef.current !== currentBattleId) return;
 
-    const myData = { image: imageSrc, analysis };
-    setMyResult(myData);
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      const imageSrc = canvas.toDataURL('image/jpeg', 0.8);
 
-    if (gameMode !== 'solo' && gameMode !== 'photo') {
-      socket.emit('submit_snapshot', myData);
+      const myData = { image: imageSrc, analysis };
+      setMyResult(myData);
 
-      // Если результат оппонента уже пришел, открываем финальный экран
-      // Если нет - продолжаем висеть в "analyzing", пока не сработает useEffect или socket.on
-      if (opponentResult) {
+      if (gameMode !== 'solo' && gameMode !== 'photo') {
+        socket.emit('submit_snapshot', myData);
+      } else {
         setBattleState('result');
       }
-    } else {
-      // В соло или фото режиме открываем сразу
-      setBattleState('result');
+    } catch (err) {
+      console.error('Analysis failed:', err);
+      if (battleIdRef.current !== currentBattleId) return;
+      setMyResult({ image: null, analysis: { total: 50, symmetry: 50, jawline: 50, eyes: 50, nose: 50, error: true } });
     }
   };
 
