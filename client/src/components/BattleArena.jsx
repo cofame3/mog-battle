@@ -250,6 +250,19 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     }
   }, [opponentStream, appState]);
 
+  // Called when WebRTC detects the opponent disconnected
+  const handlePeerDisconnect = () => {
+    const currentState = battleStateRef.current;
+    if (currentState === 'battling' || currentState === 'analyzing') {
+      setOpponentResult({
+        image: null,
+        analysis: { total: 0, symmetry: 0, jawline: 0, eyes: 0, nose: 0, error: true }
+      });
+      setOpponentName('DISCONNECTED');
+    }
+    setOpponentStream(null);
+  };
+
   const createPeer = (userToSignal, callerID, localStream) => {
     const peer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
     if (localStream) localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
@@ -262,6 +275,11 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     };
     peer.onicecandidate = e => {
       if (e.candidate) socket.emit('sending_signal', { userToSignal, callerID, signal: { type: 'candidate', candidate: e.candidate } });
+    };
+    peer.onconnectionstatechange = () => {
+      if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed' || peer.connectionState === 'closed') {
+        handlePeerDisconnect();
+      }
     };
     peer.createOffer().then(offer => {
       peer.setLocalDescription(offer);
@@ -282,6 +300,11 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     };
     peer.onicecandidate = e => {
       if (e.candidate) socket.emit('returning_signal', { callerID, signal: { type: 'candidate', candidate: e.candidate } });
+    };
+    peer.onconnectionstatechange = () => {
+      if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed' || peer.connectionState === 'closed') {
+        handlePeerDisconnect();
+      }
     };
     peer.setRemoteDescription(new RTCSessionDescription(incomingSignal)).then(() => {
       peer.createAnswer().then(answer => {
