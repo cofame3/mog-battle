@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Zap, User, Lock, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import LightPillar from './LightPillar';
+import SpellingSection from './SpellingSection';
 
 const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : `http://${window.location.hostname}:3001/api`;
 
-export default function AuthForm({ onAuth, t, onShowLegal }) {
+export default function AuthForm({ onAuth, lang, t, onShowLegal }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -279,6 +280,9 @@ export default function AuthForm({ onAuth, t, onShowLegal }) {
           </p>
         </div>
       </div>
+
+      {/* Spelling Variations SEO Section */}
+      <SpellingSection lang={lang} />
     </div>
   );
 }
