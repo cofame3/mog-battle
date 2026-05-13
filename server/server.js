@@ -109,15 +109,15 @@ async function updateStats(username, { win, score, opponentElo, opponentUsername
       user = { username, password: '', wins: 0, losses: 0, bestScore: 0, elo: 400 };
       inMemoryUsers.set(username.toLowerCase(), user);
     }
-    
+
     let currentElo = user.elo || 400;
     let expected = 1 / (1 + Math.pow(10, (oppElo - currentElo) / 400));
     let actual = win === true ? 1 : (win === false ? 0 : 0.5);
     user.elo = Math.round(currentElo + K * (actual - expected));
-    
-    if (win === true) user.wins++; 
+
+    if (win === true) user.wins++;
     else if (win === false) user.losses++;
-    
+
     if (score > (user.bestScore || 0)) user.bestScore = score;
     return { elo: user.elo, eloChange: user.elo - currentElo };
   }
@@ -134,10 +134,10 @@ async function updateStats(username, { win, score, opponentElo, opponentUsername
   if (win === true) update.$inc = { wins: 1 };
   else if (win === false) update.$inc = { losses: 1 };
   update.$set = { elo: newElo };
-  
+
   if (score) update.$max = { bestScore: score };
   await User.updateOne({ username }, update);
-  
+
   return { elo: newElo, eloChange: newElo - currentElo };
 }
 
@@ -220,7 +220,7 @@ app.post('/api/google-auth', async (req, res) => {
     const { name, sub: googleId } = payload;
 
     let user = await findUser(name);
-    
+
     if (!user) {
       const randomPass = await bcrypt.hash(Math.random().toString(36), 10);
       user = await createUser(name, randomPass);
@@ -265,12 +265,12 @@ app.get('/api/me', async (req, res) => {
     const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const user = await findUser(username);
     if (!user) return res.status(404).json({ error: 'Не найден' });
-    res.json({ 
-      username: user.username, 
-      wins: user.wins, 
-      losses: user.losses, 
-      bestScore: user.bestScore, 
-      elo: user.elo || 400, 
+    res.json({
+      username: user.username,
+      wins: user.wins,
+      losses: user.losses,
+      bestScore: user.bestScore,
+      elo: user.elo || 400,
       adviceTokens: user.adviceTokens || 0,
       avatarUrl: user.avatarUrl || '',
       lastNicknameChange: user.lastNicknameChange || null,
@@ -287,18 +287,18 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
     const auth = req.headers.authorization;
     if (!auth) return res.status(401).json({ error: 'Нет токена' });
     const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    
+
     if (!req.file) return res.status(400).json({ error: 'Файл не загружен' });
-    
+
     const avatarUrl = `/uploads/${req.file.filename}`;
-    
+
     if (useInMemory) {
       const user = inMemoryUsers.get(username.toLowerCase());
       if (user) user.avatarUrl = avatarUrl;
     } else {
       await User.updateOne({ username }, { $set: { avatarUrl } });
     }
-    
+
     res.json({ ok: true, avatarUrl });
   } catch (err) {
     console.error('Avatar upload error:', err);
@@ -311,15 +311,15 @@ app.post('/api/profile/username', async (req, res) => {
     const auth = req.headers.authorization;
     if (!auth) return res.status(401).json({ error: 'Нет токена' });
     const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    
+
     const { newUsername } = req.body;
     if (!newUsername || newUsername.length < 3) {
       return res.status(400).json({ error: 'Имя минимум 3 символа' });
     }
-    
+
     const user = await findUser(username);
     if (!user) return res.status(404).json({ error: 'Не найден' });
-    
+
     // Проверка 7 дней
     if (user.lastNicknameChange) {
       const diffMs = Date.now() - new Date(user.lastNicknameChange).getTime();
@@ -328,15 +328,15 @@ app.post('/api/profile/username', async (req, res) => {
         return res.status(400).json({ error: `Сменить ник можно будет через ${Math.ceil(7 - diffDays)} дн.` });
       }
     }
-    
+
     // Проверка уникальности
     const exists = await findUser(newUsername);
     if (exists && exists.username.toLowerCase() !== username.toLowerCase()) {
       return res.status(409).json({ error: 'Это имя уже занято' });
     }
-    
+
     const now = new Date();
-    
+
     if (useInMemory) {
       const u = inMemoryUsers.get(username.toLowerCase());
       inMemoryUsers.delete(username.toLowerCase());
@@ -346,10 +346,10 @@ app.post('/api/profile/username', async (req, res) => {
     } else {
       await User.updateOne({ username }, { $set: { username: newUsername, lastNicknameChange: now } });
     }
-    
+
     // Создаем новый токен с новым именем
     const token = jwt.sign({ username: newUsername }, JWT_SECRET, { expiresIn: '7d' });
-    
+
     res.json({ ok: true, username: newUsername, lastNicknameChange: now, token });
   } catch (err) {
     console.error('Username change error:', err);
@@ -400,10 +400,10 @@ app.post('/api/paypal/capture-order', async (req, res) => {
     const { orderID, analysis, lang } = req.body;
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Нет токена' });
-    
+
     const { username } = jwt.verify(authHeader.replace('Bearer ', ''), JWT_SECRET);
     const accessToken = await generatePayPalAccessToken();
-    
+
     const response = await fetch(`${PAYPAL_API}/v2/checkout/orders/${orderID}/capture`, {
       method: 'POST',
       headers: {
@@ -431,11 +431,11 @@ app.post('/api/use-analysis-ticket', async (req, res) => {
     const { analysis, lang } = req.body;
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Нет токена' });
-    
+
     // In a real app, we would verify on DB that user HAS a ticket.
     // For now, we trust the client request with a valid token.
     jwt.verify(authHeader.replace('Bearer ', ''), JWT_SECRET);
-    
+
     const advice = generatePremiumAdvice(analysis, lang);
     res.json({ ok: true, advice });
   } catch (error) {
@@ -449,7 +449,7 @@ app.post('/api/use-token', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Нет токена' });
     const { username } = jwt.verify(authHeader.replace('Bearer ', ''), JWT_SECRET);
-    
+
     const user = await findUser(username);
     if (!user || !user.adviceTokens || user.adviceTokens <= 0) {
       return res.status(403).json({ error: 'Нет жетонов для использования' });
@@ -473,13 +473,13 @@ app.get('/api/leaderboard', async (req, res) => {
     if (useInMemory) {
       const allUsers = Array.from(inMemoryUsers.values());
       const sorted = allUsers.sort((a, b) => (b.elo || 400) - (a.elo || 400)).slice(0, 20);
-      return res.json(sorted.map(u => ({ 
-        username: u.username, 
-        bestScore: u.bestScore || 0, 
-        elo: u.elo || 400, 
-        wins: u.wins || 0, 
+      return res.json(sorted.map(u => ({
+        username: u.username,
+        bestScore: u.bestScore || 0,
+        elo: u.elo || 400,
+        wins: u.wins || 0,
         losses: u.losses || 0,
-        avatarUrl: u.avatarUrl || '' 
+        avatarUrl: u.avatarUrl || ''
       })));
     }
     const topUsers = await User.find({}, { username: 1, bestScore: 1, elo: 1, wins: 1, losses: 1, avatarUrl: 1, _id: 0 })

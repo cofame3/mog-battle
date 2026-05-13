@@ -17,7 +17,7 @@ import DailyRewards from './components/DailyRewards';
 function App() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
-  const [lang, setLang] = useState(localStorage.getItem('mog_lang') || 'ru');
+  const [lang, setLang] = useState(localStorage.getItem('mog_lang') || 'en');
   const [isGlitching, setIsGlitching] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
   const [showDaily, setShowDaily] = useState(false);
@@ -36,32 +36,35 @@ function App() {
   // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Update canonical link
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical) {
-      const path = location.pathname === '/' ? '' : location.pathname;
-      canonical.setAttribute('href', `https://omogle.me${path}`);
-    }
+    // Update canonical and hreflang links
+    const path = location.pathname === '/' ? '' : location.pathname;
+    const currentUrl = `https://omogle.me${path}`;
+    
+    const canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute('href', currentUrl);
+
+    const hreflangs = document.querySelectorAll('link[rel="alternate"][hreflang]');
+    hreflangs.forEach(el => el.setAttribute('href', currentUrl));
   }, [location.pathname]);
 
   // Update Meta Tags and Lang dynamically
   useEffect(() => {
     // HTML Lang
     document.documentElement.lang = lang;
-    
+
     // Title
     document.title = t.seoTitle || "Omogle — AI Face Rating";
-    
+
     // Description
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute('content', t.seoDesc || "");
     }
-    
+
     // Open Graph Title/Desc
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute('content', t.seoTitle || "");
-    
+
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.setAttribute('content', t.seoDesc || "");
   }, [lang, t]);
@@ -73,7 +76,7 @@ function App() {
       try {
         const userData = JSON.parse(stored);
         setUser(userData);
-        
+
         // Check daily rewards
         const lastClaim = localStorage.getItem('mog_last_claim');
         if (lastClaim !== new Date().toDateString()) {
@@ -97,15 +100,15 @@ function App() {
     setUser(prev => {
       if (!prev) return prev;
       const newUser = { ...prev };
-      
+
       if (reward.type === 'premium') {
         newUser.scans = (newUser.scans || 0) + reward.value;
       } else if (reward.type === 'points') {
-        newUser.points = (newUser.points || 0) + reward.value;
+        newUser.points = (newUser.points || 0) + (reward.value * 10); // Scale points if needed or use raw value
       } else if (reward.type === 'analysis') {
         newUser.premiumEnabled = true;
       }
-      
+
       localStorage.setItem('mog_user', JSON.stringify(newUser));
       return newUser;
     });
@@ -128,20 +131,20 @@ function App() {
         <Routes>
           <Route path="/" element={
             !user ? (
-              <AuthForm onAuth={(u) => { 
-                setUser(u); 
+              <AuthForm onAuth={(u) => {
+                setUser(u);
                 // Show rewards immediately after login if not claimed
                 if (localStorage.getItem('mog_last_claim') !== new Date().toDateString()) {
                   setShowDaily(true);
                 }
               }} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
             ) : (
-              <BattleArena 
-                user={user} 
-                setUser={setUser} 
-                onLogout={handleLogout} 
-                lang={lang} 
-                t={t} 
+              <BattleArena
+                user={user}
+                setUser={setUser}
+                onLogout={handleLogout}
+                lang={lang}
+                t={t}
                 onShowDaily={() => setShowDaily(true)}
               />
             )
@@ -157,10 +160,10 @@ function App() {
       <Footer lang={lang} />
       {showLegal && <LegalModal lang={lang} onClose={() => setShowLegal(false)} />}
       {showDaily && user && (
-        <DailyRewards 
-          lang={lang} 
-          onClaim={handleClaimReward} 
-          onClose={() => setShowDaily(false)} 
+        <DailyRewards
+          lang={lang}
+          onClaim={handleClaimReward}
+          onClose={() => setShowDaily(false)}
         />
       )}
     </div>
