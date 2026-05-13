@@ -64,7 +64,7 @@ export const translations = {
     
     // SEO
     seoTitle: "Omogle — AI Face Rating & Mog Battle",
-    seoDesc: "Ommoggle — это премиальная платформа для случайных видеочатов, созданная для живого общения и соревновательного анализа внешности. Если вы искали omogle, ommoggle или ommoggle omoggle, вы нашли идеальное место для знакомств и битв за звание лучшего."
+    seoDesc: "Ommoggle — бесплатное приложение для случайного видеочата, общения с незнакомцами в реальном времени и оценки внешности. Если вы искали omogle, ommoggle или ommoggle omoggle, вы именно там, где нужно."
   },
   en: {
     // Auth
@@ -131,6 +131,6 @@ export const translations = {
 
     // SEO
     seoTitle: "Omogle — AI Face Rating & Mog Battle",
-    seoDesc: "Ommoggle is a premium random video chat platform designed for live interactions and competitive looksmaxxing. If you've been searching for omogle, ommoggle, or ommoggle omoggle, you've found the ultimate arena for talking to strangers and rating aesthetics."
+    seoDesc: "Ommoggle is a free random video chat app where you can talk to strangers live and rate faces. If you searched for omogle, ommoggle, or ommoggle omoggle, you are exactly where you need to be."
   }
 };
