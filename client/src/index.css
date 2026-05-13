@@ -24,6 +24,10 @@
     overflow-x: hidden;
   }
 }
+
+body.arena-mode footer {
+  display: none !important;
+}
 @keyframes glitch {
   0% { transform: translate(0); text-shadow: -2px 0 var(--color-cyber-accent), 2px 0 var(--color-cyber-neon); }
   25% { transform: translate(-1px, 1px); }

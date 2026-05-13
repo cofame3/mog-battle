@@ -512,8 +512,23 @@ io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
   socket.on('join_random', () => {
-    if (matchmakingQueue.length > 0) {
-      const opponentId = matchmakingQueue.shift();
+    // Remove any existing entry for this socket (prevent duplicates)
+    matchmakingQueue = matchmakingQueue.filter(id => id !== socket.id);
+    
+    // Try to find a valid opponent from the queue
+    let opponentId = null;
+    while (matchmakingQueue.length > 0) {
+      const candidateId = matchmakingQueue.shift();
+      // Verify the candidate is still connected and is not the same user
+      const candidateSocket = io.sockets.sockets.get(candidateId);
+      if (candidateSocket && candidateSocket.connected && candidateId !== socket.id) {
+        opponentId = candidateId;
+        break;
+      }
+      // Otherwise discard the stale entry and keep looking
+    }
+    
+    if (opponentId) {
       const newRoomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       io.to(socket.id).emit('match_found', newRoomCode);
       io.to(opponentId).emit('match_found', newRoomCode);
