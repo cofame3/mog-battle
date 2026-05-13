@@ -104,9 +104,9 @@ export default function AuthForm({ onAuth, lang, t, onShowLegal }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 py-20 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-black z-0">
+      <div className="absolute inset-0 bg-black z-0 pointer-events-none">
         <LightPillar
           topColor="#00ff9d"
           bottomColor="#ff0055"
@@ -130,159 +130,164 @@ export default function AuthForm({ onAuth, lang, t, onShowLegal }) {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-md bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-reveal">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <img src="/logo.jpg" alt="Omogle Logo" className="w-32 h-32 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(0,255,157,0.5)] object-cover rounded-[2rem]" />
-          <h1 className="text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
-            OMOGLE — AI FACE RATING
-          </h1>
-          <p className="text-gray-400 mt-2 text-sm tracking-widest uppercase">{t.protocol}</p>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex mb-8 border border-white/10 rounded-xl overflow-hidden bg-white/5 backdrop-blur-sm">
-          <button
-            onClick={() => { setMode('login'); setError(''); }}
-            className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'login'
-              ? 'bg-cyber-neon text-black'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-          >
-            <LogIn size={16} />
-            {t.login}
-          </button>
-          <button
-            onClick={() => { setMode('register'); setError(''); }}
-            className={`flex-1 py-3 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'register'
-              ? 'bg-cyber-neon text-black'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-          >
-            <UserPlus size={16} />
-            {t.register}
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username */}
-          <div className="relative">
-            <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder={t.username}
-              maxLength={20}
-              autoComplete="username"
-              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pl-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600 uppercase"
-            />
+      {/* Main Content (centered) */}
+      <div className="flex-1 flex flex-col items-center justify-center p-4 py-8 relative z-10 w-full">
+        <div className="w-full max-w-md bg-black/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-reveal">
+          {/* Logo */}
+          <div className="text-center mb-6">
+            <img src="/logo.jpg" alt="Omogle Logo" className="w-24 h-24 mx-auto mb-3 drop-shadow-[0_0_15px_rgba(0,255,157,0.5)] object-cover rounded-[1.5rem]" />
+            <h1 className="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyber-neon to-cyber-accent drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">
+              OMOGLE — AI FACE RATING
+            </h1>
+            <p className="text-gray-400 mt-1 text-xs tracking-widest uppercase">{t.protocol}</p>
           </div>
 
-          {/* Password */}
-          <div className="relative">
-            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-            <input
-              type={showPass ? 'text' : 'password'}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder={t.password}
-              maxLength={50}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pl-10 pr-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600"
-            />
+          {/* Tabs */}
+          <div className="flex mb-6 border border-white/10 rounded-xl overflow-hidden bg-white/5 backdrop-blur-sm">
             <button
-              type="button"
-              onClick={() => setShowPass(v => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+              onClick={() => { setMode('login'); setError(''); }}
+              className={`flex-1 py-2.5 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'login'
+                ? 'bg-cyber-neon text-black'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
             >
-              {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+              <LogIn size={16} />
+              {t.login}
+            </button>
+            <button
+              onClick={() => { setMode('register'); setError(''); }}
+              className={`flex-1 py-2.5 font-bold tracking-widest text-sm uppercase transition-all flex items-center justify-center gap-2 ${mode === 'register'
+                ? 'bg-cyber-neon text-black'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+            >
+              <UserPlus size={16} />
+              {t.register}
             </button>
           </div>
 
-          {/* Error */}
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-xl px-4 py-3 text-red-400 text-xs font-bold tracking-wide">
-              ⚠ {error}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username */}
+            <div className="relative">
+              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                placeholder={t.username}
+                maxLength={20}
+                autoComplete="username"
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600 uppercase"
+              />
             </div>
-          )}
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading || !username.trim() || !password}
-            className="w-full py-3.5 rounded-xl font-black uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-cyber-neon text-black hover:shadow-[0_0_25px_rgba(0,255,157,0.5)] hover:bg-white active:scale-[0.98]"
-          >
-            {loading ? (
-              <span className="animate-pulse">{t.loading}</span>
-            ) : mode === 'login' ? (
-              t.loginBtn
-            ) : (
-              t.registerBtn
-            )}
-          </button>
-
-          <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-white/5"></div>
-            <span className="flex-shrink-0 mx-4 text-gray-600 text-[10px] font-bold tracking-[0.3em] uppercase">{t.or}</span>
-            <div className="flex-grow border-t border-white/5"></div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleGuest}
-            className="w-full py-2.5 rounded-xl font-bold uppercase tracking-widest border border-white/10 text-gray-400 hover:border-cyber-accent hover:text-white hover:bg-cyber-accent/5 transition-all flex items-center justify-center gap-2 text-sm"
-          >
-            {t.guestBtn}
-          </button>
-          <p className="text-[8px] text-center text-gray-600 mt-1 tracking-widest uppercase italic leading-tight">
-            {t.guestWarning}
-          </p>
-
-          <div className="mt-4 flex flex-col items-center gap-3">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setError('Google Login Failed')}
-              theme="filled_black"
-              shape="pill"
-              text="continue_with"
-              width="280"
-            />
-            <p className="text-[9px] text-gray-500 font-mono tracking-widest uppercase opacity-60">
-              {t.ru ? 'Продолжая, вы принимаете' : 'By joining, you agree to our'}{' '}
+            {/* Password */}
+            <div className="relative">
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input
+                type={showPass ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder={t.password}
+                maxLength={50}
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 pl-10 pr-10 text-white font-mono tracking-widest focus:border-cyber-neon focus:outline-none transition-colors placeholder-gray-600"
+              />
               <button
                 type="button"
-                onClick={onShowLegal}
-                className="text-cyber-neon/80 hover:text-cyber-neon hover:underline transition-colors"
+                onClick={() => setShowPass(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
               >
-                Terms of Use
+                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/50 rounded-xl px-4 py-2.5 text-red-400 text-xs font-bold tracking-wide">
+                ⚠ {error}
+              </div>
+            )}
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading || !username.trim() || !password}
+              className="w-full py-3 rounded-xl font-black uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-cyber-neon text-black hover:shadow-[0_0_25px_rgba(0,255,157,0.5)] hover:bg-white active:scale-[0.98]"
+            >
+              {loading ? (
+                <span className="animate-pulse">{t.loading}</span>
+              ) : mode === 'login' ? (
+                t.loginBtn
+              ) : (
+                t.registerBtn
+              )}
+            </button>
+
+            <div className="relative flex py-1 items-center">
+              <div className="flex-grow border-t border-white/5"></div>
+              <span className="flex-shrink-0 mx-4 text-gray-600 text-[10px] font-bold tracking-[0.3em] uppercase">{t.or}</span>
+              <div className="flex-grow border-t border-white/5"></div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGuest}
+              className="w-full py-2.5 rounded-xl font-bold uppercase tracking-widest border border-white/10 text-gray-400 hover:border-cyber-accent hover:text-white hover:bg-cyber-accent/5 transition-all flex items-center justify-center gap-2 text-sm"
+            >
+              {t.guestBtn}
+            </button>
+            <p className="text-[8px] text-center text-gray-600 mt-1 tracking-widest uppercase italic leading-tight">
+              {t.guestWarning}
+            </p>
+
+            <div className="mt-3 flex flex-col items-center gap-2">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError('Google Login Failed')}
+                theme="filled_black"
+                shape="pill"
+                text="continue_with"
+                width="280"
+              />
+              <p className="text-[9px] text-gray-500 font-mono tracking-widest uppercase opacity-60">
+                {t.ru ? 'Продолжая, вы принимаете' : 'By joining, you agree to our'}{' '}
+                <button
+                  type="button"
+                  onClick={onShowLegal}
+                  className="text-cyber-neon/80 hover:text-cyber-neon hover:underline transition-colors"
+                >
+                  Terms of Use
+                </button>
+              </p>
+            </div>
+          </form>
+
+          {/* Guest hint */}
+          <p className="text-center text-gray-600 text-[10px] mt-4 tracking-wider opacity-50">
+            {t.ru ? 'Данные хранятся на сервере · JWT авторизация' : 'Data stored on server · JWT authorization'}
+          </p>
+
+          {/* SEO Block */}
+          <div className="mt-6 pt-4 border-t border-white/10 space-y-2 text-[11px] text-gray-300 leading-relaxed font-sans opacity-90 text-center drop-shadow-md">
+            <p>
+              {t.ru
+                ? "Если вы искали ommoggle, omoggle или omogle, вы попали в правильное место. Omogle — это оригинальная и самая продвинутая платформа для Mog Battle и AI оценки внешности (looksmaxxing)."
+                : "If you found us by searching for ommoggle, omoggle, or omogle, you are in the right place. Omogle is the original and most advanced platform for Mog Battles and AI face rating (looksmaxxing)."}
+            </p>
+            <p>
+              {t.ru
+                ? "Omogle — это передовая платформа для оценки внешности с использованием искусственного интеллекта. Наш AI Face Rating анализирует черты вашего лица, такие как симметрия, линия челюсти и наклон глаз (canthal tilt), чтобы дать объективную оценку вашей привлекательности. Это не просто инструмент для анализа, а настоящая Beauty Battle Arena, где вы можете соревноваться с другими пользователями в реальном времени."
+                : "Omogle is a cutting-edge platform for facial evaluation using artificial intelligence. Our AI Face Rating analyzes your facial features, such as symmetry, jawline, and canthal tilt, to provide an objective assessment of your attractiveness. This is more than just an analysis tool; it's a real Beauty Battle Arena where you can compete with others in real-time."}
             </p>
           </div>
-        </form>
-
-        {/* Guest hint */}
-        <p className="text-center text-gray-600 text-[10px] mt-6 tracking-wider opacity-50">
-          {t.ru ? 'Данные хранятся на сервере · JWT авторизация' : 'Data stored on server · JWT authorization'}
-        </p>
-
-        {/* SEO Block */}
-        <div className="mt-12 pt-8 border-t border-white/5 space-y-4 text-[11px] text-gray-500 leading-relaxed font-sans italic opacity-60 text-center">
-          <p>
-            {t.ru
-              ? "Omogle — это передовая платформа для оценки внешности с использованием искусственного интеллекта. Наш AI Face Rating анализирует черты вашего лица, такие как симметрия, линия челюсти и наклон глаз (canthal tilt), чтобы дать объективную оценку вашей привлекательности. Это не просто инструмент для анализа, а настоящая Beauty Battle Arena, где вы можете соревноваться с другими пользователями в реальном времени."
-              : "Omogle is a cutting-edge platform for facial evaluation using artificial intelligence. Our AI Face Rating analyzes your facial features, such as symmetry, jawline, and canthal tilt, to provide an objective assessment of your attractiveness. This is more than just an analysis tool; it's a real Beauty Battle Arena where you can compete with others in real-time."}
-          </p>
-          <p>
-            {t.ru
-              ? "Если вы искали omogle, ommoggle или ommoggle omoggle, вы попали на официальный сайт. Это не просто видеочат, а настоящая Mog Battle для looksmaxxing. Вступай в битву и докажи, что ты настоящий Гигачад!"
-              : "If you found us by searching for omogle, ommoggle, or ommoggle omoggle, you are in the right place. This is more than just a random video chat; it's the Mog Battle Arena for looksmaxxing. Enter the battle and prove you're a true Gigachad!"}
-          </p>
         </div>
       </div>
 
-      {/* Spelling Variations SEO Section */}
-      <SpellingSection lang={lang} />
+      {/* Spelling Variations SEO Section at the bottom */}
+      <div className="relative z-10 w-full bg-black/60 backdrop-blur-md border-t border-white/5">
+        <SpellingSection lang={lang} />
+      </div>
     </div>
   );
 }

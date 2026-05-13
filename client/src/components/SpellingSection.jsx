@@ -20,14 +20,14 @@ export default function SpellingSection({ lang }) {
     {
       term: "ommogle",
       desc: isRu
-        ? "Ещё один популярный вариант для того же видеочата."
-        : "Another popular spelling for the same video chat app."
+        ? "Популярный вариант написания нашей Mog Battle платформы."
+        : "Another popular spelling for our Mog Battle platform."
     },
     {
       term: "ommoggle omoggle",
       desc: isRu
         ? "Комбинированный поисковый запрос для проверки названия."
-        : "A combined search phrase people use to find the app."
+        : "A combined search phrase people use to find the platform."
     }
   ];
 
@@ -36,18 +36,18 @@ export default function SpellingSection({ lang }) {
       <div className="max-w-5xl mx-auto px-6 text-center">
         {/* Headline section centered */}
         <div className="space-y-6 max-w-3xl mx-auto mb-16">
-          <p className="text-cyber-neon text-[10px] font-black uppercase tracking-[0.4em]">
+          <p className="text-cyber-neon text-[10px] font-black uppercase tracking-[0.4em] drop-shadow-md">
             {isRu ? 'Название' : 'The Name'}
           </p>
-          <h2 className="text-4xl md:text-5xl font-black text-white leading-[1.1]">
+          <h2 className="text-4xl md:text-5xl font-black text-white leading-[1.1] drop-shadow-lg">
             {isRu
               ? <>Как бы вы ни написали,<br />Omogle — это то, что вы искали.</>
-              : <>However you spell it, Omogle is the app.</>}
+              : <>However you spell it, Omogle is the place.</>}
           </h2>
-          <p className="text-gray-400 text-base leading-relaxed mx-auto">
+          <p className="text-gray-300 text-base leading-relaxed mx-auto font-medium">
             {isRu
-              ? "Люди попадают сюда через разные варианты написания. Omogle — это название приложения, и мы подключаем все популярные запросы, чтобы те, кто набирает omogle, ommoggle или ommoggle omoggle, всегда попадали куда нужно."
-              : "People arrive here through a few spellings. Omogle is the name of the app, and we keep the common searches connected so visitors who type omogle, ommoggle, or ommoggle omoggle still get where they meant to go."}
+              ? "Люди попадают сюда через разные варианты написания. Omogle — это название нашей платформы, и мы подключаем все популярные запросы, чтобы те, кто набирает omogle, ommoggle или ommoggle omoggle, всегда попадали куда нужно."
+              : "People arrive here through a few spellings. Omogle is the name of the platform, and we keep the common searches connected so visitors who type omogle, ommoggle, or ommoggle omoggle still get where they meant to go."}
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export default function SpellingSection({ lang }) {
           {spellings.map((item) => (
             <div
               key={item.term}
-              className="group bg-white/[0.03] border border-white/10 rounded-2xl p-5 hover:border-cyber-neon/30 hover:bg-white/[0.05] transition-all duration-300 cursor-default text-left"
+              className="group bg-black/40 border border-white/20 rounded-2xl p-5 hover:border-cyber-neon/50 hover:bg-white/[0.08] transition-all duration-300 cursor-default text-left backdrop-blur-md shadow-lg"
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-cyber-neon font-mono font-bold text-sm tracking-wide">
@@ -64,7 +64,7 @@ export default function SpellingSection({ lang }) {
                 </span>
                 <ArrowRight size={14} className="text-cyber-neon opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-gray-500 text-[10px] leading-relaxed">
+              <p className="text-gray-300 text-[11px] leading-relaxed font-medium">
                 {item.desc}
               </p>
             </div>
