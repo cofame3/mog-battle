@@ -1,9 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Globe, MessageCircle, Mail } from 'lucide-react';
 
+const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+
 export default function Footer({ lang }) {
   const isRu = lang === 'ru';
+  const [onlineCount, setOnlineCount] = useState(500);
+
+  useEffect(() => {
+    const fetchOnline = async () => {
+      try {
+        const res = await fetch(`${SOCKET_URL}/api/online`);
+        if (res.ok) {
+          const data = await res.json();
+          setOnlineCount(data.online + 500);
+        }
+      } catch (err) {
+        // Fallback or ignore
+      }
+    };
+
+    fetchOnline();
+    const interval = setInterval(fetchOnline, 10000); // Update every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <footer className="relative z-50 bg-black/80 backdrop-blur-3xl border-t border-white/5 pt-16 pb-8">
@@ -96,7 +117,7 @@ export default function Footer({ lang }) {
                 <span className="text-cyber-neon text-[10px] font-black uppercase tracking-widest">System Online</span>
               </div>
               <p className="text-gray-400 text-[10px] uppercase font-bold tracking-widest mb-4">
-                Global Servers: 12 Active
+                {isRu ? `ОНЛАЙН: ${onlineCount}` : `USERS ONLINE: ${onlineCount}`}
               </p>
               <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
                 <div className="bg-cyber-neon h-full w-[85%] animate-shimmer" />

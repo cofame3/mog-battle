@@ -492,6 +492,11 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
+// GET /api/online
+app.get('/api/online', (req, res) => {
+  res.json({ online: io.engine.clientsCount });
+});
+
 // ─── Socket.IO ───────────────────────────────────────────────────────────────
 const server = http.createServer(app);
 const io = new Server(server, {
