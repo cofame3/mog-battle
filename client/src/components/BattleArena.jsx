@@ -111,6 +111,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   const fileInputRef = useRef(null);
   const imageRef = useRef(null);
   const liveCanvasRef = useRef(null);
+  const battleStateRef = useRef(battleState);
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -174,9 +175,8 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
 
     // Opponent left mid-battle
     socket.on('opponent_left', () => {
-      // If we're in the middle of a battle or waiting for opponent's result
-      if (battleState === 'battling' || battleState === 'analyzing') {
-        // Give opponent a default "left" result so the battle resolves
+      const currentState = battleStateRef.current;
+      if (currentState === 'battling' || currentState === 'analyzing') {
         setOpponentResult({
           image: null,
           analysis: { total: 0, symmetry: 0, jawline: 0, eyes: 0, nose: 0, error: true }
@@ -197,7 +197,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       socket.off('receiving_returned_signal');
       socket.off('opponent_left');
     };
-  }, [stream, battleState]);
+  }, [stream]);
 
   // Синхронное открытие результатов в 1 на 1
   useEffect(() => {
@@ -205,6 +205,11 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       setBattleState('result');
     }
   }, [myResult, opponentResult, battleState]);
+
+  // Keep battleStateRef in sync
+  useEffect(() => {
+    battleStateRef.current = battleState;
+  }, [battleState]);
 
   // Timeout: if stuck in 'analyzing' for 30s (opponent left without event), auto-resolve
   useEffect(() => {
@@ -397,6 +402,8 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       peerRef.current = null;
     }
     socket.emit('leave_room');
+    
+    // Full state reset for clean new match
     setOpponentStream(null);
     setBattleState('idle');
     setIsReady(false);
@@ -407,6 +414,10 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     setOpponentResult(null);
     setPlayersCount(0);
     setEloChangeData(null);
+    setRoomCode(null);
+    setCountdown(null);
+    setLiveScore(null);
+    setOpponentLiveScore(null);
     statsPostedRef.current = false;
 
     // Stay in arena, just re-queue
