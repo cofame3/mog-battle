@@ -133,12 +133,12 @@ export default function Comparison({ lang }) {
             </div>
             <div>
               <h2 className="text-2xl font-black uppercase italic mb-4 text-white">
-                {isRu ? 'О системе Ommoggle' : 'About Ommoggle Network'}
+                {isRu ? 'О системе Omogle' : 'About Omogle Network'}
               </h2>
               <p className="text-gray-400 leading-relaxed text-lg">
                 {isRu 
-                  ? "Ommoggle — это премиальная платформа для случайных видеочатов, созданная для живого общения и соревновательного анализа внешности. Если вы искали omogle, ommoggle или ommoggle omoggle, вы нашли идеальное место для знакомств и битв за звание лучшего."
-                  : "Ommoggle is a premium random video chat platform designed for live interactions and competitive looksmaxxing. If you've been searching for omogle, ommoggle, or ommoggle omoggle, you've found the ultimate arena for talking to strangers and rating aesthetics."}
+                  ? "Omogle — это премиальная платформа для случайных видеочатов, созданная для живого общения и соревновательного анализа внешности. Если вы искали omogle, ommoggle или ommoggle omoggle, вы нашли идеальное место для знакомств и битв за звание лучшего."
+                  : "Omogle is a premium random video chat platform designed for live interactions and competitive looksmaxxing. If you've been searching for omogle, ommoggle, or ommoggle omoggle, you've found the ultimate arena for talking to strangers and rating aesthetics."}
               </p>
             </div>
           </div>
