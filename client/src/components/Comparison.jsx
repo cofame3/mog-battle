@@ -124,6 +124,25 @@ export default function Comparison({ lang }) {
           </div>
         </div>
 
+        {/* SEO Info Block */}
+        <div className="mt-24 p-10 bg-white/[0.02] border border-white/5 rounded-[2.5rem] animate-reveal delay-300">
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="bg-cyber-neon/10 p-6 rounded-3xl border border-cyber-neon/20">
+              <Users className="text-cyber-neon w-12 h-12" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black uppercase italic mb-4 text-white">
+                {isRu ? 'О системе Ommoggle' : 'About Ommoggle Network'}
+              </h2>
+              <p className="text-gray-400 leading-relaxed text-lg">
+                {isRu 
+                  ? "Ommoggle — это премиальная платформа для случайных видеочатов, созданная для живого общения и соревновательного анализа внешности. Если вы искали omogle, ommoggle или ommoggle omoggle, вы нашли идеальное место для знакомств и битв за звание лучшего."
+                  : "Ommoggle is a premium random video chat platform designed for live interactions and competitive looksmaxxing. If you've been searching for omogle, ommoggle, or ommoggle omoggle, you've found the ultimate arena for talking to strangers and rating aesthetics."}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Call to action */}
         <div className="mt-20 text-center">
           <p className="text-gray-500 font-mono text-xs uppercase tracking-[0.5em] mb-8">
