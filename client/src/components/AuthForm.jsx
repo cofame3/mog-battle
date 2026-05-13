@@ -275,7 +275,7 @@ export default function AuthForm({ onAuth, lang, t, onShowLegal }) {
           </p>
           <p>
             {t.ru
-              ? "Если вы искали omogle, ommoggle или ommoggle omoggle, вы попали по адресу. Это не просто видеочат, а настоящая Beauty Battle Arena для looksmaxxing. Вступай в битву и докажи, что ты настоящий Гигачад!"
+              ? "Если вы искали omogle, ommoggle или ommoggle omoggle, вы попали на официальный сайт. Это не просто видеочат, а настоящая Mog Battle Arena для looksmaxxing. Вступай в битву и докажи, что ты настоящий Гигачад!"
               : "If you found us by searching for omogle, ommoggle, or ommoggle omoggle, you are in the right place. This is more than just a random video chat; it's the Mog Battle Arena for looksmaxxing. Enter the battle and prove you're a true Gigachad!"}
           </p>
         </div>
