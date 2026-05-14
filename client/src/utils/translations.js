@@ -61,7 +61,7 @@ export const translations = {
     wins: "ПОБЕДЫ",
     close: "ЗАКРЫТЬ",
     loadingLeaderboard: "ЗАГРУЗКА РЕЙТИНГА...",
-
+    
     // SEO
     seoTitle: "Omogle — AI Face Rating & Mog Battle",
     seoDesc: "Omogle — это бесплатное приложение для мгновенного общения с незнакомцами в видеочате. Если вы искали omogle, ommoggle или ommoggle omoggle, вы попали на официальный сайт для чата и битв за внешность."
