@@ -2,6 +2,8 @@ import * as tf from '@tensorflow/tfjs';
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 
 let model = null;
+let _liveCanvas = null; // reusable offscreen canvas for getLiveFaces
+let _liveCtx = null;
 
 // Initialize model ahead of time
 export const initModel = async () => {
@@ -57,15 +59,21 @@ export const getLiveFaces = async (mediaElement) => {
   if (!model) await initModel();
   if (model && mediaElement) {
     try {
-      const canvas = document.createElement('canvas');
-      canvas.width = mediaElement.videoWidth || mediaElement.naturalWidth || 640;
-      canvas.height = mediaElement.videoHeight || mediaElement.naturalHeight || 480;
-      if (canvas.width === 0 || canvas.height === 0) return null;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(mediaElement, 0, 0, canvas.width, canvas.height);
-      return await model.estimateFaces(canvas);
+      const w = mediaElement.videoWidth || mediaElement.naturalWidth || 640;
+      const h = mediaElement.videoHeight || mediaElement.naturalHeight || 480;
+      if (w === 0 || h === 0) return null;
+
+      // Reuse a single offscreen canvas to avoid GC pressure
+      if (!_liveCanvas) {
+        _liveCanvas = document.createElement('canvas');
+        _liveCtx = _liveCanvas.getContext('2d');
+      }
+      if (_liveCanvas.width !== w) _liveCanvas.width = w;
+      if (_liveCanvas.height !== h) _liveCanvas.height = h;
+
+      _liveCtx.drawImage(mediaElement, 0, 0, w, h);
+      return await model.estimateFaces(_liveCanvas);
     } catch (e) {
-      // Ignore rapid live errors
       return null;
     }
   }

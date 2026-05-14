@@ -34,6 +34,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   const [countdown, setCountdown] = useState(null);
   const [battleState, setBattleState] = useState('idle'); // idle, readying, battling, result
   const [eloChangeData, setEloChangeData] = useState(null);
+  const [opponentDisconnected, setOpponentDisconnected] = useState(false);
   const statsPostedRef = useRef(false);
 
   const [myResult, setMyResult] = useState(null);
@@ -113,6 +114,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   const liveCanvasRef = useRef(null);
   const battleStateRef = useRef(battleState);
   const battleIdRef = useRef(0); // unique ID per battle to prevent stale async results
+  const battleIntervalRef = useRef(null); // stores the countdown interval so we can clear it
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -174,17 +176,39 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       }
     });
 
-    // Opponent left mid-battle
-    socket.on('opponent_left', () => {
+    // Opponent disconnected mid-match
+    socket.on('opponent_disconnected', () => {
       const currentState = battleStateRef.current;
+      setOpponentDisconnected(true);
+      setOpponentStream(null);
+      setOpponentName('DISCONNECTED');
+
+      // ALWAYS kill the battle timer to prevent stale callbacks
+      if (battleIntervalRef.current) {
+        clearInterval(battleIntervalRef.current);
+        battleIntervalRef.current = null;
+      }
+      battleIdRef.current++; // invalidate any running async analysis
+
       if (currentState === 'battling' || currentState === 'analyzing') {
+        // Auto-assign victory: opponent gets 0 score
         setOpponentResult({
           image: null,
           analysis: { total: 0, symmetry: 0, jawline: 0, eyes: 0, nose: 0, error: true }
         });
-        setOpponentName('DISCONNECTED');
+        // If we don't have our own result yet, create a default one
+        setMyResult(prev => prev || {
+          image: null,
+          analysis: { total: 50, symmetry: 50, jawline: 50, eyes: 50, nose: 50, error: false }
+        });
+        // Force to result screen immediately
+        setBattleState('result');
+        setCountdown(null);
+      } else if (currentState === 'idle') {
+        // Opponent left before battle started — just reset to searching
+        setOpponentReady(false);
+        setPlayersCount(0);
       }
-      setOpponentStream(null);
     });
 
     return () => {
@@ -196,7 +220,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       socket.off('user_joined');
       socket.off('user_joined_signal');
       socket.off('receiving_returned_signal');
-      socket.off('opponent_left');
+      socket.off('opponent_disconnected');
     };
   }, [stream]);
 
@@ -250,19 +274,6 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     }
   }, [opponentStream, appState]);
 
-  // Called when WebRTC detects the opponent disconnected
-  const handlePeerDisconnect = () => {
-    const currentState = battleStateRef.current;
-    if (currentState === 'battling' || currentState === 'analyzing') {
-      setOpponentResult({
-        image: null,
-        analysis: { total: 0, symmetry: 0, jawline: 0, eyes: 0, nose: 0, error: true }
-      });
-      setOpponentName('DISCONNECTED');
-    }
-    setOpponentStream(null);
-  };
-
   const createPeer = (userToSignal, callerID, localStream) => {
     const peer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
     if (localStream) localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
@@ -275,11 +286,6 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     };
     peer.onicecandidate = e => {
       if (e.candidate) socket.emit('sending_signal', { userToSignal, callerID, signal: { type: 'candidate', candidate: e.candidate } });
-    };
-    peer.onconnectionstatechange = () => {
-      if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed' || peer.connectionState === 'closed') {
-        handlePeerDisconnect();
-      }
     };
     peer.createOffer().then(offer => {
       peer.setLocalDescription(offer);
@@ -300,11 +306,6 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     };
     peer.onicecandidate = e => {
       if (e.candidate) socket.emit('returning_signal', { callerID, signal: { type: 'candidate', candidate: e.candidate } });
-    };
-    peer.onconnectionstatechange = () => {
-      if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed' || peer.connectionState === 'closed') {
-        handlePeerDisconnect();
-      }
     };
     peer.setRemoteDescription(new RTCSessionDescription(incomingSignal)).then(() => {
       peer.createAnswer().then(answer => {
@@ -398,6 +399,11 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
 
   const returnHome = () => {
     battleIdRef.current++; // Cancel any running async analysis
+    // Kill battle timer
+    if (battleIntervalRef.current) {
+      clearInterval(battleIntervalRef.current);
+      battleIntervalRef.current = null;
+    }
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
@@ -423,11 +429,17 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     setMyResult(null);
     setOpponentResult(null);
     setPlayersCount(0);
+    setOpponentDisconnected(false);
   };
 
   const findNextRandom = () => {
     // Invalidate any running async analysis from the old battle
     battleIdRef.current++;
+    // Kill battle timer
+    if (battleIntervalRef.current) {
+      clearInterval(battleIntervalRef.current);
+      battleIntervalRef.current = null;
+    }
     
     if (peerRef.current) {
       peerRef.current.close();
@@ -451,6 +463,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     setLiveScore(null);
     setOpponentLiveScore(null);
     statsPostedRef.current = false;
+    setOpponentDisconnected(false);
 
     // Stay in arena, just re-queue
     if (socket.connected) {
@@ -487,6 +500,12 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   }, [battleState, gameMode, uploadedImage]);
 
   const startBattleSequence = () => {
+    // Clear any previous timer first
+    if (battleIntervalRef.current) {
+      clearInterval(battleIntervalRef.current);
+      battleIntervalRef.current = null;
+    }
+
     setBattleState('battling');
     setIsReady(false);
     if (gameMode !== 'solo') setOpponentReady(false);
@@ -496,7 +515,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     
     setCountdown(BATTLE_DURATION);
 
-    const interval = setInterval(() => {
+    battleIntervalRef.current = setInterval(() => {
       const now = Date.now();
       const remaining = Math.max(0, Math.ceil((endTime - now) / 1000));
       
@@ -506,7 +525,8 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       });
       
       if (now >= endTime) {
-        clearInterval(interval);
+        clearInterval(battleIntervalRef.current);
+        battleIntervalRef.current = null;
         takeSnapshotAndAnalyze();
       }
     }, 100);
@@ -1012,9 +1032,30 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
             <span className="text-xl font-black text-white leading-tight uppercase">1v1 Mog Check</span>
           </div>
         </div>
+
+        {gameMode === 'friend' && roomCode && (
+          <div className="flex flex-col items-center mt-2 md:mt-0">
+            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+              {lang === 'ru' ? 'КОД КОМНАТЫ' : 'ROOM CODE'}
+            </span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(roomCode);
+                alert(lang === 'ru' ? 'Код скопирован!' : 'Code copied!');
+              }}
+              className="mt-1 flex items-center gap-2 bg-[#111] border border-[#333] hover:border-cyber-neon hover:text-cyber-neon transition-colors px-4 py-1.5 rounded-lg text-white font-mono font-black tracking-widest cursor-pointer shadow-md group"
+              title={lang === 'ru' ? 'Скопировать' : 'Copy'}
+            >
+              {roomCode}
+              <span className="opacity-50 group-hover:opacity-100 transition-opacity">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </span>
+            </button>
+          </div>
+        )}
         
         {/* AdSense Banner */}
-        <div className="hidden md:flex flex-1 justify-center max-w-lg mx-auto">
+        <div className={`hidden md:flex flex-1 justify-center max-w-lg mx-auto ${gameMode === 'friend' ? 'hidden lg:flex' : ''}`}>
            <AdBanner format="horizontal" style={{ width: '468px', height: '60px' }} />
         </div>
 
@@ -1028,7 +1069,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       </div>
 
 
-      {battleState === 'analyzing' && (
+      {battleState === 'analyzing' && gameMode !== 'solo' && gameMode !== 'photo' && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md">
           <Cpu className="w-24 h-24 text-cyber-neon animate-pulse mb-6" />
           <div className="text-3xl font-bold tracking-widest text-cyber-neon animate-pulse text-center uppercase px-4 mb-8">
@@ -1189,9 +1230,16 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
                        <User size={32} className="text-gray-500" />
                     </div>
                     <div className="text-xl font-black text-white mb-1 tracking-wider drop-shadow-md">
-                      {playersCount < 2 ? t.searchingOpponent : "Connecting..."}
+                      {opponentDisconnected 
+                        ? (lang === 'ru' ? 'ОППОНЕНТ ОТКЛЮЧИЛСЯ' : 'OPPONENT DISCONNECTED')
+                        : (playersCount < 2 ? t.searchingOpponent : "Connecting...")}
                     </div>
-                    <div className="text-[10px] text-gray-500 font-bold tracking-widest">us United States</div>
+                    {opponentDisconnected && (
+                      <div className="text-[10px] text-red-500 font-bold tracking-widest animate-pulse">DISCONNECTED</div>
+                    )}
+                    {!opponentDisconnected && (
+                      <div className="text-[10px] text-gray-500 font-bold tracking-widest">us United States</div>
+                    )}
                  </div>
               )}
               
@@ -1233,9 +1281,23 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
 
       </div>
 
+      {/* Disconnect Victory Banner */}
+      {battleState === 'result' && opponentDisconnected && (
+        <div className="flex justify-center mt-6 relative z-50">
+          <div className="bg-green-900/20 border border-green-500/40 rounded-xl px-6 py-3 text-center animate-reveal">
+            <div className="text-lg font-black text-green-400 tracking-widest mb-1">
+              🏆 {lang === 'ru' ? 'ПОБЕДА — ОППОНЕНТ СБЕЖАЛ' : 'VICTORY — OPPONENT FLED'}
+            </div>
+            <div className="text-[10px] text-gray-400 tracking-widest">
+              {lang === 'ru' ? 'Победа засчитана автоматически' : 'Win awarded automatically'}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Next Opponent Action */}
       {battleState === 'result' && (
-        <div className="flex justify-center mt-8 relative z-50">
+        <div className="flex justify-center mt-4 relative z-50 gap-4">
           {gameMode === 'random' ? (
             <button
               onClick={findNextRandom}
@@ -1251,6 +1313,12 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
               {t.rematch || 'REMATCH'}
             </button>
           )}
+          <button
+            onClick={returnHome}
+            className="px-6 py-3 rounded text-sm font-black uppercase border border-gray-600 text-gray-400 hover:bg-gray-800 transition-all"
+          >
+            {lang === 'ru' ? 'МЕНЮ' : 'MENU'}
+          </button>
         </div>
       )}
 

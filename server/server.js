@@ -514,7 +514,7 @@ io.on('connection', (socket) => {
   socket.on('join_random', () => {
     // Remove any existing entry for this socket (prevent duplicates)
     matchmakingQueue = matchmakingQueue.filter(id => id !== socket.id);
-    
+
     // Try to find a valid opponent from the queue
     let opponentId = null;
     while (matchmakingQueue.length > 0) {
@@ -527,7 +527,7 @@ io.on('connection', (socket) => {
       }
       // Otherwise discard the stale entry and keep looking
     }
-    
+
     if (opponentId) {
       const newRoomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
       io.to(socket.id).emit('match_found', newRoomCode);
@@ -611,11 +611,10 @@ io.on('connection', (socket) => {
 
       const playerCount = Object.keys(rooms[roomCode].players).length;
       io.to(roomCode).emit('room_update', playerCount);
-      socket.to(roomCode).emit('opponent_ready', false);
-      
-      // Notify remaining player that opponent left (for mid-battle handling)
+
+      // Notify remaining player that opponent disconnected
       if (playerCount > 0) {
-        socket.to(roomCode).emit('opponent_left');
+        socket.to(roomCode).emit('opponent_disconnected');
       }
 
       if (playerCount === 0) delete rooms[roomCode];
