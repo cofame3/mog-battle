@@ -17,7 +17,12 @@ import DailyRewards from './components/DailyRewards';
 function App() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
-  const [lang, setLang] = useState(localStorage.getItem('mog_lang') || 'en');
+  const [lang, setLang] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const queryLang = params.get('lang');
+    if (queryLang === 'ru' || queryLang === 'en') return queryLang;
+    return localStorage.getItem('mog_lang') || 'en';
+  });
   const [isGlitching, setIsGlitching] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
   const [showDaily, setShowDaily] = useState(false);
@@ -52,22 +57,37 @@ function App() {
     // HTML Lang
     document.documentElement.lang = lang;
 
+    // Determine Page Meta
+    let pageTitle = t.seoTitle;
+    let pageDesc = t.seoDesc;
+
+    if (location.pathname === '/faq') {
+      pageTitle = t.faqTitle;
+      pageDesc = t.faqDesc;
+    } else if (location.pathname === '/about') {
+      pageTitle = t.aboutTitle;
+      pageDesc = t.aboutDesc;
+    } else if (location.pathname === '/guide') {
+      pageTitle = t.guideTitle;
+      pageDesc = t.guideDesc;
+    }
+
     // Title
-    document.title = t.seoTitle || "Omogle — AI Face Rating";
+    document.title = pageTitle || "Omogle — AI Face Rating";
 
     // Description
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
-      metaDesc.setAttribute('content', t.seoDesc || "");
+      metaDesc.setAttribute('content', pageDesc || "");
     }
 
     // Open Graph Title/Desc
     const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute('content', t.seoTitle || "");
+    if (ogTitle) ogTitle.setAttribute('content', pageTitle || "");
 
     const ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc) ogDesc.setAttribute('content', t.seoDesc || "");
-  }, [lang, t]);
+    if (ogDesc) ogDesc.setAttribute('content', pageDesc || "");
+  }, [lang, t, location.pathname]);
 
   // Восстановить сессию при перезагрузке страницы
   useEffect(() => {

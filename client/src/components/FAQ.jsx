@@ -7,28 +7,40 @@ export default function FAQ({ lang }) {
 
   const faqs = [
     {
-      q: isRu ? "Как ИИ оценивает мое лицо?" : "How does AI evaluate my face?",
+      q: isRu ? "Как ИИ оценивает мое лицо на Omogle?" : "How does Omogle AI evaluate my face?",
       a: isRu 
-        ? "Мы используем технологию Face Mesh для построения высокоточной 3D-сетки вашего лица. Алгоритм анализирует более 468 точек, измеряя симметрию, пропорции (золотое сечение), линию челюсти, наклон глаз (canthal tilt) и другие параметры, которые в совокупности определяют эстетический рейтинг."
-        : "We use Face Mesh technology to build a high-precision 3D mesh of your face. The algorithm analyzes over 468 points, measuring symmetry, proportions (golden ratio), jawline, canthal tilt, and other parameters that collectively determine the aesthetic rating."
+        ? "Мы используем технологию Face Mesh для построения высокоточной 3D-сетки вашего лица. Алгоритм анализирует более 468 точек, измеряя симметрию, пропорции (золотое сечение), линию челюсти, наклон глаз (canthal tilt) и другие параметры, которые в совокупности определяют эстетический рейтинг. Это самая точная система для Looksmaxxing анализа."
+        : "We use Face Mesh technology to build a high-precision 3D mesh of your face. The algorithm analyzes over 468 points, measuring symmetry, proportions (golden ratio), jawline, canthal tilt, and other parameters that collectively determine the aesthetic rating. It is the most accurate system for Looksmaxxing analysis."
     },
     {
-      q: isRu ? "Это анонимно?" : "Is it anonymous?",
+      q: isRu ? "Почему Omogle называют лучшей альтернативой Ommoggle?" : "Why is Omogle called the best Ommoggle alternative?",
       a: isRu
-        ? "Да. Ваши фотографии обрабатываются в режиме реального времени. Мы не сохраняем ваши изображения на сервере без вашего явного разрешения (например, для установки аватара профиля). Ваши данные для анализа удаляются сразу после завершения сессии."
-        : "Yes. Your photos are processed in real-time. We do not store your images on our servers without your explicit permission (e.g., for setting a profile avatar). Your analysis data is deleted immediately after the session ends."
+        ? "Omogle (или ommoggle) предлагает уникальный опыт, объединяющий случайный видеочат и соревновательный рейтинг внешности. В отличие от простых чатов, наша платформа дает объективную оценку вашего прогресса в уходе за собой и позволяет соревноваться с реальными людьми в Battle Arena."
+        : "Omogle (or ommoggle) offers a unique experience combining random video chat and competitive looks rating. Unlike simple chats, our platform provides an objective assessment of your self-care progress and allows you to compete with real people in the Battle Arena."
     },
     {
-      q: isRu ? "Как работает Battle Arena?" : "How does Battle Arena work?",
+      q: isRu ? "Это анонимно и безопасно?" : "Is it anonymous and safe?",
       a: isRu
-        ? "Battle Arena — это PvP режим, где вы соревнуетесь с другими пользователями. Система подбирает вам оппонента, после чего ИИ одновременно оценивает обоих участников. Тот, чей рейтинг выше, забирает победу и повышает свой ELO-рейтинг."
-        : "Battle Arena is a PvP mode where you compete with other users. The system matches you with an opponent, after which the AI simultaneously evaluates both participants. The one with the higher rating takes the win and increases their ELO rating."
+        ? "Да. Ваши фотографии обрабатываются в режиме реального времени с помощью WebGL. Мы не сохраняем ваши изображения на сервере без вашего разрешения. Ваши данные для анализа удаляются сразу после завершения сессии. Мы ценим приватность нашего комьюнити."
+        : "Yes. Your photos are processed in real-time using WebGL. We do not store your images on our servers without your permission. Your analysis data is deleted immediately after the session ends. We value the privacy of our community."
     },
     {
-      q: isRu ? "Что такое PSL-отчет?" : "What is a PSL Report?",
+      q: isRu ? "Как работает Battle Arena 1v1?" : "How does the 1v1 Battle Arena work?",
       a: isRu
-        ? "PSL Report — это расширенный анализ вашей внешности, который включает подробные метрики каждого параметра лица, сравнение со средними значениями и персональные рекомендации по улучшению эстетики (looksmaxxing)."
-        : "PSL Report is an advanced analysis of your appearance that includes detailed metrics for each facial parameter, comparison with average values, and personalized recommendations for improving aesthetics (looksmaxxing)."
+        ? "Battle Arena — это PvP режим, где вы соревнуетесь с другими пользователями. Система подбирает вам оппонента, после чего ИИ одновременно оценивает обоих участников. Тот, чей рейтинг выше, забирает победу и повышает свой ELO-рейтинг. Это лучший способ проверить свой 'Mog' уровень."
+        : "Battle Arena is a PvP mode where you compete with other users. The system matches you with an opponent, after which the AI simultaneously evaluates both participants. The one with the higher rating takes the win and increases their ELO rating. It's the best way to test your 'Mog' level."
+    },
+    {
+      q: isRu ? "Что такое PSL-отчет и как его получить?" : "What is a PSL Report and how to get it?",
+      a: isRu
+        ? "PSL Report — это расширенный анализ вашей внешности. Он включает подробные метрики каждого параметра лица, сравнение со средними значениями по нашей базе данных и персональные рекомендации по улучшению эстетики. Отчет доступен после прохождения сканирования в личном кабинете."
+        : "PSL Report is an advanced analysis of your appearance. It includes detailed metrics for each facial parameter, comparison with average values in our database, and personalized recommendations for improving aesthetics. The report is available after completing a scan in your profile."
+    },
+    {
+      q: isRu ? "Помогают ли ваши советы по Looksmaxxing?" : "Do your Looksmaxxing tips actually work?",
+      a: isRu
+        ? "Наши гайды основаны на принципах эстетической медицины и антропометрии. Советы по мьюингу, осанке и уходу за кожей — это проверенные методы улучшения визуальной привлекательности. Регулярный анализ на Omogle поможет вам отслеживать изменения."
+        : "Our guides are based on principles of aesthetic medicine and anthropometry. Tips on mewing, posture, and skincare are proven methods for improving visual appeal. Regular analysis on Omogle will help you track your transformation."
     }
   ];
 

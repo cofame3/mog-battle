@@ -64,7 +64,13 @@ export const translations = {
     
     // SEO
     seoTitle: "Omogle — AI Face Rating & Mog Battle",
-    seoDesc: "Omogle — это бесплатное приложение для мгновенного общения с незнакомцами в видеочате. Если вы искали omogle, ommoggle или ommoggle omoggle, вы попали на официальный сайт для чата и битв за внешность."
+    seoDesc: "Omogle — это бесплатное приложение для мгновенного общения с незнакомцами в видеочате. Если вы искали omogle, ommoggle или ommoggle omoggle, вы попали на официальный сайт для чата и битв за внешность.",
+    faqTitle: "Вопросы и ответы | Omogle AI Face Rating",
+    faqDesc: "Узнайте, как работает ИИ-оценка лица на Omogle, что такое PSL-отчет и как побеждать в Mog Battle.",
+    aboutTitle: "О проекте Omogle.me — Сравнение и Технологии",
+    aboutDesc: "Почему Omogle — лучшая платформа для Looksmaxxing? Сравнение с конкурентами, точность ИИ и безопасность данных.",
+    guideTitle: "Гайд по Looksmaxxing — Как улучшить внешность | Omogle",
+    guideDesc: "Пошаговое руководство по улучшению эстетики лица: уход за кожей, мьюинг, осанка и советы по взгляду от экспертов Omogle."
   },
   en: {
     // Auth
@@ -131,6 +137,12 @@ export const translations = {
 
     // SEO
     seoTitle: "Omogle — AI Face Rating & Mog Battle",
-    seoDesc: "Omogle is a free random video chat app where you can talk to strangers live instantly. If you arrived here by searching for omogle, ommoggle, or ommoggle omoggle, you've found the original site for live chat and battles."
+    seoDesc: "Omogle is a free random video chat app where you can talk to strangers live instantly. If you arrived here by searching for omogle, ommoggle, or ommoggle omoggle, you've found the original site for live chat and battles.",
+    faqTitle: "FAQ | Omogle AI Face Rating & Mog Battle",
+    faqDesc: "Learn how Omogle AI facial evaluation works, what is a PSL report, and how to win in Mog Battles.",
+    aboutTitle: "About Omogle.me — Comparison & Technologies",
+    aboutDesc: "Why Omogle is the best platform for Looksmaxxing? Comparison with competitors, AI accuracy, and data security.",
+    guideTitle: "Looksmaxxing Guide — How to Improve Appearance | Omogle",
+    guideDesc: "Step-by-step roadmap to enhancing facial aesthetics: skincare, mewing, posture, and eye-gaze tips from Omogle experts."
   }
 };
