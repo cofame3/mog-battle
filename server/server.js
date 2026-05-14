@@ -27,14 +27,8 @@ app.use(express.json());
 if (!fs.existsSync('uploads')) fs.mkdirSync('uploads');
 app.use('/uploads', express.static('uploads'));
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + ext);
-  }
-});
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+const storage = multer.memoryStorage();
+const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 } });
 
 // ─── MongoDB ────────────────────────────────────────────────────────────────
 // Если нет реальной MongoDB, используем in-memory заглушку
@@ -290,7 +284,7 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
 
     if (!req.file) return res.status(400).json({ error: 'Файл не загружен' });
 
-    const avatarUrl = `/uploads/${req.file.filename}`;
+    const avatarUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
 
     if (useInMemory) {
       const user = inMemoryUsers.get(username.toLowerCase());

@@ -130,7 +130,7 @@ export default function ProfileSettings({ user, setUser, onClose, t, lang }) {
             <div className="relative group cursor-pointer" onClick={() => !user.isGuest && fileInputRef.current?.click()}>
               <div className="w-28 h-28 rounded-full border-2 border-cyber-neon/50 bg-black overflow-hidden flex items-center justify-center relative shadow-[0_0_20px_rgba(0,255,157,0.2)]">
                 {user.avatarUrl ? (
-                  <img src={`${SERVER_URL}${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={user.avatarUrl.startsWith('data:') ? user.avatarUrl : `${SERVER_URL}${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <UserIcon size={48} className="text-gray-600" />
                 )}

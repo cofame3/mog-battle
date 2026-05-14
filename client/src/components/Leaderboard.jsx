@@ -83,8 +83,8 @@ export default function Leaderboard({ t, onClose, currentUser }) {
                     <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-black flex items-center justify-center">
                       {player.avatarUrl ? (
                         <img
-                          src={`${SOCKET_URL}${player.avatarUrl}`}
-                          alt="Avatar"
+                          src={player.avatarUrl.startsWith('data:') ? player.avatarUrl : `${SOCKET_URL}${player.avatarUrl}`}
+                          alt={player.username}
                           className="w-full h-full object-cover"
                         />
                       ) : (
