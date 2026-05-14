@@ -354,6 +354,10 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   };
 
   const joinRandom = async () => {
+    if (user && user.isGuest) {
+      alert(lang === 'ru' ? 'Для режима 1 на 1 необходимо зарегистрироваться!' : 'Registration is required for 1v1 mode!');
+      return;
+    }
     const hasCam = await initCamera();
     if (!hasCam) return;
     setGameMode('random');
@@ -871,17 +875,25 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
               </button>
               <button
                 onClick={joinRandom}
-                className="w-full flex items-center justify-center gap-2 bg-cyber-accent text-black font-black uppercase tracking-widest py-4 rounded hover:shadow-[0_0_20px_rgba(255,0,85,0.6)] hover:bg-white transition-all"
+                className={`w-full flex items-center justify-center gap-2 bg-cyber-accent text-black font-black uppercase tracking-widest py-4 rounded transition-all ${user?.isGuest ? 'opacity-70 hover:bg-cyber-accent' : 'hover:shadow-[0_0_20px_rgba(255,0,85,0.6)] hover:bg-white'}`}
               >
                 <Shuffle size={20} />
                 {t.random}
+                {user?.isGuest && <Lock size={16} />}
               </button>
               <button
-                onClick={() => setLobbyMode('friend_join')}
-                className="w-full flex items-center justify-center gap-2 bg-cyber-neon text-black font-black uppercase tracking-widest py-4 rounded hover:shadow-[0_0_20px_rgba(0,255,157,0.6)] hover:bg-white transition-all"
+                onClick={() => {
+                  if (user && user.isGuest) {
+                    alert(lang === 'ru' ? 'Для игры с другом необходимо зарегистрироваться!' : 'Registration is required to play with a friend!');
+                    return;
+                  }
+                  setLobbyMode('friend_join');
+                }}
+                className={`w-full flex items-center justify-center gap-2 bg-cyber-neon text-black font-black uppercase tracking-widest py-4 rounded transition-all ${user?.isGuest ? 'opacity-70 hover:bg-cyber-neon' : 'hover:shadow-[0_0_20px_rgba(0,255,157,0.6)] hover:bg-white'}`}
               >
                 <Users size={20} />
                 {t.friend}
+                {user?.isGuest && <Lock size={16} />}
               </button>
               <button
                 onClick={() => setLobbyMode('leaderboard')}
