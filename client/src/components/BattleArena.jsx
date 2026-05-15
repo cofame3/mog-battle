@@ -46,6 +46,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   const [showProfile, setShowProfile] = useState(false);
   const [showRankInfo, setShowRankInfo] = useState(false);
   const [showVoteMode, setShowVoteMode] = useState(false);
+  const [showAvatarRequiredModal, setShowAvatarRequiredModal] = useState(false);
   const lastDrawTimeRef = useRef(0);
 
   useEffect(() => {
@@ -915,7 +916,13 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
                 {t.leaderboard || "РЕЙТИНГ"}
               </button>
               <button
-                onClick={() => setShowVoteMode(true)}
+                onClick={() => {
+                  if (!user.avatarUrl) {
+                    setShowAvatarRequiredModal(true);
+                  } else {
+                    setShowVoteMode(true);
+                  }
+                }}
                 className="relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyber-neon/20 to-cyber-accent/20 border border-cyber-border text-white font-black uppercase tracking-widest py-4 rounded hover:from-cyber-neon hover:to-cyber-accent hover:text-black hover:shadow-[0_0_20px_rgba(0,255,157,0.6)] transition-all mt-2 overflow-hidden group"
               >
                 <div className="absolute top-0 right-0 bg-cyber-accent text-white text-[8px] px-2 py-0.5 font-bold tracking-tighter animate-pulse shadow-[0_0_10px_rgba(255,0,85,0.5)]">
@@ -929,7 +936,72 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
 
           {/* Render VoteMode Modal */}
           {showVoteMode && (
-            <VoteMode t={t} lang={lang} onClose={() => setShowVoteMode(false)} />
+            <VoteMode 
+              t={t} 
+              lang={lang} 
+              onClose={() => setShowVoteMode(false)} 
+            />
+          )}
+
+          {/* Avatar Required Modal */}
+          {showAvatarRequiredModal && (
+            <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-reveal">
+              <div className="bg-cyber-panel border border-cyber-accent/30 rounded-3xl w-full max-w-sm overflow-hidden shadow-[0_0_50px_rgba(255,0,85,0.2)]">
+                <div className="p-8 flex flex-col items-center text-center">
+                  <div className="w-20 h-20 bg-cyber-accent/10 rounded-full flex items-center justify-center mb-6 border border-cyber-accent/20">
+                    <User className="text-cyber-accent" size={40} />
+                  </div>
+                  
+                  <h3 className="text-2xl font-black text-white uppercase tracking-wider mb-4">
+                    {lang === 'ru' ? 'НУЖНО ФОТО' : 'AVATAR REQUIRED'}
+                  </h3>
+                  
+                  <p className="text-gray-400 text-sm leading-relaxed mb-8">
+                    {lang === 'ru' 
+                      ? 'Чтобы другие могли голосовать за тебя, необходимо загрузить аватарку. Это займет всего 5 секунд!' 
+                      : 'To participate in community voting, you must have an avatar. It takes only 5 seconds!'}
+                  </p>
+
+                  <div className="w-full bg-black/40 rounded-2xl p-5 mb-8 border border-white/5 text-left">
+                    <span className="text-[10px] font-black text-cyber-accent uppercase tracking-widest block mb-3">
+                      {lang === 'ru' ? 'Инструкция:' : 'Instruction:'}
+                    </span>
+                    <ul className="space-y-2 text-[11px] font-bold text-gray-500 uppercase tracking-tighter">
+                      <li className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-cyber-accent/20 flex items-center justify-center text-[8px] text-cyber-accent">1</div>
+                        {lang === 'ru' ? 'Нажми "ПЕРЕЙТИ В ПРОФИЛЬ"' : 'Click "GO TO PROFILE"'}
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-cyber-accent/20 flex items-center justify-center text-[8px] text-cyber-accent">2</div>
+                        {lang === 'ru' ? 'Нажми на круг с иконкой камеры' : 'Click on the camera circle'}
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-cyber-accent/20 flex items-center justify-center text-[8px] text-cyber-accent">3</div>
+                        {lang === 'ru' ? 'Выбери свое лучшее фото' : 'Choose your best photo'}
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="flex flex-col w-full gap-3">
+                    <button 
+                      onClick={() => {
+                        setShowAvatarRequiredModal(false);
+                        setShowProfile(true);
+                      }}
+                      className="w-full py-4 bg-cyber-accent text-white font-black rounded-xl shadow-[0_0_20px_rgba(255,0,85,0.4)] hover:scale-[1.02] transition-transform uppercase tracking-widest text-sm"
+                    >
+                      {lang === 'ru' ? 'ПЕРЕЙТИ В ПРОФИЛЬ' : 'GO TO PROFILE'}
+                    </button>
+                    <button 
+                      onClick={() => setShowAvatarRequiredModal(false)}
+                      className="w-full py-3 text-gray-500 font-black hover:text-white transition-colors uppercase tracking-widest text-[10px]"
+                    >
+                      {lang === 'ru' ? 'ОТМЕНА' : 'CANCEL'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* AdSense in Lobby */}
