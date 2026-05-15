@@ -92,6 +92,11 @@ export default function Leaderboard({ t, onClose, currentUser }) {
                       <div className={`text-[10px] font-bold ${rankType === 'arena' ? 'text-yellow-500' : 'text-cyber-accent'} drop-shadow-md`}>
                         {rankType === 'arena' ? '⚡' : '✨'} {rankType === 'arena' ? (leaders[1].elo || 400) : (leaders[1].communityElo || 400)}
                       </div>
+                      {rankType === 'arena' && (
+                        <div className="text-[9px] font-black text-gray-500 uppercase tracking-tighter mt-0.5">
+                          {leaders[1].wins || 0}W - {leaders[1].losses || 0}L
+                        </div>
+                      )}
                       <div className={`w-full h-24 md:h-28 bg-gradient-to-t ${rankType === 'arena' ? 'from-gray-300/40' : 'from-cyber-accent/20'} to-transparent border-t-2 border-x border-x-white/10 border-gray-300 mt-2 rounded-t-lg flex items-start justify-center pt-2 shadow-[0_0_20px_rgba(209,213,219,0.3)]`}>
                         <span className="text-gray-300 font-black text-2xl drop-shadow-md">2</span>
                       </div>
@@ -122,6 +127,11 @@ export default function Leaderboard({ t, onClose, currentUser }) {
                     <div className={`text-xs font-black ${rankType === 'arena' ? 'text-yellow-500' : 'text-cyber-accent'} drop-shadow-md`}>
                       {rankType === 'arena' ? '⚡' : '✨'} {rankType === 'arena' ? (leaders[0].elo || 400) : (leaders[0].communityElo || 400)}
                     </div>
+                    {rankType === 'arena' && (
+                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1">
+                        {leaders[0].wins || 0}W - {leaders[0].losses || 0}L
+                      </div>
+                    )}
                     <div className={`w-full h-32 md:h-36 bg-gradient-to-t ${rankType === 'arena' ? 'from-yellow-400/50' : 'from-cyber-accent/40'} to-transparent border-t-4 border-x border-x-white/10 ${rankType === 'arena' ? 'border-yellow-400' : 'border-cyber-accent'} mt-2 rounded-t-xl flex items-start justify-center pt-2 shadow-[0_0_35px_rgba(255,255,255,0.1)] animate-pulse`}>
                       <span className={`${rankType === 'arena' ? 'text-yellow-400' : 'text-white'} font-black text-4xl drop-shadow-lg`}>1</span>
                     </div>
@@ -142,6 +152,11 @@ export default function Leaderboard({ t, onClose, currentUser }) {
                       <div className={`text-[9px] font-bold ${rankType === 'arena' ? 'text-yellow-500' : 'text-cyber-accent'} drop-shadow-md`}>
                         {rankType === 'arena' ? '⚡' : '✨'} {rankType === 'arena' ? (leaders[2].elo || 400) : (leaders[2].communityElo || 400)}
                       </div>
+                      {rankType === 'arena' && (
+                        <div className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">
+                          {leaders[2].wins || 0}W - {leaders[2].losses || 0}L
+                        </div>
+                      )}
                       <div className={`w-full h-20 md:h-24 bg-gradient-to-t ${rankType === 'arena' ? 'from-amber-600/40' : 'from-cyber-accent/20'} to-transparent border-t-2 border-x border-x-white/10 border-amber-600 mt-2 rounded-t-lg flex items-start justify-center pt-2 shadow-[0_0_20px_rgba(217,119,6,0.3)]`}>
                         <span className="text-amber-600 font-black text-xl drop-shadow-md">3</span>
                       </div>
@@ -199,9 +214,14 @@ export default function Leaderboard({ t, onClose, currentUser }) {
 
                       <div className="flex items-center gap-4 text-right">
                         <div className="flex flex-col">
-                          <span className="text-[10px] text-gray-500 font-bold tracking-wider uppercase">ELO</span>
+                          <span className="text-[10px] text-gray-500 font-bold tracking-wider uppercase">ELO / W-L</span>
                           <span className={`font-black ${rankType === 'arena' ? 'text-yellow-500' : 'text-cyber-accent'} drop-shadow-md`}>
                             {rankType === 'arena' ? '⚡' : '✨'} {currentElo}
+                            {rankType === 'arena' && (
+                              <span className="text-gray-500 text-[10px] ml-2 font-bold">
+                                ({player.wins || 0}W-{player.losses || 0}L)
+                              </span>
+                            )}
                           </span>
                         </div>
                       </div>

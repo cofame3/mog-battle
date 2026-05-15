@@ -215,6 +215,9 @@ export default function ProfileSettings({ user, setUser, onClose, t, lang }) {
               <div className="bg-black/40 p-4 rounded-xl border border-white/5">
                 <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block mb-1">Battle ELO</span>
                 <span className="text-xl font-black text-cyber-neon">⚡ {user.elo || 400}</span>
+                <div className="text-[10px] font-black text-gray-400 uppercase mt-1">
+                  {user.wins || 0} Wins / {user.losses || 0} Losses
+                </div>
               </div>
               <div className="bg-black/40 p-4 rounded-xl border border-white/5">
                 <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block mb-1">Community ELO</span>

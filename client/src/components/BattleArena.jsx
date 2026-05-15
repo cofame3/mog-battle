@@ -786,7 +786,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
               {!user.isGuest && lobbyMode !== 'friend_join' && (
                 <div className="flex gap-1 hidden sm:flex">
                   <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded flex items-center gap-1" title="Elo Rating">
-                    ⚡ {user.elo || 400}
+                    ⚡ {user.elo || 400} ({user.wins || 0}W-{user.losses || 0}L)
                   </span>
                   <span className="text-[10px] text-cyber-neon bg-cyber-neon/10 border border-cyber-neon/30 px-1 rounded flex items-center gap-1" title="PSL Scans">
                     <Scan size={10} /> {user.scans || 0}
