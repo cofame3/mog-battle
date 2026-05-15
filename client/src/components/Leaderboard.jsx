@@ -83,7 +83,7 @@ export default function Leaderboard({ t, onClose, currentUser }) {
                       <div className="text-gray-300 mb-2 drop-shadow-[0_0_10px_rgba(209,213,219,1)]"><Medal size={32} /></div>
                       <div className="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-gray-300 overflow-hidden bg-black mb-2 shadow-[0_0_20px_rgba(209,213,219,0.5)]">
                         {leaders[1].avatarUrl ? (
-                          <img src={leaders[1].avatarUrl.startsWith('http') ? leaders[1].avatarUrl : `${SOCKET_URL}${leaders[1].avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                          <img src={`${SOCKET_URL}${leaders[1].avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></div>
                         )}
@@ -101,7 +101,7 @@ export default function Leaderboard({ t, onClose, currentUser }) {
                   {/* 1 место */}
                   <div className="flex flex-col items-center animate-reveal relative z-10 w-[110px] md:w-[150px]" style={{ animationDelay: '0s' }}>
                     <div className={`absolute inset-0 ${rankType === 'arena' ? 'bg-yellow-400/5' : 'bg-cyber-accent/10'} blur-3xl -z-10 rounded-full animate-pulse`}></div>
-                    
+
                     {/* Sparkles SVG */}
                     <svg viewBox="0 0 100 100" className={`absolute -top-4 -left-2 w-5 h-5 ${rankType === 'arena' ? 'text-yellow-400' : 'text-cyber-accent'} animate-sparkle drop-shadow-[0_0_5px_currentColor]`} style={{ animationDelay: '0.2s', fill: 'currentColor' }}>
                       <path d="M50 0 C50 30 70 50 100 50 C70 50 50 70 50 100 C50 70 30 50 0 50 C30 50 50 30 50 0 Z" />
@@ -113,7 +113,7 @@ export default function Leaderboard({ t, onClose, currentUser }) {
                     <div className={`${rankType === 'arena' ? 'text-yellow-400' : 'text-cyber-accent'} mb-2 drop-shadow-[0_0_20px_currentColor] animate-bounce`}><Trophy size={42} /></div>
                     <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full border-4 ${rankType === 'arena' ? 'border-yellow-400' : 'border-cyber-accent'} overflow-hidden bg-black mb-2 shadow-[0_0_30px_rgba(255,255,255,0.2)]`}>
                       {leaders[0].avatarUrl ? (
-                        <img src={leaders[0].avatarUrl.startsWith('http') ? leaders[0].avatarUrl : `${SOCKET_URL}${leaders[0].avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                        <img src={`${SOCKET_URL}${leaders[0].avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></div>
                       )}
@@ -133,7 +133,7 @@ export default function Leaderboard({ t, onClose, currentUser }) {
                       <div className="text-amber-600 mb-2 drop-shadow-[0_0_10px_rgba(217,119,6,1)]"><Medal size={26} /></div>
                       <div className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 border-amber-600 overflow-hidden bg-black mb-2 shadow-[0_0_20px_rgba(217,119,6,0.5)]">
                         {leaders[2].avatarUrl ? (
-                          <img src={leaders[2].avatarUrl.startsWith('http') ? leaders[2].avatarUrl : `${SOCKET_URL}${leaders[2].avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                          <img src={`${SOCKET_URL}${leaders[2].avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></div>
                         )}
@@ -176,7 +176,7 @@ export default function Leaderboard({ t, onClose, currentUser }) {
                         <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-black flex items-center justify-center">
                           {player.avatarUrl ? (
                             <img
-                              src={player.avatarUrl.startsWith('http') ? player.avatarUrl : `${SOCKET_URL}${player.avatarUrl}`}
+                              src={`${SOCKET_URL}${player.avatarUrl}`}
                               alt="Avatar"
                               className="w-full h-full object-cover"
                             />

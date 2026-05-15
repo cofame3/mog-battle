@@ -27,11 +27,11 @@ export default function VoteMode({ t, lang, onClose }) {
   const [error, setError] = useState(null);
   const [voted, setVoted] = useState(false);
   const [winner, setWinner] = useState(null);
-  
+
   // Game Logic States
   const [streak, setStreak] = useState(0);
   const [agreement, setAgreement] = useState(null);
-  const [votesLeft, setVotesLeft] = useState(5); 
+  const [votesLeft, setVotesLeft] = useState(5);
   const [cooldown, setCooldown] = useState(null);
   const [feedMsg, setFeedMsg] = useState("");
   const [userNames, setUserNames] = useState(["MogMaster", "AlphaMew", "Looksmaxxer", "JawlineKing"]);
@@ -84,11 +84,11 @@ export default function VoteMode({ t, lang, onClose }) {
   const checkAndUpdateLimit = () => {
     const saved = localStorage.getItem('vote_limit_data');
     let data = saved ? JSON.parse(saved) : { count: 0, resetTime: Date.now() + 4 * 60 * 60 * 1000 };
-    
+
     data.count += 1;
     localStorage.setItem('vote_limit_data', JSON.stringify(data));
     setVotesLeft(5 - data.count);
-    
+
     if (data.count >= 5) {
       setCooldown(data.resetTime);
       return false;
@@ -124,12 +124,12 @@ export default function VoteMode({ t, lang, onClose }) {
 
   const handleVote = async (winnerKey) => {
     if (voted || !pair || cooldown) return;
-    
+
     setVoted(true);
     setWinner(winnerKey);
-    
+
     const loserKey = winnerKey === 'player1' ? 'player2' : 'player1';
-    
+
     try {
       const res = await fetch(`${SOCKET_URL}/api/vote/result`, {
         method: 'POST',
@@ -140,7 +140,7 @@ export default function VoteMode({ t, lang, onClose }) {
         })
       });
       const data = await res.json();
-      
+
       if (data.success) {
         setAgreement(data.agreement);
         if (data.agreement > 50) {
@@ -216,7 +216,7 @@ export default function VoteMode({ t, lang, onClose }) {
               {lang === 'ru' ? 'ЛИМИТ ИСЧЕРПАН' : 'LIMIT REACHED'}
             </h3>
             <p className="text-gray-400 font-bold uppercase tracking-widest text-sm mb-8">
-              {lang === 'ru' ? 'Твои 5 голосов потрачены.' : 'Your 5 votes are spent.'} <br/>
+              {lang === 'ru' ? 'Твои 5 голосов потрачены.' : 'Your 5 votes are spent.'} <br />
               {lang === 'ru' ? 'Возвращайся через:' : 'Return in:'} <span className="text-red-500">{getCooldownTime()}</span>
             </p>
             <button onClick={onClose} className="px-10 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-black uppercase tracking-widest hover:bg-white/10">
@@ -232,7 +232,7 @@ export default function VoteMode({ t, lang, onClose }) {
           </div>
         ) : pair ? (
           <div className="w-full max-w-6xl flex flex-col items-center py-10 px-4">
-            
+
             <div className="text-center mb-12 animate-reveal">
               <h3 className="text-3xl md:text-5xl font-black text-white uppercase tracking-[0.2em] drop-shadow-lg">
                 {lang === 'ru' ? 'КТО ВЫГЛЯДИТ ЛУЧШЕ?' : 'WHO LOOKS BETTER?'}
@@ -251,7 +251,7 @@ export default function VoteMode({ t, lang, onClose }) {
                 const isLoser = voted && !isWinner;
 
                 return (
-                  <div 
+                  <div
                     key={pKey}
                     onClick={() => handleVote(pKey)}
                     className={`relative group cursor-pointer transition-all duration-700 flex flex-col items-center w-full max-w-[360px] md:max-w-[480px]
@@ -263,17 +263,13 @@ export default function VoteMode({ t, lang, onClose }) {
                       ${voted && isWinner ? 'border-cyber-neon shadow-[0_0_80px_rgba(0,255,157,0.4)]' : 'border-white/5'}
                     `}>
                       {player.avatarUrl ? (
-                        <img 
-                          src={player.avatarUrl.startsWith('http') ? player.avatarUrl : `${SOCKET_URL}${player.avatarUrl}`} 
-                          alt={player.username} 
-                          className="w-full h-full object-cover" 
-                        />
+                        <img src={`${SOCKET_URL}${player.avatarUrl}`} alt={player.username} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-black">
-                           <Users size={64} className="text-gray-800" />
+                          <Users size={64} className="text-gray-800" />
                         </div>
                       )}
-                      
+
                       {/* Win Rate Badge */}
                       <div className="absolute top-6 left-6 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2">
                         <Trophy size={14} className="text-cyber-neon" />
@@ -298,12 +294,12 @@ export default function VoteMode({ t, lang, onClose }) {
                         <div className={`absolute inset-0 flex flex-col items-center justify-center backdrop-blur-sm transition-opacity duration-500
                           ${isWinner ? 'bg-cyber-neon/20' : 'bg-black/60'}
                         `}>
-                           <span className="text-6xl font-black text-white mb-2 drop-shadow-lg">
-                             {isWinner ? agreement : 100 - agreement}%
-                           </span>
-                           <span className="text-xs font-black text-white/60 uppercase tracking-widest">
-                             {lang === 'ru' ? 'СОГЛАСНЫ' : 'AGREED'}
-                           </span>
+                          <span className="text-6xl font-black text-white mb-2 drop-shadow-lg">
+                            {isWinner ? agreement : 100 - agreement}%
+                          </span>
+                          <span className="text-xs font-black text-white/60 uppercase tracking-widest">
+                            {lang === 'ru' ? 'СОГЛАСНЫ' : 'AGREED'}
+                          </span>
                         </div>
                       )}
                     </div>

@@ -33,7 +33,7 @@ export default function ProfileSettings({ user, setUser, onClose, t, lang }) {
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     if (file.size > 5 * 1024 * 1024) {
       setError(lang === 'ru' ? 'Размер файла не должен превышать 5МБ' : 'File size must not exceed 5MB');
       return;
@@ -96,10 +96,10 @@ export default function ProfileSettings({ user, setUser, onClose, t, lang }) {
 
       // Обновляем токен и стейт
       localStorage.setItem('mog_token', data.token);
-      const updatedUser = { 
-        ...user, 
-        username: data.username, 
-        lastNicknameChange: data.lastNicknameChange 
+      const updatedUser = {
+        ...user,
+        username: data.username,
+        lastNicknameChange: data.lastNicknameChange
       };
       setUser(updatedUser);
       localStorage.setItem('mog_user', JSON.stringify(updatedUser));
@@ -130,23 +130,23 @@ export default function ProfileSettings({ user, setUser, onClose, t, lang }) {
             <div className="relative group cursor-pointer" onClick={() => !user.isGuest && fileInputRef.current?.click()}>
               <div className="w-28 h-28 rounded-full border-2 border-cyber-neon/50 bg-black overflow-hidden flex items-center justify-center relative shadow-[0_0_20px_rgba(0,255,157,0.2)]">
                 {user.avatarUrl ? (
-                  <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${SERVER_URL}${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={`${SERVER_URL}${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
                   <UserIcon size={48} className="text-gray-600" />
                 )}
-                
+
                 {!user.isGuest && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Camera size={28} className="text-white" />
                   </div>
                 )}
               </div>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleAvatarUpload} 
-                accept="image/*" 
-                className="hidden" 
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleAvatarUpload}
+                accept="image/*"
+                className="hidden"
               />
             </div>
             {!user.isGuest && (
@@ -175,7 +175,7 @@ export default function ProfileSettings({ user, setUser, onClose, t, lang }) {
                   <Lock size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 )}
               </div>
-              
+
               {!user.isGuest && (
                 <button
                   onClick={handleNameChange}
@@ -186,7 +186,7 @@ export default function ProfileSettings({ user, setUser, onClose, t, lang }) {
                 </button>
               )}
             </div>
-            
+
             {user.isGuest ? (
               <p className="text-xs text-yellow-500/80 flex items-center gap-1 mt-2">
                 <AlertTriangle size={12} />
@@ -194,8 +194,8 @@ export default function ProfileSettings({ user, setUser, onClose, t, lang }) {
               </p>
             ) : isNameLocked ? (
               <p className="text-xs text-red-400/80 mt-2 font-mono">
-                {lang === 'ru' 
-                  ? `Смена ника будет доступна через ${daysLeft} дн.` 
+                {lang === 'ru'
+                  ? `Смена ника будет доступна через ${daysLeft} дн.`
                   : `Name change available in ${daysLeft} days`}
               </p>
             ) : (
