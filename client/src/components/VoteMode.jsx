@@ -263,7 +263,11 @@ export default function VoteMode({ t, lang, onClose }) {
                       ${voted && isWinner ? 'border-cyber-neon shadow-[0_0_80px_rgba(0,255,157,0.4)]' : 'border-white/5'}
                     `}>
                       {player.avatarUrl ? (
-                        <img src={`${SOCKET_URL}${player.avatarUrl}`} alt={player.username} className="w-full h-full object-cover" />
+                        <img 
+                          src={player.avatarUrl.startsWith('http') ? player.avatarUrl : `${SOCKET_URL}${player.avatarUrl}`} 
+                          alt={player.username} 
+                          className="w-full h-full object-cover" 
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-black">
                            <Users size={64} className="text-gray-800" />

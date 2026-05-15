@@ -778,7 +778,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
         {user && (
           <div className="absolute top-4 right-2 md:top-6 md:right-6 z-20 flex items-center gap-2 md:gap-4 bg-black/60 border border-cyber-border px-2 py-1.5 md:px-4 md:py-2 rounded-lg backdrop-blur-md shadow-[0_0_15px_rgba(0,255,157,0.1)]">
             {user.avatarUrl ? (
-              <img src={`${SOCKET_URL}${user.avatarUrl}`} alt="avatar" className="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover border border-cyber-neon" />
+              <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${SOCKET_URL}${user.avatarUrl}`} alt="avatar" className="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover border border-cyber-neon" />
             ) : (
               <User size={16} className="text-gray-400 hidden sm:block" />
             )}
@@ -1234,7 +1234,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[8px] px-2 py-0.5 bg-green-900/30 text-[#00ff41] border border-[#00ff41]/50 rounded uppercase font-black tracking-widest shadow-md">YOUR SCAN</span>
                 <div className="w-6 h-6 rounded-full bg-[#5d8b4e] flex items-center justify-center text-black font-bold text-xs shadow-md">
-                  {user?.avatarUrl ? <img src={`${SOCKET_URL}${user.avatarUrl}`} className="w-full h-full rounded-full object-cover" /> : "L"}
+                  {user?.avatarUrl ? <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${SOCKET_URL}${user.avatarUrl}`} className="w-full h-full rounded-full object-cover" /> : "L"}
                 </div>
               </div>
               <span className="text-sm font-black text-white uppercase tracking-wider drop-shadow-md">{user?.username || 'LOVE'}</span>
