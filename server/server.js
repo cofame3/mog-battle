@@ -616,16 +616,6 @@ app.post('/api/vote/result', async (req, res) => {
       newElo: newWElo,
       agreement: newWElo > newLElo ? 72 : 48 // Simple mock for agreement percentage
     });
-      const wu = inMemoryUsers.get(winnerUsername.toLowerCase());
-      const lu = inMemoryUsers.get(loserUsername.toLowerCase());
-      wu.communityElo = newWElo;
-      lu.communityElo = newLElo;
-    } else {
-      await User.updateOne({ username: winnerUsername }, { $set: { communityElo: newWElo } });
-      await User.updateOne({ username: loserUsername }, { $set: { communityElo: newLElo } });
-    }
-
-    res.json({ ok: true });
   } catch (err) {
     console.error('Vote result error:', err);
     res.status(500).json({ error: 'Ошибка сервера' });
