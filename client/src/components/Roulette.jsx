@@ -12,6 +12,7 @@ const REWARDS_POOL = [
 
 export default function Roulette({ onClaim, onClose, lang }) {
   const [claimedToday, setClaimedToday] = useState(false);
+  const [timeLeft, setTimeLeft] = useState('');
   const [isSpinning, setIsSpinning] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [tape, setTape] = useState([]);
@@ -31,6 +32,28 @@ export default function Roulette({ onClaim, onClose, lang }) {
     
     generateTape();
   }, []);
+
+  useEffect(() => {
+    let timer;
+    if (claimedToday) {
+      const updateTimer = () => {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setHours(24, 0, 0, 0);
+        const diff = tomorrow - now;
+        
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / 1000 / 60) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+        
+        setTimeLeft(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+      };
+      
+      updateTimer();
+      timer = setInterval(updateTimer, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [claimedToday]);
 
   const getRandomReward = () => {
     const totalWeight = REWARDS_POOL.reduce((sum, r) => sum + r.weight, 0);
@@ -175,7 +198,7 @@ export default function Roulette({ onClaim, onClose, lang }) {
                     : 'bg-cyber-neon text-black shadow-[0_0_30px_rgba(0,255,157,0.4)] hover:scale-[1.02] active:scale-95'
                 }`}
               >
-                {claimedToday ? (ru ? 'ДОСТУПНО ЗАВТРА' : 'AVAILABLE TOMORROW') : isSpinning ? (ru ? 'КРУТИМ...' : 'SPINNING...') : (ru ? 'КРУТИТЬ РУЛЕТКУ' : 'SPIN ROULETTE')}
+                {claimedToday ? (ru ? `ДОСТУПНО ЧЕРЕЗ ${timeLeft}` : `AVAILABLE IN ${timeLeft}`) : isSpinning ? (ru ? 'КРУТИМ...' : 'SPINNING...') : (ru ? 'КРУТИТЬ РУЛЕТКУ' : 'SPIN ROULETTE')}
               </button>
             )}
           </div>
