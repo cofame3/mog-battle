@@ -262,7 +262,13 @@ export default function VoteMode({ t, lang, onClose }) {
                     <div className={`relative w-full aspect-[3/4.5] rounded-[3rem] overflow-hidden border-[6px] bg-[#050505] transition-all duration-700
                       ${voted && isWinner ? 'border-cyber-neon shadow-[0_0_80px_rgba(0,255,157,0.4)]' : 'border-white/5'}
                     `}>
-                      <img src={`${SOCKET_URL}${player.avatarUrl}`} alt={player.username} className="w-full h-full object-cover" />
+                      {player.avatarUrl ? (
+                        <img src={`${SOCKET_URL}${player.avatarUrl}`} alt={player.username} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-black">
+                           <Users size={64} className="text-gray-800" />
+                        </div>
+                      )}
                       
                       {/* Win Rate Badge */}
                       <div className="absolute top-6 left-6 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2">

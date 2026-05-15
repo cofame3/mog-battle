@@ -533,9 +533,11 @@ app.get('/api/vote/pair', async (req, res) => {
   try {
     let allUsers = [];
     if (useInMemory) {
-      allUsers = Array.from(inMemoryUsers.values()).filter(u => u.avatarUrl);
+      allUsers = Array.from(inMemoryUsers.values()).filter(u => u.avatarUrl && typeof u.avatarUrl === 'string');
     } else {
-      allUsers = await User.find({ avatarUrl: { $ne: '' } }, { username: 1, avatarUrl: 1, communityElo: 1 });
+      allUsers = await User.find({ 
+        avatarUrl: { $exists: true, $ne: '', $ne: null } 
+      }, { username: 1, avatarUrl: 1, communityElo: 1, communityWins: 1, communityLosses: 1 });
     }
 
     if (allUsers.length < 2) {
