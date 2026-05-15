@@ -12,6 +12,8 @@ const { OAuth2Client } = require('google-auth-library');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const { generatePremiumAdvice } = require('./utils/premiumAdvice');
 
 const app = express();
@@ -23,16 +25,20 @@ const PAYPAL_API = 'https://api-m.paypal.com';
 app.use(cors());
 app.use(express.json());
 
-// ─── Multer Config for Uploads ──────────────────────────────────────────────
-if (!fs.existsSync('uploads')) fs.mkdirSync('uploads');
-app.use('/uploads', express.static('uploads'));
+// ─── Cloudinary Config ──────────────────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + ext);
-  }
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'avatars',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    transformation: [{ width: 500, height: 500, crop: 'limit' }]
+  },
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
@@ -224,7 +230,7 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
     if (!auth) return res.status(401).json({ error: 'Нет токена' });
     const { username } = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     if (!req.file) return res.status(400).json({ error: 'Файл не загружен' });
-    const avatarUrl = `/uploads/${req.file.filename}`;
+    const avatarUrl = req.file.path; // Cloudinary URL is in req.file.path
     if (useInMemory) {
       const user = inMemoryUsers.get(username.toLowerCase());
       if (user) user.avatarUrl = avatarUrl;
