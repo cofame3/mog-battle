@@ -70,6 +70,13 @@ const userSchema = new mongoose.Schema({
   losses: { type: Number, default: 0 },
   bestScore: { type: Number, default: 0 },
   elo: { type: Number, default: 400 },
+  communityElo: { type: Number, default: 400 },
+  communityWins: { type: Number, default: 0 },
+  communityLosses: { type: Number, default: 0 },
+  voteLimit: {
+    count: { type: Number, default: 0 },
+    lastReset: { type: Date, default: Date.now }
+  },
   adviceTokens: { type: Number, default: 0 },
   avatarUrl: { type: String, default: '' },
   lastNicknameChange: { type: Date, default: null },
@@ -196,6 +203,7 @@ app.post('/api/login', async (req, res) => {
       losses: user.losses,
       bestScore: user.bestScore,
       elo: user.elo || 400,
+      communityElo: user.communityElo || 400,
       avatarUrl: user.avatarUrl || '',
       lastNicknameChange: user.lastNicknameChange || null,
     });
@@ -234,6 +242,7 @@ app.post('/api/google-auth', async (req, res) => {
       losses: user.losses || 0,
       bestScore: user.bestScore || 0,
       elo: user.elo || 400,
+      communityElo: user.communityElo || 400,
       avatarUrl: user.avatarUrl || '',
       lastNicknameChange: user.lastNicknameChange || null,
     });
@@ -271,6 +280,7 @@ app.get('/api/me', async (req, res) => {
       losses: user.losses,
       bestScore: user.bestScore,
       elo: user.elo || 400,
+      communityElo: user.communityElo || 400,
       adviceTokens: user.adviceTokens || 0,
       avatarUrl: user.avatarUrl || '',
       lastNicknameChange: user.lastNicknameChange || null,
@@ -467,27 +477,155 @@ app.post('/api/use-token', async (req, res) => {
   }
 });
 
+// GET /api/users/names - get list of random usernames for live feed
+app.get('/api/users/names', async (req, res) => {
+  try {
+    let names = [];
+    if (useInMemory) {
+      names = Array.from(inMemoryUsers.values()).map(u => u.username);
+    } else {
+      const users = await User.find({}, { username: 1, _id: 0 }).limit(50);
+      names = users.map(u => u.username);
+    }
+    // If not enough users, add some defaults
+    if (names.length < 5) {
+      names = [...names, "MogMaster", "AlphaMew", "Looksmaxxer", "JawlineKing", "CyberGaze"];
+    }
+    res.json(names);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // GET /api/leaderboard  (получить топ-20 игроков)
 app.get('/api/leaderboard', async (req, res) => {
   try {
+    const { type } = req.query; // 'arena' (default) or 'community'
+    const sortField = type === 'community' ? 'communityElo' : 'elo';
+
     if (useInMemory) {
       const allUsers = Array.from(inMemoryUsers.values());
-      const sorted = allUsers.sort((a, b) => (b.elo || 400) - (a.elo || 400)).slice(0, 20);
+      const sorted = allUsers.sort((a, b) => (b[sortField] || 400) - (a[sortField] || 400)).slice(0, 20);
       return res.json(sorted.map(u => ({
         username: u.username,
         bestScore: u.bestScore || 0,
         elo: u.elo || 400,
+        communityElo: u.communityElo || 400,
         wins: u.wins || 0,
         losses: u.losses || 0,
         avatarUrl: u.avatarUrl || ''
       })));
     }
-    const topUsers = await User.find({}, { username: 1, bestScore: 1, elo: 1, wins: 1, losses: 1, avatarUrl: 1, _id: 0 })
-      .sort({ elo: -1 })
+    const topUsers = await User.find({}, { username: 1, bestScore: 1, elo: 1, communityElo: 1, wins: 1, losses: 1, avatarUrl: 1, _id: 0 })
+      .sort({ [sortField]: -1 })
       .limit(20);
     res.json(topUsers);
   } catch (err) {
     console.error('Leaderboard error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// ─── Community Voting (Hot or Not) ──────────────────────────────────────────
+
+// GET /api/vote/pair
+app.get('/api/vote/pair', async (req, res) => {
+  try {
+    let allUsers = [];
+    if (useInMemory) {
+      allUsers = Array.from(inMemoryUsers.values()).filter(u => u.avatarUrl);
+    } else {
+      allUsers = await User.find({ avatarUrl: { $ne: '' } }, { username: 1, avatarUrl: 1, communityElo: 1 });
+    }
+
+    if (allUsers.length < 2) {
+      return res.status(400).json({ error: 'Недостаточно пользователей с аватарками для голосования' });
+    }
+
+    // Pick two random distinct users
+    const idx1 = Math.floor(Math.random() * allUsers.length);
+    let idx2 = Math.floor(Math.random() * allUsers.length);
+    while (idx1 === idx2) {
+      idx2 = Math.floor(Math.random() * allUsers.length);
+    }
+
+    const getWinRate = (u) => {
+      const total = (u.communityWins || 0) + (u.communityLosses || 0);
+      return total === 0 ? 0 : Math.round(((u.communityWins || 0) / total) * 100);
+    };
+
+    res.json({
+      player1: { 
+        username: allUsers[idx1].username, 
+        avatarUrl: allUsers[idx1].avatarUrl, 
+        elo: allUsers[idx1].communityElo || 400,
+        winRate: getWinRate(allUsers[idx1])
+      },
+      player2: { 
+        username: allUsers[idx2].username, 
+        avatarUrl: allUsers[idx2].avatarUrl, 
+        elo: allUsers[idx2].communityElo || 400,
+        winRate: getWinRate(allUsers[idx2])
+      }
+    });
+  } catch (err) {
+    console.error('Vote pair error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// POST /api/vote/result
+app.post('/api/vote/result', async (req, res) => {
+  try {
+    const { winnerUsername, loserUsername } = req.body;
+    
+    // Calculate new Elos (Community Vote has lower K-factor, e.g., 16 instead of 32 to avoid abuse)
+    const K = 16;
+    const winner = await findUser(winnerUsername);
+    const loser = await findUser(loserUsername);
+
+    if (!winner || !loser) return res.status(404).json({ error: 'Пользователь не найден' });
+
+    let wElo = winner.communityElo || 400;
+    let lElo = loser.communityElo || 400;
+
+    let expectedWinner = 1 / (1 + Math.pow(10, (lElo - wElo) / 400));
+    let expectedLoser = 1 / (1 + Math.pow(10, (wElo - lElo) / 400));
+
+    let newWElo = Math.round(wElo + K * (1 - expectedWinner));
+    let newLElo = Math.round(lElo + K * (0 - expectedLoser));
+
+    // Update community stats
+    winner.communityWins = (winner.communityWins || 0) + 1;
+    loser.communityLosses = (loser.communityLosses || 0) + 1;
+    winner.communityElo = newWElo;
+    loser.communityElo = newLElo;
+
+    if (useInMemory) {
+      inMemoryUsers.set(winnerUsername, winner);
+      inMemoryUsers.set(loserUsername, loser);
+    } else {
+      await winner.save();
+      await loser.save();
+    }
+
+    res.json({ 
+      success: true, 
+      newElo: newWElo,
+      agreement: newWElo > newLElo ? 72 : 48 // Simple mock for agreement percentage
+    });
+      const wu = inMemoryUsers.get(winnerUsername.toLowerCase());
+      const lu = inMemoryUsers.get(loserUsername.toLowerCase());
+      wu.communityElo = newWElo;
+      lu.communityElo = newLElo;
+    } else {
+      await User.updateOne({ username: winnerUsername }, { $set: { communityElo: newWElo } });
+      await User.updateOne({ username: loserUsername }, { $set: { communityElo: newLElo } });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Vote result error:', err);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });

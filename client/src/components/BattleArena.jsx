@@ -7,6 +7,7 @@ import LightPillar from './LightPillar';
 import Leaderboard from './Leaderboard';
 import ProfileSettings from './ProfileSettings';
 import PSLReport from './PSLReport';
+import VoteMode from './VoteMode';
 import { getMogRank, RANK_TIERS } from '../utils/ranks';
 import AdBanner from './AdBanner';
 
@@ -44,6 +45,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   const [opponentLiveScore, setOpponentLiveScore] = useState(null);
   const [showProfile, setShowProfile] = useState(false);
   const [showRankInfo, setShowRankInfo] = useState(false);
+  const [showVoteMode, setShowVoteMode] = useState(false);
   const lastDrawTimeRef = useRef(0);
 
   useEffect(() => {
@@ -912,7 +914,22 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
                 <Trophy size={20} />
                 {t.leaderboard || "РЕЙТИНГ"}
               </button>
+              <button
+                onClick={() => setShowVoteMode(true)}
+                className="relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyber-neon/20 to-cyber-accent/20 border border-cyber-border text-white font-black uppercase tracking-widest py-4 rounded hover:from-cyber-neon hover:to-cyber-accent hover:text-black hover:shadow-[0_0_20px_rgba(0,255,157,0.6)] transition-all mt-2 overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 bg-cyber-accent text-white text-[8px] px-2 py-0.5 font-bold tracking-tighter animate-pulse shadow-[0_0_10px_rgba(255,0,85,0.5)]">
+                  NEW
+                </div>
+                <Users size={20} />
+                {lang === 'ru' ? 'ГОЛОСОВАНИЕ' : 'COMMUNITY VOTE'}
+              </button>
             </div>
+          )}
+
+          {/* Render VoteMode Modal */}
+          {showVoteMode && (
+            <VoteMode t={t} lang={lang} onClose={() => setShowVoteMode(false)} />
           )}
 
           {/* AdSense in Lobby */}
@@ -1008,8 +1025,8 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
                     <div
                       key={tier.name}
                       className={`flex items-center justify-between px-3 py-2.5 rounded-lg border transition-all ${isCurrentRank
-                          ? `${tier.bg} ${tier.border} shadow-[0_0_15px_rgba(255,255,255,0.05)]`
-                          : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04]'
+                        ? `${tier.bg} ${tier.border} shadow-[0_0_15px_rgba(255,255,255,0.05)]`
+                        : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04]'
                         }`}
                     >
                       <div className="flex items-center gap-3">
@@ -1081,6 +1098,19 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
         </div>
 
         <div className="flex items-center gap-2">
+          {!user.isGuest && (
+            <div className="hidden md:flex items-center gap-4 mr-4 bg-black/40 px-4 py-1.5 rounded-lg border border-white/5">
+              <div className="flex flex-col items-center">
+                <span className="text-[8px] text-gray-500 font-bold uppercase leading-none">Battle</span>
+                <span className="text-xs font-black text-cyber-neon leading-tight">⚡ {user.elo || 400}</span>
+              </div>
+              <div className="w-px h-6 bg-white/10"></div>
+              <div className="flex flex-col items-center">
+                <span className="text-[8px] text-gray-500 font-bold uppercase leading-none">Social</span>
+                <span className="text-xs font-black text-cyber-accent leading-tight">✨ {user.communityElo || 400}</span>
+              </div>
+            </div>
+          )}
           <button onClick={toggleMic} className={`px-4 py-2 text-xs font-bold bg-transparent border rounded flex items-center gap-2 hover:bg-gray-800 transition ${isMicMuted ? 'text-red-400 border-red-500/50' : 'text-gray-300 border-[#333]'}`}>
             {isMicMuted ? <MicOff size={14} /> : <Mic size={14} />} {isMicMuted ? (lang === 'ru' ? 'Мик выкл' : 'Muted') : (lang === 'ru' ? 'Микрофон' : 'Mic')}
           </button>

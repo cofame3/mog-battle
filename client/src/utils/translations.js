@@ -61,6 +61,10 @@ export const translations = {
     wins: "ПОБЕДЫ",
     close: "ЗАКРЫТЬ",
     loadingLeaderboard: "ЗАГРУЗКА РЕЙТИНГА...",
+    communityChoice: "ВЫБОР ОБЩЕСТВА",
+    communityVote: "ГОЛОСОВАНИЕ",
+    voteNow: "ГОЛОСОВАТЬ СЕЙЧАС",
+    whoIsBetter: "КТО ВЫГЛЯДИТ ЛУЧШЕ?",
     
     // SEO
     seoTitle: "Omogle — AI Face Rating & Mog Battle",
@@ -134,6 +138,10 @@ export const translations = {
     wins: "WINS",
     close: "CLOSE",
     loadingLeaderboard: "LOADING LEADERBOARD...",
+    communityChoice: "COMMUNITY CHOICE",
+    communityVote: "COMMUNITY VOTE",
+    voteNow: "VOTE NOW",
+    whoIsBetter: "WHO LOOKS BETTER?",
 
     // SEO
     seoTitle: "Omogle — AI Face Rating & Mog Battle",

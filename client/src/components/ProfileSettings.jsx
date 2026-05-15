@@ -209,6 +209,20 @@ export default function ProfileSettings({ user, setUser, onClose, t, lang }) {
           {error && <div className="text-red-400 text-sm font-bold bg-red-500/10 p-3 rounded border border-red-500/30 text-center">{error}</div>}
           {message && <div className="text-cyber-neon text-sm font-bold bg-cyber-neon/10 p-3 rounded border border-cyber-neon/30 text-center">{message}</div>}
 
+          {/* Stats Summary */}
+          {!user.isGuest && (
+            <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-cyber-border">
+              <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block mb-1">Battle ELO</span>
+                <span className="text-xl font-black text-cyber-neon">⚡ {user.elo || 400}</span>
+              </div>
+              <div className="bg-black/40 p-4 rounded-xl border border-white/5">
+                <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase block mb-1">Community ELO</span>
+                <span className="text-xl font-black text-cyber-accent">✨ {user.communityElo || 400}</span>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </div>

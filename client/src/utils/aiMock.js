@@ -93,7 +93,7 @@ export const analyzeAppearance = async (mediaElement) => {
       ctx.drawImage(mediaElement, 0, 0, canvas.width, canvas.height);
 
       let faces = await model.estimateFaces(canvas);
-      
+
       if (faces.length === 0) {
         return {
           error: true,
@@ -108,7 +108,7 @@ export const analyzeAppearance = async (mediaElement) => {
       const keypoints = faces[0].keypoints;
       const width = canvas.width;
       const height = canvas.height;
-      
+
 
       // --- 1. EYES SCORE (Canthal Tilt) ---
       const rightOuter = keypoints[33];
@@ -133,29 +133,29 @@ export const analyzeAppearance = async (mediaElement) => {
 
 
       // --- BRUTAL FEATURES + EASY SYMMETRY ---
-      
+
       // 1. Eyes: Back to Brutal (Base 25)
-      let eyesScore = 25 + (avgTiltPct * 5); 
-      if (avgTiltPct < 0) eyesScore = 20 + (avgTiltPct * 20); 
+      let eyesScore = 25 + (avgTiltPct * 5);
+      if (avgTiltPct < 0) eyesScore = 20 + (avgTiltPct * 20);
       if (eyesScore > 99) eyesScore = 99;
       if (eyesScore < 5) eyesScore = 5;
 
       // 2. Jaw: Back to Expert (0.86 threshold)
-      let jawScore = (jawRatio - 0.86) * 600 + 20; 
+      let jawScore = (jawRatio - 0.86) * 600 + 20;
       if (jawScore > 99) jawScore = 99;
       if (jawScore < 5) jawScore = 5;
 
       // 3. Symmetry: STAY EASY (Base 98, low penalty)
       const noseBridge = keypoints[8];
       const chin = keypoints[152];
-      
+
       const rightCheekDist = distanceToLine(rightCheek, noseBridge, chin);
       const leftCheekDist = distanceToLine(leftCheek, noseBridge, chin);
       const rightJawDist = distanceToLine(rightJaw, noseBridge, chin);
       const leftJawDist = distanceToLine(leftJaw, noseBridge, chin);
-      
+
       const totalDiff = (Math.abs(rightCheekDist - leftCheekDist) + Math.abs(rightJawDist - leftJawDist)) / cheekWidth;
-      
+
       const effectiveDiff = Math.max(0, totalDiff - 0.035);
       let symScore = 98 - (effectiveDiff * 150);
       if (symScore > 99) symScore = 99;
@@ -173,7 +173,7 @@ export const analyzeAppearance = async (mediaElement) => {
 
 
       // --- FINAL SCORE CALCULATION ---
-      const noise = () => (Math.random() * 2) - 1; 
+      const noise = () => (Math.random() * 2) - 1;
 
       const finalEyes = Math.floor(eyesScore + noise());
       const finalJaw = Math.floor(jawScore + noise());
@@ -183,9 +183,9 @@ export const analyzeAppearance = async (mediaElement) => {
       // Weighted Total (Including Nose)
       // Eyes: 30%, Jaw: 30%, Sym: 20%, Nose: 20%
       const total = Math.floor(
-        (finalEyes * 0.30) + 
-        (finalJaw * 0.30) + 
-        (finalSym * 0.20) + 
+        (finalEyes * 0.30) +
+        (finalJaw * 0.30) +
+        (finalSym * 0.20) +
         (finalNose * 0.20)
       );
 

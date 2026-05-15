@@ -120,43 +120,43 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
 
   // ── Rating helpers ──
   const getCanthalRating = (val) => {
-    if (val > 5.0) return { 
-      text: ru ? 'Положительный (Hunter Eyes)' : 'Positive (Hunter Eyes)', 
+    if (val > 5.0) return {
+      text: ru ? 'Положительный (Hunter Eyes)' : 'Positive (Hunter Eyes)',
       desc: ru ? 'Идеальный «хищный» наклон. Создает доминантный и уверенный взгляд.' : 'Ideal predator tilt. Creates a dominant and confident gaze.',
-      color: 'text-cyber-neon' 
+      color: 'text-cyber-neon'
     };
-    if (val > 0.5) return { 
-      text: ru ? 'Нейтральный' : 'Neutral', 
+    if (val > 0.5) return {
+      text: ru ? 'Нейтральный' : 'Neutral',
       desc: ru ? 'Сбалансированный разрез глаз. Подходит под любой типаж внешности.' : 'Balanced eye shape. Fits well with any facial type.',
-      color: 'text-yellow-400' 
+      color: 'text-yellow-400'
     };
-    return { 
-      text: ru ? 'Отрицательный (Prey Eyes)' : 'Negative (Prey Eyes)', 
+    return {
+      text: ru ? 'Отрицательный (Prey Eyes)' : 'Negative (Prey Eyes)',
       desc: ru ? 'Нисходящий наклон. Придает взгляду более мягкий или уставший вид.' : 'Downward tilt. Gives the gaze a softer or more tired look.',
-      color: 'text-red-400' 
+      color: 'text-red-400'
     };
   };
 
   const getJawRating = (ratio) => {
-    if (ratio >= 0.92) return { 
-      text: ru ? 'Отлично' : 'Excellent', 
+    if (ratio >= 0.92) return {
+      text: ru ? 'Отлично' : 'Excellent',
       desc: ru ? 'Элитная ширина челюсти. Мощная мужская костная структура.' : 'Elite jaw width. Powerful masculine bone structure.',
-      color: 'text-cyber-neon' 
+      color: 'text-cyber-neon'
     };
-    if (ratio >= 0.90) return { 
-      text: ru ? 'Идеально' : 'Ideal', 
+    if (ratio >= 0.90) return {
+      text: ru ? 'Идеально' : 'Ideal',
       desc: ru ? 'Превосходное соотношение. Челюсть идеально гармонирует со скулами.' : 'Excellent ratio. The jaw harmonizes perfectly with the cheekbones.',
-      color: 'text-cyber-neon' 
+      color: 'text-cyber-neon'
     };
-    if (ratio >= 0.85) return { 
-      text: ru ? 'Выше среднего' : 'Above Average', 
+    if (ratio >= 0.85) return {
+      text: ru ? 'Выше среднего' : 'Above Average',
       desc: ru ? 'Хорошая база. Челюсть заметная, но не доминирует в структуре.' : 'Good base. The jaw is noticeable but doesn\'t dominate the structure.',
-      color: 'text-yellow-400' 
+      color: 'text-yellow-400'
     };
-    return { 
-      text: ru ? 'Среднее' : 'Average', 
+    return {
+      text: ru ? 'Среднее' : 'Average',
       desc: ru ? 'Узковатая челюсть. Борода или жевательная смола помогут добавить объема.' : 'Narrower jaw. A beard or mastic gum can help add volume.',
-      color: 'text-red-400' 
+      color: 'text-red-400'
     };
   };
 
@@ -168,20 +168,20 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
   };
 
   const getPhiltrumRating = (val) => {
-    if (val <= 0.12) return { 
-      text: ru ? 'Короткий (Идеал)' : 'Short (Ideal)', 
+    if (val <= 0.12) return {
+      text: ru ? 'Короткий (Идеал)' : 'Short (Ideal)',
       desc: ru ? 'Идеальная компактность средней части лица.' : 'Ideal compactness of the midface.',
-      color: 'text-cyber-neon' 
+      color: 'text-cyber-neon'
     };
-    if (val <= 0.15) return { 
-      text: ru ? 'Средний' : 'Average', 
+    if (val <= 0.15) return {
+      text: ru ? 'Средний' : 'Average',
       desc: ru ? 'Стандартная длина. Гармонично смотрится с большинством типов лиц.' : 'Standard length. Looks harmonious with most face types.',
-      color: 'text-yellow-400' 
+      color: 'text-yellow-400'
     };
-    return { 
-      text: ru ? 'Длинный' : 'Long', 
+    return {
+      text: ru ? 'Длинный' : 'Long',
       desc: ru ? 'Увеличенная дистанция. Может визуально удлинять лицо.' : 'Increased distance. Can visually elongate the face.',
-      color: 'text-red-400' 
+      color: 'text-red-400'
     };
   };
 
@@ -265,9 +265,8 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
               <div>
                 <div className="text-[9px] text-gray-500 font-bold tracking-widest uppercase">TOTAL</div>
                 <div className="text-2xl font-black text-white">{analysis.total}</div>
-                <div className={`text-[9px] font-black tracking-widest ${
-                  analysis.total >= 80 ? 'text-yellow-400' : analysis.total >= 65 ? 'text-cyber-neon' : analysis.total >= 45 ? 'text-blue-400' : 'text-red-400'
-                }`}>{analysis.verdict}</div>
+                <div className={`text-[9px] font-black tracking-widest ${analysis.total >= 80 ? 'text-yellow-400' : analysis.total >= 65 ? 'text-cyber-neon' : analysis.total >= 45 ? 'text-blue-400' : 'text-red-400'
+                  }`}>{analysis.verdict}</div>
               </div>
               <div>
                 <div className="text-[9px] text-gray-500 font-bold tracking-widest uppercase">{ru ? 'ГЛАЗА' : 'EYES'}</div>
@@ -316,8 +315,8 @@ export default function PSLReport({ imageSrc, analysis, onClose, lang }) {
               title={ru ? 'Скулы' : 'Cheekbones'}
               value={analysis.jawline >= 70 ? (ru ? 'Выражены' : 'Prominent') : (ru ? 'Средние' : 'Average')}
               valueColor={analysis.jawline >= 70 ? 'text-cyber-neon' : 'text-yellow-400'}
-              desc={analysis.jawline >= 70 
-                ? (ru ? 'Широкие скулы обеспечивают отличную поддержку лица.' : 'Wide cheekbones provide excellent facial support.') 
+              desc={analysis.jawline >= 70
+                ? (ru ? 'Широкие скулы обеспечивают отличную поддержку лица.' : 'Wide cheekbones provide excellent facial support.')
                 : (ru ? 'Средняя ширина. Костная структура в пределах нормы.' : 'Average width. Bone structure is within normal range.')}
             />
             <LegendRow
