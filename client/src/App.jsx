@@ -13,6 +13,7 @@ import Footer from './components/Footer';
 import { translations } from './utils/translations';
 
 import DailyRewards from './components/DailyRewards';
+import Roulette from './components/Roulette';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -26,6 +27,7 @@ function App() {
   const [isGlitching, setIsGlitching] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
   const [showDaily, setShowDaily] = useState(false);
+  const [showRoulette, setShowRoulette] = useState(false);
   const location = useLocation();
 
   const t = translations[lang];
@@ -166,6 +168,7 @@ function App() {
                 lang={lang}
                 t={t}
                 onShowDaily={() => setShowDaily(true)}
+                onShowRoulette={() => setShowRoulette(true)}
               />
             )
           } />
@@ -184,6 +187,13 @@ function App() {
           lang={lang}
           onClaim={handleClaimReward}
           onClose={() => setShowDaily(false)}
+        />
+      )}
+      {showRoulette && user && (
+        <Roulette
+          lang={lang}
+          onClaim={handleClaimReward}
+          onClose={() => setShowRoulette(false)}
         />
       )}
     </div>

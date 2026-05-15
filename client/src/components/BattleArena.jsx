@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings, Shield, ChevronRight, Info, Scan, Gift } from 'lucide-react';
+import { Camera, Zap, ShieldAlert, Crosshair, Cpu, Users, Home, User, Shuffle, LogOut, Upload, Mic, MicOff, Trophy, Lock, Unlock, Settings, Shield, ChevronRight, Info, Scan, Gift, Dices } from 'lucide-react';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { analyzeAppearance, initModel, getLiveFaces } from '../utils/aiMock';
 import LightPillar from './LightPillar';
@@ -16,7 +16,7 @@ const socket = io(SOCKET_URL, { autoConnect: false });
 
 const BATTLE_DURATION = 10; // 10 seconds for battle
 
-export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDaily }) {
+export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDaily, onShowRoulette }) {
   const [appState, setAppState] = useState('lobby'); // lobby, arena
   const [lobbyMode, setLobbyMode] = useState('initial'); // initial, friend_join, searching
   const [gameMode, setGameMode] = useState(null); // solo, random, friend, photo
@@ -239,7 +239,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   // Timeout: if stuck in 'analyzing' for 20s, auto-resolve
   useEffect(() => {
     if (battleState !== 'analyzing' || gameMode === 'solo' || gameMode === 'photo') return;
-    
+
     const timeout = setTimeout(() => {
       // Force-resolve: set missing results
       if (!myResult) {
@@ -362,7 +362,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     if (!hasCam) return;
     setGameMode('random');
     setLobbyMode('searching');
-    
+
     if (socket.connected) {
       socket.emit('join_random');
     } else {
@@ -388,7 +388,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     const hasCam = await initCamera();
     if (!hasCam) return;
     setGameMode('friend');
-    
+
     if (socket.connected) {
       socket.emit('join_room', codeToJoin.trim());
     } else {
@@ -444,13 +444,13 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       clearInterval(battleIntervalRef.current);
       battleIntervalRef.current = null;
     }
-    
+
     if (peerRef.current) {
       peerRef.current.close();
       peerRef.current = null;
     }
     socket.emit('leave_room');
-    
+
     // Full state reset for clean new match
     setOpponentStream(null);
     setBattleState('idle');
@@ -516,18 +516,18 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
 
     const startTime = Date.now();
     const endTime = startTime + BATTLE_DURATION * 1000;
-    
+
     setCountdown(BATTLE_DURATION);
 
     battleIntervalRef.current = setInterval(() => {
       const now = Date.now();
       const remaining = Math.max(0, Math.ceil((endTime - now) / 1000));
-      
+
       setCountdown(prev => {
         if (prev !== remaining) return remaining;
         return prev;
       });
-      
+
       if (now >= endTime) {
         clearInterval(battleIntervalRef.current);
         battleIntervalRef.current = null;
@@ -707,12 +707,12 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   useEffect(() => {
     if (battleState === 'result' && myResult && opponentResult && !statsPostedRef.current) {
       statsPostedRef.current = true;
-      
+
       let isWin;
       if (myResult.analysis.total > opponentResult.analysis.total) isWin = true;
       else if (myResult.analysis.total < opponentResult.analysis.total) isWin = false;
       else isWin = null;
-      
+
       // Calculate visual ELO change instantly for the UI
       const currentElo = user?.elo || 400;
       const oppElo = opponentElo || 400;
@@ -721,7 +721,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       const actual = isWin === true ? 1 : (isWin === false ? 0 : 0.5);
       const newElo = Math.round(currentElo + K * (actual - expected));
       const change = newElo - currentElo;
-      
+
       setEloChangeData({ newElo, change });
 
       // Only sync to server if it's a ranked random match and user is registered
@@ -820,6 +820,16 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
                   <Gift size={16} className="md:w-[18px] md:h-[18px]" />
                   {localStorage.getItem('mog_last_claim') !== new Date().toDateString() && (
                     <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-cyber-neon rounded-full shadow-[0_0_8px_rgba(0,255,157,0.8)] animate-pulse" />
+                  )}
+                </button>
+                <button
+                  onClick={onShowRoulette}
+                  className="relative mx-1 md:mx-2 text-gray-500 hover:text-purple-400 transition-all"
+                  title={lang === 'ru' ? 'Рулетка' : 'Roulette'}
+                >
+                  <Dices size={16} className="md:w-[18px] md:h-[18px]" />
+                  {localStorage.getItem('mog_last_roulette') !== new Date().toDateString() && (
+                    <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.8)] animate-pulse" />
                   )}
                 </button>
                 <button
@@ -997,11 +1007,10 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
                   return (
                     <div
                       key={tier.name}
-                      className={`flex items-center justify-between px-3 py-2.5 rounded-lg border transition-all ${
-                        isCurrentRank
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-lg border transition-all ${isCurrentRank
                           ? `${tier.bg} ${tier.border} shadow-[0_0_15px_rgba(255,255,255,0.05)]`
                           : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04]'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className={`text-sm font-black tracking-widest ${tier.color}`}>
@@ -1065,18 +1074,18 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
             </button>
           </div>
         )}
-        
+
         {/* AdSense Banner */}
         <div className={`hidden md:flex flex-1 justify-center max-w-lg mx-auto ${gameMode === 'friend' ? 'hidden lg:flex' : ''}`}>
-           <AdBanner format="horizontal" style={{ width: '468px', height: '60px' }} />
+          <AdBanner format="horizontal" style={{ width: '468px', height: '60px' }} />
         </div>
 
         <div className="flex items-center gap-2">
-           <button onClick={toggleMic} className={`px-4 py-2 text-xs font-bold bg-transparent border rounded flex items-center gap-2 hover:bg-gray-800 transition ${isMicMuted ? 'text-red-400 border-red-500/50' : 'text-gray-300 border-[#333]'}`}>
-             {isMicMuted ? <MicOff size={14}/> : <Mic size={14}/>} {isMicMuted ? (lang === 'ru' ? 'Мик выкл' : 'Muted') : (lang === 'ru' ? 'Микрофон' : 'Mic')}
-           </button>
-           <button onClick={() => setShowProfile(true)} className="px-4 py-2 text-xs font-bold text-gray-300 bg-transparent border border-[#333] rounded flex items-center gap-2 hover:bg-gray-800 transition"><User size={14}/> {lang === 'ru' ? 'Профиль' : 'Profile'}</button>
-           <button onClick={returnHome} className="px-4 py-2 text-xs font-bold text-gray-300 bg-transparent border border-[#333] rounded flex items-center gap-2 hover:bg-gray-800 transition"><LogOut size={14}/> {lang === 'ru' ? 'В главное меню' : 'Main Menu'}</button>
+          <button onClick={toggleMic} className={`px-4 py-2 text-xs font-bold bg-transparent border rounded flex items-center gap-2 hover:bg-gray-800 transition ${isMicMuted ? 'text-red-400 border-red-500/50' : 'text-gray-300 border-[#333]'}`}>
+            {isMicMuted ? <MicOff size={14} /> : <Mic size={14} />} {isMicMuted ? (lang === 'ru' ? 'Мик выкл' : 'Muted') : (lang === 'ru' ? 'Микрофон' : 'Mic')}
+          </button>
+          <button onClick={() => setShowProfile(true)} className="px-4 py-2 text-xs font-bold text-gray-300 bg-transparent border border-[#333] rounded flex items-center gap-2 hover:bg-gray-800 transition"><User size={14} /> {lang === 'ru' ? 'Профиль' : 'Profile'}</button>
+          <button onClick={returnHome} className="px-4 py-2 text-xs font-bold text-gray-300 bg-transparent border border-[#333] rounded flex items-center gap-2 hover:bg-gray-800 transition"><LogOut size={14} /> {lang === 'ru' ? 'В главное меню' : 'Main Menu'}</button>
         </div>
       </div>
 
@@ -1095,7 +1104,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
 
           {/* Ad Slot during scanning */}
           <div className="mt-auto mb-10 w-full max-w-[336px]">
-             <AdBanner format="rectangle" style={{ width: '336px', height: '280px' }} />
+            <AdBanner format="rectangle" style={{ width: '336px', height: '280px' }} />
           </div>
         </div>
       )}
@@ -1106,75 +1115,75 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
         {/* VS Badge */}
         {gameMode !== 'solo' && gameMode !== 'photo' && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 hidden md:flex flex-col items-center justify-center w-14 h-14 bg-[#050505] border border-[#00ff41] rounded-[10px] shadow-[0_0_15px_rgba(0,255,65,0.2)]">
-             <span className="text-[7px] text-gray-400 font-black tracking-widest leading-none mb-1">ROUND 1</span>
-             <span className="text-sm font-black text-[#00ff41] leading-none">VS</span>
+            <span className="text-[7px] text-gray-400 font-black tracking-widest leading-none mb-1">ROUND 1</span>
+            <span className="text-sm font-black text-[#00ff41] leading-none">VS</span>
           </div>
         )}
 
         {/* Player 1 (Local) */}
         <div className="flex flex-col w-full max-w-[70vh] mx-auto">
           <div className={`relative rounded-xl overflow-hidden border border-[#222] bg-[#050505] transition-all duration-700 aspect-square w-full`}>
-          <div className="absolute top-4 left-4 z-20 flex flex-col items-center justify-center bg-[#111] border border-[#222] rounded-md px-3 py-2 shadow-lg">
-            <span className="text-[8px] text-gray-500 font-bold tracking-widest mb-1">MOG SCORE</span>
-            <span className="text-xl font-black text-gray-400 leading-none">--</span>
-          </div>
-          
-          <div className="absolute top-4 right-4 z-20 flex flex-col items-end">
-             <div className="flex items-center gap-2 mb-1">
+            <div className="absolute top-4 left-4 z-20 flex flex-col items-center justify-center bg-[#111] border border-[#222] rounded-md px-3 py-2 shadow-lg">
+              <span className="text-[8px] text-gray-500 font-bold tracking-widest mb-1">MOG SCORE</span>
+              <span className="text-xl font-black text-gray-400 leading-none">--</span>
+            </div>
+
+            <div className="absolute top-4 right-4 z-20 flex flex-col items-end">
+              <div className="flex items-center gap-2 mb-1">
                 <span className="text-[8px] px-2 py-0.5 bg-green-900/30 text-[#00ff41] border border-[#00ff41]/50 rounded uppercase font-black tracking-widest shadow-md">YOUR SCAN</span>
                 <div className="w-6 h-6 rounded-full bg-[#5d8b4e] flex items-center justify-center text-black font-bold text-xs shadow-md">
-                   {user?.avatarUrl ? <img src={`${SOCKET_URL}${user.avatarUrl}`} className="w-full h-full rounded-full object-cover"/> : "L"}
+                  {user?.avatarUrl ? <img src={`${SOCKET_URL}${user.avatarUrl}`} className="w-full h-full rounded-full object-cover" /> : "L"}
                 </div>
-             </div>
-             <span className="text-sm font-black text-white uppercase tracking-wider drop-shadow-md">{user?.username || 'LOVE'}</span>
-             <span className="text-[9px] text-gray-400 font-bold tracking-widest flex items-center gap-1 mt-0.5">👁 RIZZLET</span>
-             <span className="text-[10px] text-[#4ea8de] font-bold tracking-widest mt-0.5 drop-shadow-md flex items-center">
-               {user?.elo || 969} ELO
-               {eloChangeData && (
-                 <span className={`ml-1 ${eloChangeData.change > 0 ? 'text-[#00ff41]' : 'text-red-500'} animate-pulse`}>
-                   ({eloChangeData.change > 0 ? '+' : ''}{eloChangeData.change})
-                 </span>
-               )}
-             </span>
-          </div>
-
-          <div className="absolute inset-0 bg-black flex items-center justify-center">
-            {myResult && gameMode !== 'photo' && (
-              <img src={myResult.image} alt="My snapshot" className="absolute top-20 left-4 w-24 h-32 object-cover border border-[#00ff41] rounded shadow-lg z-30 scale-x-[-1]" />
-            )}
-            {uploadedImage ? (
-              <img
-                ref={imageRef}
-                src={uploadedImage}
-                alt="Uploaded"
-                onLoad={() => {
-                  if (gameMode === 'photo' && battleState === 'analyzing') takePhotoSnapshotAndAnalyze();
-                }}
-                className={`w-full h-full object-cover block`}
-              />
-            ) : (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className={`w-full h-full object-cover scale-x-[-1] block`}
-              />
-            )}
-            {!myResult && !uploadedImage && (
-              <canvas
-                ref={liveCanvasRef}
-                className="absolute inset-0 w-full h-full object-cover scale-x-[-1] z-20 pointer-events-none opacity-60"
-              />
-            )}
-            {liveScore && !myResult && !uploadedImage && (
-              <div className="absolute bottom-6 right-6 z-30 bg-[#111]/80 border border-[#222] px-4 py-2 rounded-xl flex flex-col items-end shadow-xl backdrop-blur-md">
-                <span className="text-[10px] font-black text-gray-500 tracking-widest uppercase mb-1">{t.liveEstimate}</span>
-                <span className="text-3xl font-mono font-black text-white leading-none drop-shadow-md">{liveScore}</span>
-                <span className={`text-[10px] font-black tracking-widest uppercase mt-1 ${getTier(parseFloat(liveScore)).color} drop-shadow-md`}>{getTier(parseFloat(liveScore)).label}</span>
               </div>
-            )}
-          </div>
+              <span className="text-sm font-black text-white uppercase tracking-wider drop-shadow-md">{user?.username || 'LOVE'}</span>
+              <span className="text-[9px] text-gray-400 font-bold tracking-widest flex items-center gap-1 mt-0.5">👁 RIZZLET</span>
+              <span className="text-[10px] text-[#4ea8de] font-bold tracking-widest mt-0.5 drop-shadow-md flex items-center">
+                {user?.elo || 969} ELO
+                {eloChangeData && (
+                  <span className={`ml-1 ${eloChangeData.change > 0 ? 'text-[#00ff41]' : 'text-red-500'} animate-pulse`}>
+                    ({eloChangeData.change > 0 ? '+' : ''}{eloChangeData.change})
+                  </span>
+                )}
+              </span>
+            </div>
+
+            <div className="absolute inset-0 bg-black flex items-center justify-center">
+              {myResult && gameMode !== 'photo' && (
+                <img src={myResult.image} alt="My snapshot" className="absolute top-20 left-4 w-24 h-32 object-cover border border-[#00ff41] rounded shadow-lg z-30 scale-x-[-1]" />
+              )}
+              {uploadedImage ? (
+                <img
+                  ref={imageRef}
+                  src={uploadedImage}
+                  alt="Uploaded"
+                  onLoad={() => {
+                    if (gameMode === 'photo' && battleState === 'analyzing') takePhotoSnapshotAndAnalyze();
+                  }}
+                  className={`w-full h-full object-cover block`}
+                />
+              ) : (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className={`w-full h-full object-cover scale-x-[-1] block`}
+                />
+              )}
+              {!myResult && !uploadedImage && (
+                <canvas
+                  ref={liveCanvasRef}
+                  className="absolute inset-0 w-full h-full object-cover scale-x-[-1] z-20 pointer-events-none opacity-60"
+                />
+              )}
+              {liveScore && !myResult && !uploadedImage && (
+                <div className="absolute bottom-6 right-6 z-30 bg-[#111]/80 border border-[#222] px-4 py-2 rounded-xl flex flex-col items-end shadow-xl backdrop-blur-md">
+                  <span className="text-[10px] font-black text-gray-500 tracking-widest uppercase mb-1">{t.liveEstimate}</span>
+                  <span className="text-3xl font-mono font-black text-white leading-none drop-shadow-md">{liveScore}</span>
+                  <span className={`text-[10px] font-black tracking-widest uppercase mt-1 ${getTier(parseFloat(liveScore)).color} drop-shadow-md`}>{getTier(parseFloat(liveScore)).label}</span>
+                </div>
+              )}
+            </div>
 
           </div>
 
@@ -1199,50 +1208,50 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
         {gameMode !== 'solo' && gameMode !== 'photo' && (
           <div className="flex flex-col w-full max-w-[70vh] mx-auto">
             <div className={`relative rounded-xl overflow-hidden border border-[#222] bg-[#050505] transition-all duration-700 aspect-square w-full`}>
-            
-            <div className="absolute top-4 left-4 z-20 flex flex-col items-center justify-center bg-[#111] border border-[#222] rounded-md px-3 py-2 shadow-lg">
-              <span className="text-[8px] text-gray-500 font-bold tracking-widest mb-1">MOG SCORE</span>
-              <span className="text-xl font-black text-gray-400 leading-none">--</span>
-            </div>
-            
-            <div className="absolute top-4 right-4 z-20 flex flex-col items-end">
-               <div className="flex items-center gap-2 mb-1">
+
+              <div className="absolute top-4 left-4 z-20 flex flex-col items-center justify-center bg-[#111] border border-[#222] rounded-md px-3 py-2 shadow-lg">
+                <span className="text-[8px] text-gray-500 font-bold tracking-widest mb-1">MOG SCORE</span>
+                <span className="text-xl font-black text-gray-400 leading-none">--</span>
+              </div>
+
+              <div className="absolute top-4 right-4 z-20 flex flex-col items-end">
+                <div className="flex items-center gap-2 mb-1">
                   <span className="text-[8px] px-2 py-0.5 bg-red-900/30 text-red-500 border border-red-500/50 rounded uppercase font-black tracking-widest shadow-md">ENEMY SCAN</span>
                   <div className="w-6 h-6 rounded-full bg-[#111] border border-red-500 flex items-center justify-center text-gray-500 font-bold text-xs overflow-hidden shadow-md">
-                     <User size={14}/>
+                    <User size={14} />
                   </div>
-               </div>
-               <span className="text-sm font-black text-white uppercase tracking-wider drop-shadow-md">{opponentName || 'KENDRA STIMPSON'}</span>
-               <span className="text-[9px] text-gray-400 font-bold tracking-widest flex items-center gap-1 mt-0.5">👁 RIZZLET</span>
-               <span className="text-[10px] text-[#4ea8de] font-bold tracking-widest mt-0.5 drop-shadow-md flex items-center">
-                 {opponentElo || 890} ELO
-                 {eloChangeData && (
-                   <span className={`ml-1 ${-eloChangeData.change > 0 ? 'text-[#00ff41]' : 'text-red-500'} animate-pulse`}>
-                     ({-eloChangeData.change > 0 ? '+' : ''}{-eloChangeData.change})
-                   </span>
-                 )}
-               </span>
-            </div>
+                </div>
+                <span className="text-sm font-black text-white uppercase tracking-wider drop-shadow-md">{opponentName || 'KENDRA STIMPSON'}</span>
+                <span className="text-[9px] text-gray-400 font-bold tracking-widest flex items-center gap-1 mt-0.5">👁 RIZZLET</span>
+                <span className="text-[10px] text-[#4ea8de] font-bold tracking-widest mt-0.5 drop-shadow-md flex items-center">
+                  {opponentElo || 890} ELO
+                  {eloChangeData && (
+                    <span className={`ml-1 ${-eloChangeData.change > 0 ? 'text-[#00ff41]' : 'text-red-500'} animate-pulse`}>
+                      ({-eloChangeData.change > 0 ? '+' : ''}{-eloChangeData.change})
+                    </span>
+                  )}
+                </span>
+              </div>
 
-            <div className="absolute inset-0 bg-black flex items-center justify-center">
-              {opponentResult && (
-                <img src={opponentResult.image} alt="Opponent snapshot" className="absolute top-20 left-4 w-24 h-32 object-cover border border-red-500 rounded shadow-lg z-30" />
-              )}
-              <video
-                ref={opponentVideoRef}
-                autoPlay
-                playsInline
-                className={`w-full h-full object-cover ${opponentStream ? 'block' : 'hidden'}`}
-              />
-              
-              {/* Connecting UI instead of static placeholder */}
-              {!opponentResult && !opponentStream && (
-                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-b from-[#1a0505] to-[#050505]">
+              <div className="absolute inset-0 bg-black flex items-center justify-center">
+                {opponentResult && (
+                  <img src={opponentResult.image} alt="Opponent snapshot" className="absolute top-20 left-4 w-24 h-32 object-cover border border-red-500 rounded shadow-lg z-30" />
+                )}
+                <video
+                  ref={opponentVideoRef}
+                  autoPlay
+                  playsInline
+                  className={`w-full h-full object-cover ${opponentStream ? 'block' : 'hidden'}`}
+                />
+
+                {/* Connecting UI instead of static placeholder */}
+                {!opponentResult && !opponentStream && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-b from-[#1a0505] to-[#050505]">
                     <div className="w-20 h-20 rounded-full border-2 border-red-500/50 mb-4 overflow-hidden shadow-[0_0_20px_rgba(255,0,0,0.2)] bg-[#111] flex items-center justify-center">
-                       <User size={32} className="text-gray-500" />
+                      <User size={32} className="text-gray-500" />
                     </div>
                     <div className="text-xl font-black text-white mb-1 tracking-wider drop-shadow-md">
-                      {opponentDisconnected 
+                      {opponentDisconnected
                         ? (lang === 'ru' ? 'ОППОНЕНТ ОТКЛЮЧИЛСЯ' : 'OPPONENT DISCONNECTED')
                         : (playersCount < 2 ? t.searchingOpponent : "Connecting...")}
                     </div>
@@ -1252,24 +1261,24 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
                     {!opponentDisconnected && (
                       <div className="text-[10px] text-gray-500 font-bold tracking-widest">us United States</div>
                     )}
-                 </div>
-              )}
-              
-              {opponentLiveScore && !opponentResult && opponentStream && (
-                <div className="absolute bottom-6 left-6 z-30 bg-[#111]/80 border border-[#222] px-4 py-2 rounded-xl flex flex-col items-start shadow-xl backdrop-blur-md">
-                  <span className="text-[10px] font-black text-gray-500 tracking-widest uppercase mb-1">{t.liveEstimate}</span>
-                  <span className="text-3xl font-mono font-black text-white leading-none drop-shadow-md">{opponentLiveScore}</span>
-                  <span className={`text-[10px] font-black tracking-widest uppercase mt-1 ${getTier(parseFloat(opponentLiveScore)).color} drop-shadow-md`}>{getTier(parseFloat(opponentLiveScore)).label}</span>
+                  </div>
+                )}
+
+                {opponentLiveScore && !opponentResult && opponentStream && (
+                  <div className="absolute bottom-6 left-6 z-30 bg-[#111]/80 border border-[#222] px-4 py-2 rounded-xl flex flex-col items-start shadow-xl backdrop-blur-md">
+                    <span className="text-[10px] font-black text-gray-500 tracking-widest uppercase mb-1">{t.liveEstimate}</span>
+                    <span className="text-3xl font-mono font-black text-white leading-none drop-shadow-md">{opponentLiveScore}</span>
+                    <span className={`text-[10px] font-black tracking-widest uppercase mt-1 ${getTier(parseFloat(opponentLiveScore)).color} drop-shadow-md`}>{getTier(parseFloat(opponentLiveScore)).label}</span>
+                  </div>
+                )}
+              </div>
+
+              {!opponentStream && !opponentResult && (
+                <div className="absolute bottom-4 left-4 z-20 flex gap-2">
+                  <button className="px-3 py-1.5 bg-red-600/20 text-red-500 border border-red-600/50 rounded text-[9px] font-black tracking-widest flex items-center gap-1 hover:bg-red-600 hover:text-white transition shadow-md"><ShieldAlert size={10} /> REPORT</button>
+                  <button className="p-1.5 bg-[#111] text-gray-500 border border-[#222] rounded hover:text-white transition shadow-md"><Crosshair size={14} /></button>
                 </div>
               )}
-            </div>
-
-            {!opponentStream && !opponentResult && (
-              <div className="absolute bottom-4 left-4 z-20 flex gap-2">
-                 <button className="px-3 py-1.5 bg-red-600/20 text-red-500 border border-red-600/50 rounded text-[9px] font-black tracking-widest flex items-center gap-1 hover:bg-red-600 hover:text-white transition shadow-md"><ShieldAlert size={10}/> REPORT</button>
-                 <button className="p-1.5 bg-[#111] text-gray-500 border border-[#222] rounded hover:text-white transition shadow-md"><Crosshair size={14}/></button>
-              </div>
-            )}
 
             </div>
 
@@ -1394,7 +1403,7 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
-      setPslTimer(`${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`);
+      setPslTimer(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -1430,7 +1439,7 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
       }
     }
     localStorage.setItem(storageKey, new Date().toISOString());
-    
+
     // Allow scan
     setShowPSL(true);
   };
