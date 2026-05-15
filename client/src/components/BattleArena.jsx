@@ -773,16 +773,16 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
 
         {/* User Info / Logout Top Bar */}
         {user && (
-          <div className="absolute top-6 right-6 z-20 flex items-center gap-4 bg-black/60 border border-cyber-border px-4 py-2 rounded-lg backdrop-blur-md shadow-[0_0_15px_rgba(0,255,157,0.1)]">
+          <div className="absolute top-4 right-2 md:top-6 md:right-6 z-20 flex items-center gap-2 md:gap-4 bg-black/60 border border-cyber-border px-2 py-1.5 md:px-4 md:py-2 rounded-lg backdrop-blur-md shadow-[0_0_15px_rgba(0,255,157,0.1)]">
             {user.avatarUrl ? (
-              <img src={`${SOCKET_URL}${user.avatarUrl}`} alt="avatar" className="w-6 h-6 rounded-full object-cover border border-cyber-neon" />
+              <img src={`${SOCKET_URL}${user.avatarUrl}`} alt="avatar" className="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover border border-cyber-neon" />
             ) : (
-              <User size={16} className="text-gray-400" />
+              <User size={16} className="text-gray-400 hidden sm:block" />
             )}
-            <span className="text-sm font-bold text-cyber-neon tracking-widest flex items-center gap-2">
-              {user.username}
+            <span className="text-xs md:text-sm font-bold text-cyber-neon tracking-widest flex items-center gap-1 md:gap-2">
+              <span className="truncate max-w-[50px] sm:max-w-[100px] md:max-w-none">{user.username}</span>
               {!user.isGuest && lobbyMode !== 'friend_join' && (
-                <div className="flex gap-1">
+                <div className="flex gap-1 hidden sm:flex">
                   <span className="text-[10px] text-yellow-500 bg-yellow-500/10 border border-yellow-500/30 px-1 rounded flex items-center gap-1" title="Elo Rating">
                     ⚡ {user.elo || 400}
                   </span>
@@ -797,46 +797,46 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
             </span>
             {user.isGuest && (
               <div className="flex gap-1">
-                <span className="text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black">GUEST</span>
+                <span className="text-[10px] bg-cyber-accent/20 text-cyber-accent border border-cyber-accent/50 px-1 rounded font-black hidden sm:inline-block">GUEST</span>
                 <span className="text-[10px] text-cyber-neon bg-cyber-neon/10 border border-cyber-neon/30 px-1 rounded flex items-center gap-1">
                   <Scan size={10} /> {user.scans || 0}
                 </span>
               </div>
             )}
             {onLogout && (
-              <>
+              <div className="flex items-center border-l border-gray-700 pl-2 md:pl-4 ml-1 md:ml-2">
                 <button
                   onClick={() => setShowRankInfo(true)}
-                  className="ml-2 text-gray-500 hover:text-yellow-400 transition-colors border-l border-gray-700 pl-4"
+                  className="mx-1 md:mx-2 text-gray-500 hover:text-yellow-400 transition-colors"
                   title="Rank Info"
                 >
-                  <Info size={18} />
+                  <Info size={16} className="md:w-[18px] md:h-[18px]" />
                 </button>
                 <button
                   onClick={onShowDaily}
-                  className="relative ml-2 text-gray-500 hover:text-cyber-neon transition-all"
+                  className="relative mx-1 md:mx-2 text-gray-500 hover:text-cyber-neon transition-all"
                   title={lang === 'ru' ? 'Награды' : 'Daily Rewards'}
                 >
-                  <Gift size={18} />
+                  <Gift size={16} className="md:w-[18px] md:h-[18px]" />
                   {localStorage.getItem('mog_last_claim') !== new Date().toDateString() && (
                     <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-cyber-neon rounded-full shadow-[0_0_8px_rgba(0,255,157,0.8)] animate-pulse" />
                   )}
                 </button>
                 <button
                   onClick={() => setShowProfile(true)}
-                  className="ml-2 text-gray-500 hover:text-white transition-colors"
+                  className="mx-1 md:mx-2 text-gray-500 hover:text-white transition-colors"
                   title="Настройки профиля"
                 >
-                  <Settings size={18} />
+                  <Settings size={16} className="md:w-[18px] md:h-[18px]" />
                 </button>
                 <button
                   onClick={onLogout}
-                  className="ml-2 text-gray-500 hover:text-red-400 transition-colors border-l border-gray-700 pl-4"
+                  className="mx-1 md:mx-2 text-gray-500 hover:text-red-400 transition-colors border-l border-gray-700 pl-2 md:pl-4"
                   title="Выйти из аккаунта"
                 >
-                  <LogOut size={18} />
+                  <LogOut size={16} className="md:w-[18px] md:h-[18px]" />
                 </button>
-              </>
+              </div>
             )}
           </div>
         )}

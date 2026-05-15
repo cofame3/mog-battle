@@ -142,7 +142,7 @@ function App() {
       {/* Language Toggle */}
       <button
         onClick={toggleLang}
-        className={`fixed top-6 left-6 z-[100] bg-black/60 border border-cyber-border px-3 py-1 rounded text-xs font-black tracking-widest text-cyber-neon hover:bg-cyber-neon hover:text-black transition-all backdrop-blur-md ${isGlitching ? 'animate-glitch' : ''}`}
+        className={`fixed top-4 left-2 md:top-6 md:left-6 z-[100] bg-black/60 border border-cyber-border px-2 md:px-3 py-1 rounded text-[10px] md:text-xs font-black tracking-widest text-cyber-neon hover:bg-cyber-neon hover:text-black transition-all backdrop-blur-md ${isGlitching ? 'animate-glitch' : ''}`}
       >
         {lang.toUpperCase()}
       </button>
