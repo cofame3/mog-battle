@@ -133,8 +133,8 @@ export default function Footer({ lang }) {
           </h5>
           <p className="text-gray-600 text-[11px] leading-relaxed text-justify font-medium">
             {isRu 
-              ? "Omogle (Омогле) — это площадка для тех, кто ищет честную ИИ-оценку внешности и PvP-битвы в реальном времени. Если вы искали омогле, ommoggle или способы луксмаксинга, вы попали по адресу. Наша нейросеть анализирует симметрию лица, PSL-балл и кантальный наклон. Сражайся в битве взглядов (Mog Battle), поднимайся в лидерборде и узнай, насколько ты хорош по сравнению с другими пользователями. Omogle.me — это золотой стандарт в мире ИИ-анализа внешности."
-              : "Omogle is the premier AI Face Rating and Mog Battle arena. If you were looking for omogle, ommoggle, or ommoggle omoggle—you have found the ultimate destination for AI-powered facial analysis and competitive mogging. Whether you are looksmaxxing or just curious about your facial aesthetics, our neural network provides a precise PSL score and real-time 1v1 PvP competitions. Join the ultimate Omogle experience and dominate the global rankings."}
+              ? "Omogle AI (омогле) — самая продвинутая ИИ-арена для битв лиц 1 на 1. Если вы искали ommoggle, omeggle или способы луксмаксинга (looksmaxxing) — вы попали в цель. Узнай свой рейтинг (PSL score), побеждай в баттлах и стань лучшим в глобальном рейтинге. Наша нейросеть анализирует симметрию лица, челюсть и взгляд. Omogle — это оригинал и золотой стандарт в мире ИИ-анализа внешности."
+              : "Omogle AI (also known as ommoggle, omeggle or omogged) is the most advanced 1v1 mog battle arena. Verify your AI PSL rating, win the mog off, and climb the global mogger ladder. Whether you are looksmaxxing or just curious about your facial aesthetics, our neural network provides a precise score and real-time PvP competitions. Join the original Omogle experience."}
           </p>
         </div>
 
