@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// Trigger rebuild after revert to ea0d93e
 import { Routes, Route, useLocation } from 'react-router-dom';
 import BattleArena from './components/BattleArena';
 import AuthForm from './components/AuthForm';
