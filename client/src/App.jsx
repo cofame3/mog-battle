@@ -45,14 +45,23 @@ function App() {
     window.scrollTo(0, 0);
     // Update canonical and hreflang links
     const path = location.pathname === '/' ? '' : location.pathname;
-    const currentUrl = `https://omogle.me${path}`;
+    const baseUrl = `https://omogle.me${path}`;
     
     const canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical) canonical.setAttribute('href', currentUrl);
+    if (canonical) {
+      const canonicalUrl = lang === 'ru' ? `${baseUrl}?lang=ru` : baseUrl;
+      canonical.setAttribute('href', canonicalUrl);
+    }
 
-    const hreflangs = document.querySelectorAll('link[rel="alternate"][hreflang]');
-    hreflangs.forEach(el => el.setAttribute('href', currentUrl));
-  }, [location.pathname]);
+    const hreflangEn = document.querySelector('link[hreflang="en"]');
+    if (hreflangEn) hreflangEn.setAttribute('href', baseUrl);
+
+    const hreflangRu = document.querySelector('link[hreflang="ru"]');
+    if (hreflangRu) hreflangRu.setAttribute('href', `${baseUrl}?lang=ru`);
+
+    const hreflangDefault = document.querySelector('link[hreflang="x-default"]');
+    if (hreflangDefault) hreflangDefault.setAttribute('href', baseUrl);
+  }, [location.pathname, lang]);
 
   // Update Meta Tags and Lang dynamically
   useEffect(() => {
