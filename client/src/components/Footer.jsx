@@ -133,8 +133,8 @@ export default function Footer({ lang }) {
           </h5>
           <p className="text-gray-600 text-[11px] leading-relaxed text-justify font-medium">
             {isRu 
-              ? "Стань мастером луксмаксинга с Omogle AI (омогле) — лучшая арена для баттлов лиц 1 на 1. Если вы искали ommoggle, omeggle или omogged — вы попали в цель. Узнай свой PSL-балл в реальном времени, побеждай в битвах и возглавь глобальный рейтинг. Наша нейросеть анализирует симметрию лица, челюсть и взгляд. Omogle — это оригинал и золотой стандарт в мире ИИ-анализа внешности."
-              : "Master the art of looksmaxxing at Omogle AI — the premier 1v1 mog battle arena. (Optimized for ommoggle, omeggle and omogged). Get your real-time AI PSL score, dominate the mog off, and secure your place on the global leaderboards. Whether you are looksmaxxing or just curious about your facial aesthetics, our neural network provides a precise score and real-time PvP competitions. Join the original Omogle experience."}
+              ? "Omogle AI (омогле) — лучшая арена для баттлов лиц 1 на 1. Если вы искали ommoggle, omeggle или omogged — вы попали в цель. Стань мастером луксмаксинга, узнай свой PSL-балл и побеждай в битвах за лидерство в рейтинге. Наша нейросеть анализирует симметрию лица, челюсть и взгляд. Omogle — это оригинал и золотой стандарт в мире ИИ-анализа внешности."
+              : "Omogle AI (also known as ommoggle, omeggle or omogged) is the premier 1v1 mog battle arena. Master the art of looksmaxxing, get your AI PSL score, and win the mog off! Whether you are looksmaxxing or just curious about your facial aesthetics, our neural network provides a precise score and real-time PvP competitions. Join the original Omogle experience."}
           </p>
         </div>
 

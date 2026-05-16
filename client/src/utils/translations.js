@@ -68,7 +68,7 @@ export const translations = {
     
     // SEO
     seoTitle: "Omogle AI — #1 Оценка Лица и Mog Battle Арена",
-    seoDesc: "Стань мастером луксмаксинга с Omogle AI (омогле) — лучшая арена для баттлов лиц 1 на 1. Узнай свой PSL-балл в реальном времени, побеждай в битвах и возглавь глобальный рейтинг.",
+    seoDesc: "Omogle AI (омогле) — лучшая арена для баттлов лиц 1 на 1. Стань мастером луксмаксинга, узнай свой PSL-балл и побеждай в битвах за лидерство в рейтинге.",
     faqTitle: "Вопросы и ответы | Omogle AI Face Rating",
     faqDesc: "Узнайте, как работает ИИ-оценка лица на Omogle, что такое PSL-отчет и как побеждать в Mog Battle.",
     aboutTitle: "О проекте Omogle.me — Сравнение и Технологии",
@@ -145,7 +145,7 @@ export const translations = {
 
     // SEO
     seoTitle: "Omogle AI — #1 Face Rating & 1v1 Mog Battle Arena",
-    seoDesc: "Master the art of looksmaxxing at Omogle AI — the premier 1v1 mog battle arena. (Optimized for ommoggle, omeggle and omogged). Get your real-time AI PSL score, dominate the mog off, and secure your place on the global leaderboards.",
+    seoDesc: "Omogle AI (also known as ommoggle, omeggle or omogged) is the premier 1v1 mog battle arena. Master the art of looksmaxxing, get your AI PSL score, and win the mog off!",
     faqTitle: "FAQ | Omogle AI Face Rating & Mog Battle",
     faqDesc: "Learn how Omogle AI facial evaluation works, what is a PSL report, and how to win in Mog Battles.",
     aboutTitle: "About Omogle.me — Comparison & Technologies",
