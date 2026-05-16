@@ -31,7 +31,7 @@ export default function VoteMode({ t, lang, onClose }) {
   // Game Logic States
   const [streak, setStreak] = useState(0);
   const [agreement, setAgreement] = useState(null);
-  const [votesLeft, setVotesLeft] = useState(5);
+  const [votesLeft, setVotesLeft] = useState(999);
   const [cooldown, setCooldown] = useState(null);
   const [feedMsg, setFeedMsg] = useState("");
   const [userNames, setUserNames] = useState(["MogMaster", "AlphaMew", "Looksmaxxer", "JawlineKing"]);
@@ -54,17 +54,8 @@ export default function VoteMode({ t, lang, onClose }) {
       })
       .catch(err => console.error("Failed to fetch names", err));
 
-    const saved = localStorage.getItem('vote_limit_data');
-    if (saved) {
-      const { count, resetTime } = JSON.parse(saved);
-      const now = Date.now();
-      if (now < resetTime) {
-        setVotesLeft(5 - count);
-        if (count >= 5) setCooldown(resetTime);
-      } else {
-        localStorage.removeItem('vote_limit_data');
-      }
-    }
+    // Limit removed for better retention
+    localStorage.removeItem('vote_limit_data');
 
     updateFeed();
     feedInterval.current = setInterval(updateFeed, 3000);
@@ -82,17 +73,7 @@ export default function VoteMode({ t, lang, onClose }) {
   };
 
   const checkAndUpdateLimit = () => {
-    const saved = localStorage.getItem('vote_limit_data');
-    let data = saved ? JSON.parse(saved) : { count: 0, resetTime: Date.now() + 4 * 60 * 60 * 1000 };
-
-    data.count += 1;
-    localStorage.setItem('vote_limit_data', JSON.stringify(data));
-    setVotesLeft(5 - data.count);
-
-    if (data.count >= 5) {
-      setCooldown(data.resetTime);
-      return false;
-    }
+    // Limits disabled
     return true;
   };
 
@@ -263,7 +244,12 @@ export default function VoteMode({ t, lang, onClose }) {
                       ${voted && isWinner ? 'border-cyber-neon shadow-[0_0_80px_rgba(0,255,157,0.4)]' : 'border-white/5'}
                     `}>
                       {player.avatarUrl ? (
-                        <img src={player.avatarUrl.startsWith('http') ? player.avatarUrl : `${SOCKET_URL}${player.avatarUrl}`} alt={player.username} className="w-full h-full object-cover" />
+                        <img 
+                          src={player.avatarUrl.startsWith('http') ? player.avatarUrl : `${SOCKET_URL}${player.avatarUrl}`} 
+                          alt={player.username} 
+                          className="w-full h-full object-cover" 
+                          style={{ imageRendering: 'high-quality' }}
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-black">
                           <Users size={64} className="text-gray-800" />
