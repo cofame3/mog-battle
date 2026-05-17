@@ -37,7 +37,10 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'avatars',
     allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-    transformation: [{ width: 500, height: 500, crop: 'limit' }]
+    transformation: [
+      { width: 1080, height: 1080, crop: 'limit' },
+      { quality: 'auto', fetch_format: 'auto' }
+    ]
   },
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });

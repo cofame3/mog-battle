@@ -21,6 +21,11 @@ const FEED_MESSAGES = {
   ]
 };
 
+const getOptimizedAvatar = (url, width = 800, height = 1200) => {
+  if (!url || !url.includes('cloudinary.com')) return url;
+  return url.replace('/upload/', `/upload/w_${width},h_${height},c_fill,g_face,q_auto,f_auto/`);
+};
+
 export default function VoteMode({ t, lang, onClose }) {
   const [pair, setPair] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -245,10 +250,14 @@ export default function VoteMode({ t, lang, onClose }) {
                     `}>
                       {player.avatarUrl ? (
                         <img 
-                          src={player.avatarUrl.startsWith('http') ? player.avatarUrl : `${SOCKET_URL}${player.avatarUrl}`} 
+                          src={player.avatarUrl.startsWith('http') 
+                            ? getOptimizedAvatar(player.avatarUrl, 800, 1200) 
+                            : `${SOCKET_URL}${player.avatarUrl}`
+                          } 
                           alt={player.username} 
-                          className="w-full h-full object-cover" 
-                          style={{ imageRendering: 'high-quality' }}
+                          className="w-full h-full object-cover animate-fade-in" 
+                          style={{ imageRendering: '-webkit-optimize-contrast' }}
+                          loading="lazy"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-black">
