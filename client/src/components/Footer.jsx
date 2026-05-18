@@ -43,6 +43,13 @@ export default function Footer({ lang }) {
                 ? "Ведущая AI-платформа для оценки эстетики и соревнований в реальном времени."
                 : "The leading AI platform for aesthetic evaluation and real-time competition."}
             </p>
+            <div className="flex items-center gap-2 mt-2 bg-white/[0.03] border border-white/5 px-3 py-1.5 rounded-xl w-fit">
+              <span className="text-amber-400 text-sm">★</span>
+              <span className="text-white text-xs font-black">4.9/5</span>
+              <span className="text-gray-500 text-[10px] uppercase tracking-wider font-bold">
+                {isRu ? "(1,248+ оценок)" : "(1,248+ ratings)"}
+              </span>
+            </div>
             <div className="flex gap-4">
               <a href="#" className="p-2 bg-white/5 rounded-lg text-gray-400 hover:text-cyber-neon hover:bg-white/10 transition-all">
                 <MessageCircle size={18} />
