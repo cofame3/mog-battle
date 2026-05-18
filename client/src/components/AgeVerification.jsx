@@ -51,13 +51,13 @@ const AgeVerification = ({ lang }) => {
           </div>
           
           <h2 className="text-2xl font-black text-white mb-3 uppercase tracking-widest font-mono drop-shadow-md">
-            {lang === 'ru' ? 'Доступ ограничен' : 'Restricted Access'}
+            {lang === 'ru' ? 'Проверка возраста' : 'Age Verification'}
           </h2>
           
           <p className="text-gray-400 mb-8 leading-relaxed font-mono text-sm max-w-[90%] mx-auto">
             {lang === 'ru' 
-              ? 'Этот контент предназначен только для взрослой аудитории. Подтвердите, что вам исполнилось 18 лет.' 
-              : 'This content is intended for mature audiences only. Please confirm that you are at least 18 years old.'}
+              ? 'Вам должно быть 18 или больше, чтобы использовать Арену оценки лиц.' 
+              : 'You must be 18 or older to use the AI Face Rating Arena.'}
           </p>
 
           <div className="flex flex-col gap-3 w-full">
