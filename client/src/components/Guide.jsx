@@ -68,8 +68,31 @@ export default function Guide({ lang }) {
     }
   ];
 
+  const howToSchema = {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": isRu ? "Гайд по Looksmaxxing — Как улучшить внешность" : "Looksmaxxing Guide — How to Improve Appearance",
+    "description": isRu 
+      ? "Пошаговое руководство по улучшению эстетики лица: уход за кожей, мьюинг, осанка и советы по взгляду."
+      : "Step-by-step roadmap to enhancing facial aesthetics: skincare, mewing, posture, and eye-gaze tips.",
+    "step": sections.map((section, idx) => ({
+      "@type": "HowToStep",
+      "position": idx + 1,
+      "name": section.title,
+      "itemListElement": section.points.map((point, pIdx) => ({
+        "@type": "HowToDirection",
+        "position": pIdx + 1,
+        "text": point
+      }))
+    }))
+  };
+
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden font-sans">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
+      />
       <div className="absolute inset-0 z-0 opacity-20">
         <LightPillar topColor="#00ff9d" bottomColor="#ff0055" />
       </div>
@@ -85,8 +108,8 @@ export default function Guide({ lang }) {
             {isRu ? 'Гайд по внешности' : 'Looksmaxxing Guide'}
           </h1>
           <p className="text-gray-400 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-            {isRu 
-              ? 'Ваше пошаговое руководство по улучшению эстетики лица и достижению максимального потенциала привлекательности.' 
+            {isRu
+              ? 'Ваше пошаговое руководство по улучшению эстетики лица и достижению максимального потенциала привлекательности.'
               : 'Your step-by-step roadmap to enhancing facial aesthetics and reaching your peak attractiveness potential.'}
           </p>
         </div>
@@ -99,7 +122,7 @@ export default function Guide({ lang }) {
           </h2>
           <div className="space-y-4 text-gray-400 leading-relaxed text-base">
             <p>
-              {isRu 
+              {isRu
                 ? "Это процесс максимизации ваших естественных данных через уход, спорт и правильные привычки. Наш ИИ-анализ помогает выявить зоны роста, а этот гайд дает инструменты для действий."
                 : "It is the process of maximizing your natural features through grooming, fitness, and better habits. Our AI analysis helps identify areas for growth, and this guide provides the tools for action."}
             </p>
@@ -141,8 +164,8 @@ export default function Guide({ lang }) {
               {isRu ? 'Готовы проверить результат?' : 'Ready to test the results?'}
             </h2>
             <p className="text-gray-400 mb-10 max-w-md mx-auto">
-              {isRu 
-                ? 'Примените советы на практике и пройдите повторный ИИ-анализ через 30 дней.' 
+              {isRu
+                ? 'Примените советы на практике и пройдите повторный ИИ-анализ через 30 дней.'
                 : 'Put these tips into practice and take a follow-up AI analysis in 30 days.'}
             </p>
             <a href="/" className="inline-block px-10 py-5 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-cyber-neon hover:scale-105 transition-all shadow-2xl">

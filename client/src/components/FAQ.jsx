@@ -8,7 +8,7 @@ export default function FAQ({ lang }) {
   const faqs = [
     {
       q: isRu ? "Как ИИ оценивает мое лицо на Omogle?" : "How does Omogle AI evaluate my face?",
-      a: isRu 
+      a: isRu
         ? "Мы используем технологию Face Mesh для построения высокоточной 3D-сетки вашего лица. Алгоритм анализирует более 468 точек, измеряя симметрию, пропорции (золотое сечение), линию челюсти, наклон глаз (canthal tilt) и другие параметры, которые в совокупности определяют эстетический рейтинг. Это самая точная система для Looksmaxxing анализа."
         : "We use Face Mesh technology to build a high-precision 3D mesh of your face. The algorithm analyzes over 468 points, measuring symmetry, proportions (golden ratio), jawline, canthal tilt, and other parameters that collectively determine the aesthetic rating. It is the most accurate system for Looksmaxxing analysis."
     },
@@ -59,9 +59,10 @@ export default function FAQ({ lang }) {
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden font-sans">
-      <script type="application/ld+json">
-        {JSON.stringify(faqSchema)}
-      </script>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Background Effect */}
       <div className="absolute inset-0 z-0 opacity-30">
         <LightPillar topColor="#00ff9d" bottomColor="#ff0055" />

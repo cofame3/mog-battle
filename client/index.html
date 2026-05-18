@@ -1,83 +1,138 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="google-site-verification" content="VMe1e-AwrYAhxt4zzYRUHO-3_x6_OyAAPEhB2R0j4j0" />
-    <meta name="google-adsense-account" content="ca-pub-5950937373084402" />
-    
-    <!-- Основные SEO теги -->
-    <title>Omogle AI — #1 Face Rating & 1v1 Mog Battle Arena</title>
-    <meta name="description" content="Omogle is the original and most advanced platform for Mog Battles and AI face rating (looksmaxxing). (Also known as ommoggle, omeggle or omogged). Join the ultimate arena and win the mog off!" />
-    <meta name="keywords" content="omogle, омогле, mog battle, face rating, looksmaxxing, ommoggle, omogelle, omnogle, psl score, ai face rating" />
-    <link rel="canonical" href="https://omogle.me/" />
-    <link rel="alternate" hreflang="en" href="https://omogle.me/" />
-    <link rel="alternate" hreflang="ru" href="https://omogle.me/?lang=ru" />
-    <link rel="alternate" hreflang="x-default" href="https://omogle.me/" />
 
-    <!-- Structured Data (JSON-LD) for Google -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Omogle",
-      "url": "https://omogle.me/",
-      "description": "AI-powered competitive face rating and battle platform.",
-      "applicationCategory": "GameApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
+<head>
+  <meta charset="UTF-8" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google-site-verification" content="VMe1e-AwrYAhxt4zzYRUHO-3_x6_OyAAPEhB2R0j4j0" />
+  <meta name="google-adsense-account" content="ca-pub-5950937373084402" />
+
+  <!-- Основные SEO теги -->
+  <title>Omogle AI — #1 Face Rating & 1v1 Mog Battle Arena</title>
+  <meta name="description"
+    content="Omogle is the original and most advanced platform for Mog Battles and AI face rating (looksmaxxing). (Also known as ommoggle, omeggle or omogged). Join the ultimate arena and win the mog off!" />
+  <meta name="keywords"
+    content="omogle, омогле, mog battle, face rating, looksmaxxing, ommoggle, omogelle, omnogle, psl score, ai face rating" />
+  <link rel="canonical" href="https://omogle.me/" />
+  <link rel="alternate" hreflang="en" href="https://omogle.me/" />
+  <link rel="alternate" hreflang="ru" href="https://omogle.me/?lang=ru" />
+  <link rel="alternate" hreflang="x-default" href="https://omogle.me/" />
+
+  <!-- Structured Data (JSON-LD) for Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "Omogle",
+        "url": "https://omogle.me/",
+        "description": "AI-powered competitive face rating and battle platform.",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "name": "Omogle",
+        "url": "https://omogle.me/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://omogle.me/?search={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "@id": "https://omogle.me/#sitenavigation-battle",
+        "name": "Mog Battle Arena",
+        "url": "https://omogle.me/"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "@id": "https://omogle.me/#sitenavigation-score",
+        "name": "Mog Score & Solo Test",
+        "url": "https://omogle.me/"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "@id": "https://omogle.me/#sitenavigation-guide",
+        "name": "Practice Mode (Looksmaxxing Guide)",
+        "url": "https://omogle.me/guide"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "@id": "https://omogle.me/#sitenavigation-faq",
+        "name": "FAQ",
+        "url": "https://omogle.me/faq"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "@id": "https://omogle.me/#sitenavigation-about",
+        "name": "About & Compare",
+        "url": "https://omogle.me/about"
       }
-    }
-    </script>
-    
-    <!-- Open Graph (для красивых ссылок в Telegram/Discord/VK) -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Omogle — AI Face Rating & Mog Battle" />
-    <meta property="og:description" content="Omogle is the original and most advanced platform for Mog Battles and AI face rating (looksmaxxing). (Also known as ommoggle, omeggle or omogged). Join the ultimate arena and win the mog off!" />
-    <meta property="og:image" content="https://omogle.me/logo.jpg" />
-    <meta property="og:url" content="https://omogle.me/" />
+    ]
+  }
+  </script>
 
-    <!-- Twitter Cards -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Omogle — AI Face Rating" />
-    <meta name="twitter:description" content="Omogle is the ultimate AI Face Rating and Mog Battle platform. If you arrived here by searching for ommoggle, omoggle, or omogle, you've found the most advanced site for looksmaxxing and 1v1 face battles." />
-    <meta name="twitter:image" content="https://omogle.me/logo.jpg" />
+  <!-- Open Graph (для красивых ссылок в Telegram/Discord/VK) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Omogle — AI Face Rating & Mog Battle" />
+  <meta property="og:description"
+    content="Omogle is the original and most advanced platform for Mog Battles and AI face rating (looksmaxxing). (Also known as ommoggle, omeggle or omogged). Join the ultimate arena and win the mog off!" />
+  <meta property="og:image" content="https://omogle.me/logo.jpg" />
+  <meta property="og:url" content="https://omogle.me/" />
 
-    <!-- Теги для роботов поисковиков -->
-    <meta name="robots" content="index, follow, max-image-preview:large" />
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Omogle — AI Face Rating" />
+  <meta name="twitter:description"
+    content="Omogle is the ultimate AI Face Rating and Mog Battle platform. If you arrived here by searching for ommoggle, omoggle, or omogle, you've found the most advanced site for looksmaxxing and 1v1 face battles." />
+  <meta name="twitter:image" content="https://omogle.me/logo.jpg" />
 
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950937373084402"
-         crossorigin="anonymous"></script>
+  <!-- Теги для роботов поисковиков -->
+  <meta name="robots" content="index, follow, max-image-preview:large" />
 
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript" >
-       (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-       m[i].l=1*new Date();
-       for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-       k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
-       (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950937373084402"
+    crossorigin="anonymous"></script>
 
-       ym(109260065, "init", {
-            clickmap:true,
-            trackLinks:true,
-            accurateTrackBounce:true,
-            webvisor:true
-       });
-    </script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/109260065" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <!-- /Yandex.Metrika counter -->
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+  <!-- Yandex.Metrika counter -->
+  <script type="text/javascript">
+    (function (m, e, t, r, i, k, a) {
+      m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+      m[i].l = 1 * new Date();
+      for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+      k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+    })
+      (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(109260065, "init", {
+      clickmap: true,
+      trackLinks: true,
+      accurateTrackBounce: true,
+      webvisor: true
+    });
+  </script>
+  <!-- /Yandex.Metrika counter -->
+</head>
+
+<body>
+  <noscript>
+    <div><img src="https://mc.yandex.ru/watch/109260065" style="position:absolute; left:-9999px;" alt="" /></div>
+  </noscript>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
