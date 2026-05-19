@@ -168,7 +168,7 @@ export default function Guide({ lang }) {
                 ? 'Примените советы на практике и пройдите повторный ИИ-анализ через 30 дней.'
                 : 'Put these tips into practice and take a follow-up AI analysis in 30 days.'}
             </p>
-            <a href="/" className="inline-block px-10 py-5 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-cyber-neon hover:scale-105 transition-all shadow-2xl">
+            <a href={isRu ? "/ru" : "/"} className="inline-block px-10 py-5 bg-white text-black font-black uppercase tracking-widest rounded-2xl hover:bg-cyber-neon hover:scale-105 transition-all shadow-2xl">
               {isRu ? 'Пройти тест заново' : 'Retake Analysis'}
             </a>
           </div>

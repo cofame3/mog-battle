@@ -32,7 +32,7 @@ export default function Footer({ lang }) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div className="space-y-6">
-            <Link to="/" className="flex items-center gap-3 group">
+            <Link to={isRu ? "/ru" : "/"} className="flex items-center gap-3 group">
               <img src="/logo.jpg" alt="Omogle" className="w-10 h-10 rounded-xl group-hover:scale-110 transition-transform" />
               <span className="text-2xl font-black tracking-tighter italic bg-clip-text text-transparent bg-gradient-to-r from-cyber-neon to-cyber-accent">
                 OMOGLE
@@ -70,27 +70,27 @@ export default function Footer({ lang }) {
             </h4>
             <ul className="space-y-4 text-sm font-medium">
               <li>
-                <Link to="/" className="text-gray-500 hover:text-cyber-neon transition-colors">
+                <Link to={isRu ? "/ru" : "/"} className="text-gray-500 hover:text-cyber-neon transition-colors">
                   {isRu ? 'Главная' : 'Home'}
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-gray-500 hover:text-cyber-neon transition-colors">
+                <Link to={isRu ? "/ru/about" : "/about"} className="text-gray-500 hover:text-cyber-neon transition-colors">
                   {isRu ? 'Почему Omogle?' : 'Why Omogle?'}
                 </Link>
               </li>
               <li>
-                <Link to="/guide" className="text-gray-500 hover:text-cyber-neon transition-colors">
+                <Link to={isRu ? "/ru/guide" : "/guide"} className="text-gray-500 hover:text-cyber-neon transition-colors">
                   {isRu ? 'Гайд по внешности' : 'Looksmaxxing Guide'}
                 </Link>
               </li>
               <li>
-                <Link to="/faq" className="text-gray-500 hover:text-cyber-neon transition-colors">
+                <Link to={isRu ? "/ru/faq" : "/faq"} className="text-gray-500 hover:text-cyber-neon transition-colors">
                   {isRu ? 'Вопросы и ответы' : 'FAQ'}
                 </Link>
               </li>
               <li>
-                <a href="/#battle" className="text-gray-500 hover:text-cyber-neon transition-colors">
+                <a href={isRu ? "/ru#battle" : "/#battle"} className="text-gray-500 hover:text-cyber-neon transition-colors">
                   {isRu ? 'Битва Арена' : 'Battle Arena'}
                 </a>
               </li>
@@ -104,12 +104,12 @@ export default function Footer({ lang }) {
             </h4>
             <ul className="space-y-4 text-sm font-medium">
               <li>
-                <Link to="/terms" className="text-gray-500 hover:text-cyber-neon transition-colors">
+                <Link to={isRu ? "/ru/terms" : "/terms"} className="text-gray-500 hover:text-cyber-neon transition-colors">
                   {isRu ? 'Условия использования' : 'Terms of Use'}
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-gray-500 hover:text-cyber-neon transition-colors">
+                <Link to={isRu ? "/ru/privacy" : "/privacy"} className="text-gray-500 hover:text-cyber-neon transition-colors">
                   {isRu ? 'Приватность' : 'Privacy Policy'}
                 </Link>
               </li>

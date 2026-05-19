@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // Trigger rebuild after revert to ea0d93e
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import BattleArena from './components/BattleArena';
 import AuthForm from './components/AuthForm';
 import AgeVerification from './components/AgeVerification';
@@ -19,49 +19,66 @@ import Roulette from './components/Roulette';
 function App() {
   const [user, setUser] = useState(null);
   const [checking, setChecking] = useState(true);
-  const [lang, setLang] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const queryLang = params.get('lang');
-    if (queryLang === 'ru' || queryLang === 'en') return queryLang;
-    return localStorage.getItem('mog_lang') || 'en';
-  });
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isRuPath = location.pathname === '/ru' || location.pathname.startsWith('/ru/');
+  const lang = isRuPath ? 'ru' : 'en';
+
   const [isGlitching, setIsGlitching] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
   const [showDaily, setShowDaily] = useState(false);
   const [showRoulette, setShowRoulette] = useState(false);
-  const location = useLocation();
 
   const t = translations[lang];
 
   const toggleLang = () => {
     const newLang = lang === 'ru' ? 'en' : 'ru';
-    setLang(newLang);
+    
+    // Set cookie and localStorage
+    document.cookie = `mog_lang=${newLang}; path=/; max-age=31536000; SameSite=Lax`;
     localStorage.setItem('mog_lang', newLang);
+
+    // Determine equivalent physical path
+    let targetPath = '/';
+    if (newLang === 'ru') {
+      targetPath = `/ru${location.pathname === '/' ? '' : location.pathname}`;
+    } else {
+      targetPath = location.pathname.startsWith('/ru/') 
+        ? location.pathname.substring(3) 
+        : (location.pathname === '/ru' ? '/' : location.pathname);
+    }
+
     setIsGlitching(true);
     setTimeout(() => setIsGlitching(false), 300);
+    navigate(targetPath);
   };
 
   // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
-    // Update canonical and hreflang links
-    const path = location.pathname === '/' ? '' : location.pathname;
-    const baseUrl = `https://omogle.me${path}`;
+    // Update canonical and hreflang links based on physical paths
+    const cleanEnPath = location.pathname.startsWith('/ru/')
+      ? location.pathname.substring(3)
+      : (location.pathname === '/ru' ? '/' : location.pathname);
     
+    const enUrl = `https://omogle.me${cleanEnPath === '/' ? '' : cleanEnPath}`;
+    const ruUrl = `https://omogle.me/ru${cleanEnPath === '/' ? '' : cleanEnPath}`;
+
     const canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) {
-      const canonicalUrl = lang === 'ru' ? `${baseUrl}?lang=ru` : baseUrl;
+      const canonicalUrl = lang === 'ru' ? ruUrl : enUrl;
       canonical.setAttribute('href', canonicalUrl);
     }
 
     const hreflangEn = document.querySelector('link[hreflang="en"]');
-    if (hreflangEn) hreflangEn.setAttribute('href', baseUrl);
+    if (hreflangEn) hreflangEn.setAttribute('href', enUrl);
 
     const hreflangRu = document.querySelector('link[hreflang="ru"]');
-    if (hreflangRu) hreflangRu.setAttribute('href', `${baseUrl}?lang=ru`);
+    if (hreflangRu) hreflangRu.setAttribute('href', ruUrl);
 
     const hreflangDefault = document.querySelector('link[hreflang="x-default"]');
-    if (hreflangDefault) hreflangDefault.setAttribute('href', baseUrl);
+    if (hreflangDefault) hreflangDefault.setAttribute('href', enUrl);
   }, [location.pathname, lang]);
 
   // Update Meta Tags and Lang dynamically
@@ -100,6 +117,26 @@ function App() {
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.setAttribute('content', pageDesc || "");
   }, [lang, t, location.pathname]);
+
+  // Synchronize language cookie and localStorage with current path language
+  useEffect(() => {
+    const storedLang = localStorage.getItem('mog_lang');
+    
+    // Read cookie mog_lang
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    let cookieLang = null;
+    for (const cookie of cookies) {
+      if (cookie.startsWith('mog_lang=')) {
+        cookieLang = cookie.substring('mog_lang='.length);
+        break;
+      }
+    }
+
+    if (cookieLang !== lang || storedLang !== lang) {
+      document.cookie = `mog_lang=${lang}; path=/; max-age=31536000; SameSite=Lax`;
+      localStorage.setItem('mog_lang', lang);
+    }
+  }, [lang]);
 
   // Восстановить сессию при перезагрузке страницы
   useEffect(() => {
@@ -161,6 +198,7 @@ function App() {
 
       <div className="flex-1">
         <Routes>
+          {/* English Routes */}
           <Route path="/" element={
             !user ? (
               <AuthForm onAuth={(u) => {
@@ -187,6 +225,34 @@ function App() {
           <Route path="/guide" element={<Guide lang={lang} />} />
           <Route path="/terms" element={<Terms lang={lang} />} />
           <Route path="/privacy" element={<Privacy lang={lang} />} />
+
+          {/* Russian Routes */}
+          <Route path="/ru" element={
+            !user ? (
+              <AuthForm onAuth={(u) => {
+                setUser(u);
+                // Show rewards immediately after login if not claimed
+                if (localStorage.getItem('mog_last_claim') !== new Date().toDateString()) {
+                  setShowDaily(true);
+                }
+              }} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
+            ) : (
+              <BattleArena
+                user={user}
+                setUser={setUser}
+                onLogout={handleLogout}
+                lang={lang}
+                t={t}
+                onShowDaily={() => setShowDaily(true)}
+                onShowRoulette={() => setShowRoulette(true)}
+              />
+            )
+          } />
+          <Route path="/ru/faq" element={<FAQ lang={lang} />} />
+          <Route path="/ru/about" element={<Comparison lang={lang} />} />
+          <Route path="/ru/guide" element={<Guide lang={lang} />} />
+          <Route path="/ru/terms" element={<Terms lang={lang} />} />
+          <Route path="/ru/privacy" element={<Privacy lang={lang} />} />
         </Routes>
       </div>
 

@@ -152,7 +152,7 @@ export default function Comparison({ lang }) {
           <p className="text-gray-500 font-mono text-xs uppercase tracking-[0.5em] mb-8">
             {isRu ? 'Готовы узнать свой настоящий балл?' : 'Ready to discover your real score?'}
           </p>
-          <a href="/" className="px-12 py-5 bg-cyber-neon text-black font-black uppercase tracking-widest rounded-2xl hover:scale-105 hover:shadow-[0_0_30px_rgba(0,255,157,0.5)] transition-all">
+          <a href={isRu ? "/ru" : "/"} className="px-12 py-5 bg-cyber-neon text-black font-black uppercase tracking-widest rounded-2xl hover:scale-105 hover:shadow-[0_0_30px_rgba(0,255,157,0.5)] transition-all">
             {isRu ? 'Начать битву' : 'Start Battle'}
           </a>
         </div>
