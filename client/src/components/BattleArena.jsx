@@ -317,6 +317,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   useEffect(() => {
     if (appState === 'arena' && opponentVideoRef.current && opponentStream) {
       opponentVideoRef.current.srcObject = opponentStream;
+      opponentVideoRef.current.play().catch(err => console.log("Video play prevented by browser:", err));
     }
   }, [opponentStream, appState]);
 
