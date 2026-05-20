@@ -101,7 +101,8 @@ export const analyzeAppearance = async (mediaElement) => {
           total: 0,
           symmetry: 0,
           jawline: 0,
-          eyes: 0
+          eyes: 0,
+          nose: 0
         };
       }
 
@@ -245,6 +246,7 @@ export const analyzeAppearance = async (mediaElement) => {
     total: 0,
     symmetry: 0,
     jawline: 0,
-    eyes: 0
+    eyes: 0,
+    nose: 0
   };
 };

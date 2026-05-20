@@ -83,9 +83,13 @@ const UserSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', UserSchema);
 
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function findUser(username) {
   if (useInMemory) return inMemoryUsers.get(username.toLowerCase());
-  return User.findOne({ username: new RegExp(`^${username}$`, 'i') });
+  return User.findOne({ username: new RegExp(`^${escapeRegExp(username)}$`, 'i') });
 }
 
 async function createUser(username, hashedPassword) {
@@ -326,7 +330,18 @@ app.post('/api/use-analysis-ticket', async (req, res) => {
     const { analysis, lang } = req.body;
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ error: 'Нет токена' });
-    jwt.verify(authHeader.replace('Bearer ', ''), JWT_SECRET);
+    const { username } = jwt.verify(authHeader.replace('Bearer ', ''), JWT_SECRET);
+    const user = await findUser(username);
+    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+    // Check adviceTokens in database
+    const tokens = user.adviceTokens || 0;
+    if (tokens <= 0) return res.status(403).json({ error: 'Нет доступных билетов' });
+    // Decrement token
+    if (useInMemory) {
+      user.adviceTokens = tokens - 1;
+    } else {
+      await User.updateOne({ username: user.username }, { $inc: { adviceTokens: -1 } });
+    }
     const advice = generatePremiumAdvice(analysis, lang);
     res.json({ ok: true, advice });
   } catch { res.status(401).json({ error: 'Failed' }); }

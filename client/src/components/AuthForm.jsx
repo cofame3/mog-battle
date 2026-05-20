@@ -42,11 +42,13 @@ export default function AuthForm({ onAuth, lang, t, onShowLegal }) {
         wins: data.wins || 0,
         losses: data.losses || 0,
         bestScore: data.bestScore || 0,
+        elo: data.elo || 400,
+        communityElo: data.communityElo || 400,
         avatarUrl: data.avatarUrl || '',
         lastNicknameChange: data.lastNicknameChange || null,
       }));
 
-      onAuth({ username: data.username, wins: data.wins || 0, losses: data.losses || 0, bestScore: data.bestScore || 0, avatarUrl: data.avatarUrl || '', lastNicknameChange: data.lastNicknameChange || null });
+      onAuth({ username: data.username, wins: data.wins || 0, losses: data.losses || 0, bestScore: data.bestScore || 0, elo: data.elo || 400, communityElo: data.communityElo || 400, avatarUrl: data.avatarUrl || '', lastNicknameChange: data.lastNicknameChange || null });
     } catch (err) {
       setError(t.ru ? 'Сервер недоступен. Убедись, что server.js запущен.' : 'Server unavailable. Make sure server.js is running.');
     } finally {

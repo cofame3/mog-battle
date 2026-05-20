@@ -17,6 +17,14 @@ const socket = io(SOCKET_URL, { autoConnect: false });
 
 const BATTLE_DURATION = 10; // 10 seconds for battle
 
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
+];
+
 export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDaily, onShowRoulette }) {
   const [appState, setAppState] = useState('lobby'); // lobby, arena
   const [lobbyMode, setLobbyMode] = useState('initial'); // initial, friend_join, searching
@@ -117,6 +125,8 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   const battleStateRef = useRef(battleState);
   const battleIdRef = useRef(0); // unique ID per battle to prevent stale async results
   const battleIntervalRef = useRef(null); // stores the countdown interval so we can clear it
+  const iceCandidateBufferRef = useRef([]); // buffer ICE candidates until peer is ready
+  const startBattleRef = useRef(null); // ref for startBattleSequence to avoid stale closure
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -145,7 +155,9 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
         setOpponentReady(payload);
       }
     });
-    socket.on('start_battle', startBattleSequence);
+    socket.on('start_battle', () => {
+      if (startBattleRef.current) startBattleRef.current();
+    });
     socket.on('opponent_snapshot', (data) => {
       setOpponentResult(data);
     });
@@ -159,22 +171,47 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
 
     // WebRTC Signaling
     socket.on('user_joined', (newUserId) => {
+      iceCandidateBufferRef.current = []; // reset buffer for new peer
       peerRef.current = createPeer(newUserId, socket.id, streamRef.current);
+      // Flush any buffered ICE candidates
+      iceCandidateBufferRef.current.forEach(candidate => {
+        peerRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
+      });
+      iceCandidateBufferRef.current = [];
     });
 
     socket.on('user_joined_signal', (payload) => {
       if (payload.signal.type === 'candidate') {
-        peerRef.current?.addIceCandidate(new RTCIceCandidate(payload.signal.candidate));
+        // Buffer candidates if peer isn't ready yet
+        if (peerRef.current && peerRef.current.remoteDescription) {
+          peerRef.current.addIceCandidate(new RTCIceCandidate(payload.signal.candidate));
+        } else {
+          iceCandidateBufferRef.current.push(payload.signal.candidate);
+        }
       } else {
         peerRef.current = addPeer(payload.signal, payload.callerID, streamRef.current);
+        // Flush buffered ICE candidates after peer is created
+        iceCandidateBufferRef.current.forEach(candidate => {
+          peerRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+        iceCandidateBufferRef.current = [];
       }
     });
 
     socket.on('receiving_returned_signal', async (payload) => {
       if (payload.signal.type === 'candidate') {
-        peerRef.current?.addIceCandidate(new RTCIceCandidate(payload.signal.candidate));
+        if (peerRef.current && peerRef.current.remoteDescription) {
+          peerRef.current.addIceCandidate(new RTCIceCandidate(payload.signal.candidate));
+        } else {
+          iceCandidateBufferRef.current.push(payload.signal.candidate);
+        }
       } else if (peerRef.current) {
         await peerRef.current.setRemoteDescription(new RTCSessionDescription(payload.signal));
+        // Flush buffered ICE candidates after remote description is set
+        iceCandidateBufferRef.current.forEach(candidate => {
+          peerRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
+        });
+        iceCandidateBufferRef.current = [];
       }
     });
 
@@ -277,7 +314,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   }, [opponentStream, appState]);
 
   const createPeer = (userToSignal, callerID, localStream) => {
-    const peer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    const peer = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     if (localStream) localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
     peer.ontrack = e => {
       const remoteStream = e.streams[0];
@@ -297,7 +334,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
   };
 
   const addPeer = (incomingSignal, callerID, localStream) => {
-    const peer = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    const peer = new RTCPeerConnection({ iceServers: ICE_SERVERS });
     if (localStream) localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
     peer.ontrack = e => {
       const remoteStream = e.streams[0];
@@ -322,6 +359,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        streamRef.current = s; // Sync ref immediately to prevent race condition
         setStream(s);
         return true;
       } catch (err) {
@@ -537,6 +575,11 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       }
     }, 100);
   };
+
+  // Keep startBattleRef in sync to prevent stale closure
+  useEffect(() => {
+    startBattleRef.current = startBattleSequence;
+  });
 
   useEffect(() => {
     let animationFrameId;
@@ -1162,7 +1205,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-[8px] px-2 py-0.5 bg-green-900/30 text-[#00ff41] border border-[#00ff41]/50 rounded uppercase font-black tracking-widest shadow-md">YOUR SCAN</span>
                 <div className="w-6 h-6 rounded-full bg-[#5d8b4e] flex items-center justify-center text-black font-bold text-xs shadow-md">
-                  {user?.avatarUrl ? <img src={`${SOCKET_URL}${user.avatarUrl}`} className="w-full h-full rounded-full object-cover" /> : "L"}
+                  {user?.avatarUrl ? <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `${SOCKET_URL}${user.avatarUrl}`} className="w-full h-full rounded-full object-cover" /> : "L"}
                 </div>
               </div>
               <span className="text-sm font-black text-white uppercase tracking-wider drop-shadow-md">{user?.username || 'LOVE'}</span>
@@ -1289,7 +1332,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
                       <div className="text-[10px] text-red-500 font-bold tracking-widest animate-pulse">DISCONNECTED</div>
                     )}
                     {!opponentDisconnected && (
-                      <div className="text-[10px] text-gray-500 font-bold tracking-widest">us United States</div>
+                      <div className="text-[10px] text-gray-500 font-bold tracking-widest">{lang === 'ru' ? 'ПОДКЛЮЧЕНИЕ...' : 'CONNECTING...'}</div>
                     )}
                   </div>
                 )}
@@ -1475,10 +1518,10 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
   };
 
   const getVerdictText = () => {
-    if (analysis.error) return t.ru ? 'ОШИБКА' : 'ERROR';
+    if (analysis.error) return lang === 'ru' ? 'ОШИБКА' : 'ERROR';
     if (isWinner === true) return "BRUTALIZED";
     if (isWinner === false) return "DESTROYED";
-    return t.ru ? 'НИЧЬЯ' : 'DRAW';
+    return lang === 'ru' ? 'НИЧЬЯ' : 'DRAW';
   };
 
   return (
@@ -1670,19 +1713,22 @@ function ResultPanel({ t, lang, analysis, isWinner, eloChangeData, isSolo, user,
 
                 <PayPalButtons
                   style={{ layout: "horizontal", color: "gold", shape: "pill", label: "pay", height: 45 }}
-                  createOrder={(data, actions) => {
-                    return actions.order.create({
-                      purchase_units: [{
-                        amount: { currency_code: "USD", value: "2.00" },
-                        description: "MogBattle Premium Analysis"
-                      }]
+                  createOrder={async () => {
+                    const token = localStorage.getItem('mog_token');
+                    const res = await fetch(`${SOCKET_URL}/api/paypal/create-order`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                      }
                     });
+                    const order = await res.json();
+                    return order.id;
                   }}
                   onApprove={async (data, actions) => {
                     try {
                       const token = localStorage.getItem('mog_token');
-                      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-                      const response = await fetch(`${apiUrl}/api/paypal/capture-order`, {
+                      const response = await fetch(`${SOCKET_URL}/api/paypal/capture-order`, {
                         method: 'POST',
                         headers: {
                           'Content-Type': 'application/json',
