@@ -20,9 +20,22 @@ const BATTLE_DURATION = 10; // 10 seconds for battle
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun2.l.google.com:19302' },
-  { urls: 'stun:stun3.l.google.com:19302' },
-  { urls: 'stun:stun4.l.google.com:19302' },
+  // TURN servers are required for users behind symmetric NATs (e.g. mobile networks, corporate firewalls)
+  { 
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  { 
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  { 
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  }
 ];
 
 export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDaily, onShowRoulette }) {
@@ -173,45 +186,39 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     socket.on('user_joined', (newUserId) => {
       iceCandidateBufferRef.current = []; // reset buffer for new peer
       peerRef.current = createPeer(newUserId, socket.id, streamRef.current);
-      // Flush any buffered ICE candidates
-      iceCandidateBufferRef.current.forEach(candidate => {
-        peerRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
-      });
-      iceCandidateBufferRef.current = [];
     });
 
     socket.on('user_joined_signal', (payload) => {
       if (payload.signal.type === 'candidate') {
         // Buffer candidates if peer isn't ready yet
         if (peerRef.current && peerRef.current.remoteDescription) {
-          peerRef.current.addIceCandidate(new RTCIceCandidate(payload.signal.candidate));
+          peerRef.current.addIceCandidate(new RTCIceCandidate(payload.signal.candidate)).catch(console.error);
         } else {
           iceCandidateBufferRef.current.push(payload.signal.candidate);
         }
       } else {
         peerRef.current = addPeer(payload.signal, payload.callerID, streamRef.current);
-        // Flush buffered ICE candidates after peer is created
-        iceCandidateBufferRef.current.forEach(candidate => {
-          peerRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
-        });
-        iceCandidateBufferRef.current = [];
       }
     });
 
     socket.on('receiving_returned_signal', async (payload) => {
       if (payload.signal.type === 'candidate') {
         if (peerRef.current && peerRef.current.remoteDescription) {
-          peerRef.current.addIceCandidate(new RTCIceCandidate(payload.signal.candidate));
+          peerRef.current.addIceCandidate(new RTCIceCandidate(payload.signal.candidate)).catch(console.error);
         } else {
           iceCandidateBufferRef.current.push(payload.signal.candidate);
         }
       } else if (peerRef.current) {
-        await peerRef.current.setRemoteDescription(new RTCSessionDescription(payload.signal));
-        // Flush buffered ICE candidates after remote description is set
-        iceCandidateBufferRef.current.forEach(candidate => {
-          peerRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
-        });
-        iceCandidateBufferRef.current = [];
+        try {
+          await peerRef.current.setRemoteDescription(new RTCSessionDescription(payload.signal));
+          // Flush buffered ICE candidates after remote description is set
+          iceCandidateBufferRef.current.forEach(candidate => {
+            peerRef.current?.addIceCandidate(new RTCIceCandidate(candidate)).catch(console.error);
+          });
+          iceCandidateBufferRef.current = [];
+        } catch (err) {
+          console.error("Error setting remote description:", err);
+        }
       }
     });
 
@@ -346,12 +353,25 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
     peer.onicecandidate = e => {
       if (e.candidate) socket.emit('returning_signal', { callerID, signal: { type: 'candidate', candidate: e.candidate } });
     };
-    peer.setRemoteDescription(new RTCSessionDescription(incomingSignal)).then(() => {
-      peer.createAnswer().then(answer => {
-        peer.setLocalDescription(answer);
+    
+    const setupConnection = async () => {
+      try {
+        await peer.setRemoteDescription(new RTCSessionDescription(incomingSignal));
+        const answer = await peer.createAnswer();
+        await peer.setLocalDescription(answer);
         socket.emit('returning_signal', { callerID, signal: answer });
-      });
-    });
+        
+        // Flush buffered ICE candidates after remote description is set
+        iceCandidateBufferRef.current.forEach(candidate => {
+          peer.addIceCandidate(new RTCIceCandidate(candidate)).catch(console.error);
+        });
+        iceCandidateBufferRef.current = [];
+      } catch (err) {
+        console.error("Error setting up connection in addPeer:", err);
+      }
+    };
+    
+    setupConnection();
     return peer;
   };
 
