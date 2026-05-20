@@ -480,6 +480,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       peerRef.current.close();
       peerRef.current = null;
     }
+    iceCandidateBufferRef.current = [];
     socket.emit('leave_room');
     socket.disconnect();
 
@@ -510,6 +511,7 @@ export default function BattleArena({ user, setUser, onLogout, t, lang, onShowDa
       peerRef.current.close();
       peerRef.current = null;
     }
+    iceCandidateBufferRef.current = [];
     socket.emit('leave_room');
 
     // Full state reset for clean new match
