@@ -1,27 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <!-- English Versions -->
   <url>
     <loc>https://omogle.me/</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://omogle.me/" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://omogle.me/faq</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/faq" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://omogle.me/faq" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://omogle.me/about</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/about" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://omogle.me/about" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://omogle.me/guide</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/guide" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/guide" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://omogle.me/guide" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -29,25 +42,37 @@
   <!-- Russian Versions -->
   <url>
     <loc>https://omogle.me/ru</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://omogle.me/" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://omogle.me/ru/faq</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/faq" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/faq" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://omogle.me/faq" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://omogle.me/ru/about</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/about" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/about" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://omogle.me/about" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://omogle.me/ru/guide</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/guide" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/guide" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://omogle.me/guide" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -55,13 +80,33 @@
   <!-- Legal -->
   <url>
     <loc>https://omogle.me/terms</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/terms" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/terms" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://omogle.me/privacy</loc>
-    <lastmod>2026-05-14</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/privacy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/privacy" />
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://omogle.me/ru/terms</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/terms" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/terms" />
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://omogle.me/ru/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://omogle.me/privacy" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://omogle.me/ru/privacy" />
+    <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

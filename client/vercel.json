@@ -1,8 +1,16 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/ru/faq", "destination": "/faq-ru.html" },
+    { "source": "/ru/about", "destination": "/about-ru.html" },
+    { "source": "/ru/guide", "destination": "/guide-ru.html" },
+    { "source": "/ru/terms", "destination": "/terms-ru.html" },
+    { "source": "/ru/privacy", "destination": "/privacy-ru.html" },
+    { "source": "/ru", "destination": "/index-ru.html" },
+    { "source": "/faq", "destination": "/faq.html" },
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/guide", "destination": "/guide.html" },
+    { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
