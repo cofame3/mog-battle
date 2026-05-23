@@ -278,11 +278,6 @@ export default function AuthForm({ onAuth, lang, t, onShowLegal }) {
                 ? "Если вы искали ommoggle, omoggle или omogle, вы попали в правильное место. Omogle — это оригинальная и самая продвинутая платформа для Mog Battle и AI оценки внешности (looksmaxxing)."
                 : "If you found us by searching for ommoggle, omoggle, or omogle, you are in the right place. Omogle is the original and most advanced platform for Mog Battles and AI face rating (looksmaxxing)."}
             </p>
-            <p>
-              {t.ru
-                ? "Omogle — это передовая платформа для оценки внешности с использованием искусственного интеллекта. Наш AI Face Rating анализирует черты вашего лица, такие как симметрия, линия челюсти и наклон глаз (canthal tilt), чтобы дать объективную оценку вашей привлекательности. Это не просто инструмент для анализа, а настоящая Beauty Battle Arena, где вы можете соревноваться с другими пользователями в реальном времени."
-                : "Omogle is a cutting-edge platform for facial evaluation using artificial intelligence. Our AI Face Rating analyzes your facial features, such as symmetry, jawline, and canthal tilt, to provide an objective assessment of your attractiveness. This is more than just an analysis tool; it's a real Beauty Battle Arena where you can compete with others in real-time."}
-            </p>
           </div>
         </div>
       </div>
