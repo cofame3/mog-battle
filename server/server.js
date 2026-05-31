@@ -80,6 +80,7 @@ const UserSchema = new mongoose.Schema({
   avatarUrl: { type: String, default: '' },
   lastNicknameChange: { type: Date, default: null },
   adviceTokens: { type: Number, default: 0 },
+  googleId: { type: String, default: null },
 });
 const User = mongoose.model('User', UserSchema);
 
@@ -183,12 +184,33 @@ app.post('/api/google-auth', async (req, res) => {
     if (!credential) return res.status(400).json({ error: 'No credential provided' });
     const ticket = await client.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
     const payload = ticket.getPayload();
-    const { name } = payload;
-    let user = await findUser(name);
-    if (!user) {
-      const randomPass = await bcrypt.hash(Math.random().toString(36), 10);
-      user = await createUser(name, randomPass);
+    const { sub, name } = payload;
+
+    // Look up by Google ID first to prevent username collisions
+    let user;
+    if (useInMemory) {
+      user = Array.from(inMemoryUsers.values()).find(u => u.googleId === sub);
+    } else {
+      user = await User.findOne({ googleId: sub });
     }
+
+    if (!user) {
+      // Check if username already taken by a non-Google user
+      const existing = await findUser(name);
+      let username = name;
+      if (existing) {
+        username = `${name}_g${sub.substring(0, 5)}`;
+      }
+      const randomPass = await bcrypt.hash(Math.random().toString(36), 10);
+      user = await createUser(username, randomPass);
+      // Save Google ID
+      if (useInMemory) {
+        user.googleId = sub;
+      } else {
+        await User.updateOne({ username }, { $set: { googleId: sub } });
+      }
+    }
+
     const token = jwt.sign({ username: user.username }, JWT_SECRET, { expiresIn: '7d' });
     res.json({
       token, username: user.username, wins: user.wins || 0, losses: user.losses || 0, bestScore: user.bestScore || 0,

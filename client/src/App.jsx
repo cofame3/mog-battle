@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// Trigger rebuild after revert to ea0d93e
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import BattleArena from './components/BattleArena';
 import AuthForm from './components/AuthForm';
@@ -185,6 +184,27 @@ function App() {
 
   if (checking) return null;
 
+  const handleAuth = (u) => {
+    setUser(u);
+    if (localStorage.getItem('mog_last_claim') !== new Date().toDateString()) {
+      setShowDaily(true);
+    }
+  };
+
+  const mainElement = !user ? (
+    <AuthForm onAuth={handleAuth} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
+  ) : (
+    <BattleArena
+      user={user}
+      setUser={setUser}
+      onLogout={handleLogout}
+      lang={lang}
+      t={t}
+      onShowDaily={() => setShowDaily(true)}
+      onShowRoulette={() => setShowRoulette(true)}
+    />
+  );
+
   return (
     <div className="min-h-screen relative flex flex-col">
       <AgeVerification lang={lang} />
@@ -199,27 +219,7 @@ function App() {
       <div className="flex-1">
         <Routes>
           {/* English Routes */}
-          <Route path="/" element={
-            !user ? (
-              <AuthForm onAuth={(u) => {
-                setUser(u);
-                // Show rewards immediately after login if not claimed
-                if (localStorage.getItem('mog_last_claim') !== new Date().toDateString()) {
-                  setShowDaily(true);
-                }
-              }} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
-            ) : (
-              <BattleArena
-                user={user}
-                setUser={setUser}
-                onLogout={handleLogout}
-                lang={lang}
-                t={t}
-                onShowDaily={() => setShowDaily(true)}
-                onShowRoulette={() => setShowRoulette(true)}
-              />
-            )
-          } />
+          <Route path="/" element={mainElement} />
           <Route path="/faq" element={<FAQ lang={lang} />} />
           <Route path="/about" element={<Comparison lang={lang} />} />
           <Route path="/guide" element={<Guide lang={lang} />} />
@@ -227,27 +227,7 @@ function App() {
           <Route path="/privacy" element={<Privacy lang={lang} />} />
 
           {/* Russian Routes */}
-          <Route path="/ru" element={
-            !user ? (
-              <AuthForm onAuth={(u) => {
-                setUser(u);
-                // Show rewards immediately after login if not claimed
-                if (localStorage.getItem('mog_last_claim') !== new Date().toDateString()) {
-                  setShowDaily(true);
-                }
-              }} lang={lang} t={t} onShowLegal={() => setShowLegal(true)} />
-            ) : (
-              <BattleArena
-                user={user}
-                setUser={setUser}
-                onLogout={handleLogout}
-                lang={lang}
-                t={t}
-                onShowDaily={() => setShowDaily(true)}
-                onShowRoulette={() => setShowRoulette(true)}
-              />
-            )
-          } />
+          <Route path="/ru" element={mainElement} />
           <Route path="/ru/faq" element={<FAQ lang={lang} />} />
           <Route path="/ru/about" element={<Comparison lang={lang} />} />
           <Route path="/ru/guide" element={<Guide lang={lang} />} />

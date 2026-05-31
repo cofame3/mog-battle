@@ -76,7 +76,7 @@ export default function AuthForm({ onAuth, lang, t, onShowLegal }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API.replace('/api', '')}/api/google-auth`, {
+      const res = await fetch(`${API}/google-auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential: response.credential }),

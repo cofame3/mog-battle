@@ -15,6 +15,14 @@ import AdBanner from './AdBanner';
 const SOCKET_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const socket = io(SOCKET_URL, { autoConnect: false });
 
+// Clean up socket on HMR to prevent duplicate listeners
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    socket.removeAllListeners();
+    socket.disconnect();
+  });
+}
+
 const BATTLE_DURATION = 10; // 10 seconds for battle
 
 const ICE_SERVERS = [
