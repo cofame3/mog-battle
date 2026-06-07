@@ -1,7 +1,7 @@
 import React from 'react';
 import { Check, X, Shield, Zap, Target, Users } from 'lucide-react';
 import LightPillar from './LightPillar';
-import SpellingSection from './SpellingSection';
+
 
 export default function Comparison({ lang }) {
   const isRu = lang === 'ru';
@@ -144,8 +144,7 @@ export default function Comparison({ lang }) {
           </div>
         </div>
 
-        {/* Spelling Variations SEO Section */}
-        <SpellingSection lang={lang} />
+
 
         {/* Call to action */}
         <div className="mt-20 text-center">

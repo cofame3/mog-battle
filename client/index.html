@@ -188,36 +188,77 @@
 
     <!-- Static content visible to all users and crawlers (covered by loader overlay, replaced by React on load) -->
     <main style="background:#000;color:#fff;font-family:system-ui,sans-serif;padding:40px 20px;min-height:100vh;">
-      <header style="text-align:center;margin-bottom:40px;">
+      <header style="text-align:center;margin-bottom:48px;">
         <img src="/logo.jpg" alt="Omogle Logo" width="96" height="96" style="border-radius:16px;margin:0 auto 16px;" />
-        <h1 style="font-size:2rem;font-weight:900;letter-spacing:0.1em;">OMOGLE — AI FACE RATING</h1>
-        <p style="color:#9ca3af;font-size:0.85rem;margin-top:8px;">AI FACE RATING & MOG BATTLE</p>
+        <h1 style="font-size:2.5rem;font-weight:900;letter-spacing:0.05em;line-height:1.2;">OMOGLE — AI Face Rating &amp; Mog Battle Arena</h1>
+        <p style="color:#9ca3af;font-size:1rem;margin-top:12px;max-width:640px;margin-left:auto;margin-right:auto;">Omogle is the next-generation platform for competitive face analysis. Our neural network analyzes 468 points of your face, calculates an aesthetic rating, and lets you compete against real people in real-time video battles.</p>
       </header>
-      <article style="max-width:640px;margin:0 auto;">
-        <p>Omogle is the original platform for mog battles and PSL scans (looksmaxxing). Join the ultimate arena and win the mog off today!</p>
-        <p style="margin-top:16px;font-size:0.9rem;color:#9ca3af;">Also known as ommoggle, omoggle, or omeggle. We provide advanced AI face rating, comprehensive PSL scans, and real-time 1v1 video face battles (mig battle / mog battle).</p>
-        <h2 style="margin-top:32px;font-size:1.25rem;font-weight:800;">Why Choose Omogle?</h2>
-        <ul style="margin-top:12px;padding-left:20px;">
-          <li>468-Point 3D Face Mesh for the most precise facial analysis</li>
-          <li>Real-time 1v1 Battle Arena — compete with others live</li>
-          <li>8 Professional Tier Classifications</li>
-          <li>Global ELO Leaderboard system</li>
-          <li>Detailed PSL Report with personalized recommendations</li>
-          <li>Anonymous and secure — your photos are never stored</li>
-        </ul>
-        <nav style="margin-top:32px;">
-          <h3 style="font-weight:700;margin-bottom:8px;">Explore Omogle</h3>
-          <ul style="padding-left:20px;">
+
+      <article style="max-width:800px;margin:0 auto;">
+        <!-- How It Works -->
+        <section style="margin-bottom:48px;">
+          <h2 style="font-size:1.75rem;font-weight:800;margin-bottom:20px;">How Omogle Works</h2>
+          <div style="display:grid;gap:24px;">
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;">
+              <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;color:#00ff9d;">Step 1: Face Scan</h3>
+              <p style="color:#9ca3af;line-height:1.7;">Our neural network builds a 3D map of your face using 468 landmark points, analyzing symmetry, proportions, jawline definition, canthal tilt, and skin quality in real time. The TensorFlow Face Mesh model processes everything directly in your browser, ensuring your photos are never uploaded to external servers.</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;">
+              <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;color:#00ff9d;">Step 2: 1v1 Battle</h3>
+              <p style="color:#9ca3af;line-height:1.7;">The matchmaking system pairs you with an opponent based on ELO rating. Over 10 seconds, the AI simultaneously evaluates both participants through live video. The winner is determined by comparing composite scores across six facial metrics: symmetry, jawline, eyes, nose, skin quality, and overall proportions.</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;">
+              <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;color:#00ff9d;">Step 3: Rank &amp; Grow</h3>
+              <p style="color:#9ca3af;line-height:1.7;">Win battles, climb the global leaderboard, and track your progress over time. The platform features 8 professional tiers from Bronze to Ethereal, each reflecting your competitive standing. Use personalized PSL report recommendations to improve your scores between matches.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Features -->
+        <section style="margin-bottom:48px;">
+          <h2 style="font-size:1.75rem;font-weight:800;margin-bottom:20px;">Why Choose Omogle</h2>
+          <p style="color:#9ca3af;margin-bottom:20px;line-height:1.7;">We combined cutting-edge AI analysis with competitive gameplay to build a one-of-a-kind platform for objective facial aesthetics evaluation. Here is what makes Omogle different from other face rating tools:</p>
+          <ul style="padding-left:20px;color:#9ca3af;line-height:2;">
+            <li><strong style="color:#fff;">468-Point 3D Analysis:</strong> The most accurate Face Mesh technology powered by TensorFlow. The algorithm measures proportions against the golden ratio, evaluates facial symmetry, and analyzes the geometry of every facial zone.</li>
+            <li><strong style="color:#fff;">Real-time PvP Arena:</strong> Compete against real people in real time via WebRTC. Video chat and instant AI analysis happen directly in your browser with zero latency.</li>
+            <li><strong style="color:#fff;">ELO Rating System:</strong> A professional rating system similar to chess. Your ELO rises with wins and falls with losses. 8 tiers from Bronze to Ethereal reflect your progress.</li>
+            <li><strong style="color:#fff;">Complete Privacy:</strong> Your photos are never stored on our servers. All analysis runs locally in your browser via WebGL. We do not store or share your images with any third parties.</li>
+            <li><strong style="color:#fff;">PSL Report &amp; Advice:</strong> Get a detailed breakdown of every parameter: symmetry, jawline, eyes, nose, and skin. Each metric comes with personalized recommendations for improvement.</li>
+            <li><strong style="color:#fff;">Community Voting:</strong> Beyond AI scoring, users vote for the best. Community rating creates a separate leaderboard that reflects the objective opinion of real people.</li>
+          </ul>
+        </section>
+
+        <!-- What is Mog Battle -->
+        <section style="margin-bottom:48px;">
+          <h2 style="font-size:1.75rem;font-weight:800;margin-bottom:16px;">What is a Mog Battle?</h2>
+          <p style="color:#9ca3af;line-height:1.7;margin-bottom:16px;">A Mog Battle is a competition format where two people are compared on facial aesthetic parameters. The term "mog" (from "mogging") refers to surpassing someone in appearance. In the context of our platform, it is an objective and fair way to see how your face is evaluated by computer vision algorithms.</p>
+          <p style="color:#9ca3af;line-height:1.7;margin-bottom:16px;">Omogle uses TensorFlow Face Mesh technology to build a 3D mesh of 468 facial keypoints. The algorithm measures distances between points, calculates angles and proportions, then compares results against standards of aesthetic harmony — such as the golden ratio (1.618) and ideal facial proportions used in aesthetic medicine.</p>
+          <p style="color:#9ca3af;line-height:1.7;">Unlike simple beauty filters, our analysis is based on anthropometric data and principles of aesthetic medicine. The assessment covers six key categories: facial symmetry, jawline structure, eye shape and canthal tilt, nose proportions, and skin condition. Each category is scored individually and combined into a total aesthetic rating.</p>
+        </section>
+
+        <!-- What is Looksmaxxing -->
+        <section style="margin-bottom:48px;">
+          <h2 style="font-size:1.75rem;font-weight:800;margin-bottom:16px;">What is Looksmaxxing?</h2>
+          <p style="color:#9ca3af;line-height:1.7;margin-bottom:16px;">Looksmaxxing is a systematic approach to improving appearance based on scientific principles. It includes skincare routines, posture correction, facial exercises (mewing), proper nutrition, and fitness. The goal is to maximize your natural potential and achieve the best version of yourself.</p>
+          <p style="color:#9ca3af;line-height:1.7;margin-bottom:16px;">On Omogle, you can track your looksmaxxing progress using objective AI metrics. Take regular scans, compare results over time, and use personalized recommendations from PSL reports to achieve better outcomes. Our community of users shares tips, progress photos, and motivation to help each other improve.</p>
+          <p style="color:#9ca3af;line-height:1.7;">Our platform supports multiple modes: Solo Test for personal analysis without competition, 1v1 Battle for head-to-head matchups with ELO ranking, Photo Upload for analyzing any image offline, and Community Voting where real users rate each other in an anonymous format.</p>
+        </section>
+
+        <!-- Navigation -->
+        <nav style="margin-top:40px;">
+          <h3 style="font-weight:700;margin-bottom:12px;font-size:1.2rem;">Explore Omogle</h3>
+          <ul style="padding-left:20px;line-height:2;">
             <li><a href="/faq" style="color:#00ff9d;">FAQ — Frequently Asked Questions</a></li>
-            <li><a href="/about" style="color:#00ff9d;">About — Omogle vs Competitors</a></li>
-            <li><a href="/guide" style="color:#00ff9d;">Looksmaxxing Guide</a></li>
+            <li><a href="/about" style="color:#00ff9d;">About — Omogle Technology &amp; Comparison</a></li>
+            <li><a href="/guide" style="color:#00ff9d;">Looksmaxxing Guide — Skincare, Mewing &amp; More</a></li>
             <li><a href="/terms" style="color:#00ff9d;">Terms of Use</a></li>
             <li><a href="/privacy" style="color:#00ff9d;">Privacy Policy</a></li>
           </ul>
         </nav>
       </article>
-      <footer style="text-align:center;margin-top:60px;color:#4b5563;font-size:0.7rem;">
-        <p>© 2026 OMOGLE PROTOCOL. The leading AI platform for aesthetic evaluation and real-time competition.</p>
+
+      <footer style="text-align:center;margin-top:60px;color:#4b5563;font-size:0.75rem;">
+        <p>&copy; 2026 Omogle. The leading AI platform for aesthetic evaluation and real-time competition.</p>
       </footer>
     </main>
   </div>

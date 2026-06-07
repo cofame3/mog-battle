@@ -54,10 +54,11 @@
   <div id="root">
     <main style="background:#000;color:#fff;font-family:system-ui,sans-serif;padding:40px 20px;min-height:100vh;">
       <div style="max-width:900px;margin:0 auto;">
-        <h1 style="font-size:2.5rem;font-weight:900;">Omogle.me vs Остальные</h1>
-        <p style="color:#9ca3af;margin-bottom:32px;">Узнайте, почему профессиональные аналитики и ценители эстетики выбирают нашу платформу для самого точного анализа внешности.</p>
+        <h1 style="font-size:2.5rem;font-weight:900;margin-bottom:8px;">Omogle.me vs Остальные</h1>
+        <p style="color:#9ca3af;margin-bottom:40px;font-size:1.05rem;line-height:1.7;">Узнайте, почему профессионалы и ценители эстетики выбирают нашу платформу для самого точного анализа внешности. Omogle отличается от других инструментов оценки лица сочетанием передовых ИИ-технологий и соревновательного геймплея в реальном времени.</p>
 
-        <table style="width:100%;border-collapse:collapse;margin-bottom:32px;">
+        <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:20px;">Сравнение возможностей</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:40px;">
           <thead>
             <tr style="border-bottom:2px solid #333;">
               <th style="text-align:left;padding:12px;color:#9ca3af;">Возможности</th>
@@ -67,9 +68,9 @@
           </thead>
           <tbody>
             <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">ИИ Детекция</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ 468-точечный 3D Mesh</td><td style="text-align:center;padding:12px;color:#666;">✗ 68-точечные ориентиры</td></tr>
-            <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">Система Тиров (Рангов)</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ 8 Профессиональных уровней</td><td style="text-align:center;padding:12px;color:#666;">✗ 6 Базовых уровней</td></tr>
+            <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">Система Тиров</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ 8 Профессиональных уровней</td><td style="text-align:center;padding:12px;color:#666;">✗ 6 Базовых уровней</td></tr>
             <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">Количество метрик</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ 6+ Глубоких параметров</td><td style="text-align:center;padding:12px;color:#666;">✗ 5 Базовых метрик</td></tr>
-            <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">Режим Battle Arena (PvP)</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Да (Real-time 1v1)</td><td style="text-align:center;padding:12px;color:#666;">✗ Отсутствует</td></tr>
+            <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">Battle Arena (PvP)</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Да (Real-time 1v1)</td><td style="text-align:center;padding:12px;color:#666;">✗ Отсутствует</td></tr>
             <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">Анализ геометрии</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Детальный 3D Скан</td><td style="text-align:center;padding:12px;color:#666;">✗ Радарная диаграмма</td></tr>
             <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">История и Рейтинг</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Глобальная система ELO</td><td style="text-align:center;padding:12px;color:#666;">✗ Отсутствует</td></tr>
             <tr><td style="padding:12px;">Мобильная поддержка</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Адаптивный Web-App</td><td style="text-align:center;padding:12px;color:#666;">✗ Только браузер</td></tr>
@@ -77,18 +78,30 @@
         </table>
 
         <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:16px;">Наши технологии</h2>
-        <ul style="padding-left:20px;color:#9ca3af;">
-          <li><strong style="color:#fff;">Точность:</strong> Мы используем 468-точечную сетку для анализа каждой микро-складки вашего лица.</li>
-          <li><strong style="color:#fff;">Скорость:</strong> Анализ происходит в реальном времени прямо в вашем браузере с использованием WebGL.</li>
-          <li><strong style="color:#fff;">Защита:</strong> Ваши данные зашифрованы. Мы ценим вашу анонимность выше всего.</li>
+        <p style="color:#9ca3af;line-height:1.7;margin-bottom:16px;">Omogle использует TensorFlow.js и модель Face Mesh для выполнения анализа лица в реальном времени полностью внутри браузера пользователя. Этот подход исключает необходимость серверной обработки изображений, обеспечивая полную приватность и мгновенные результаты.</p>
+        <ul style="padding-left:20px;color:#9ca3af;line-height:2;margin-bottom:32px;">
+          <li><strong style="color:#fff;">Точность:</strong> Мы используем 468-точечную сетку для анализа каждой микро-складки вашего лица. Алгоритм измеряет межзрачковое расстояние, длину фильтрума, углы челюсти и пропорции от носа до подбородка с субпиксельной точностью.</li>
+          <li><strong style="color:#fff;">Скорость:</strong> Анализ происходит в реальном времени прямо в вашем браузере через WebGL. Модель TensorFlow.js загружается один раз и работает со скоростью 30+ кадров в секунду, обеспечивая мгновенную обратную связь во время батлов.</li>
+          <li><strong style="color:#fff;">Защита:</strong> Ваши данные зашифрованы и обрабатываются локально. Мы никогда не загружаем изображения лиц на наши серверы. Передаётся только числовой результат анализа — никогда ваши реальные фотографии.</li>
+        </ul>
+
+        <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:16px;">Как работает система оценки</h2>
+        <p style="color:#9ca3af;line-height:1.7;margin-bottom:16px;">Наша система оценивает шесть отдельных параметров лица, каждый из которых вносит вклад в общий эстетический рейтинг:</p>
+        <ul style="padding-left:20px;color:#9ca3af;line-height:2;margin-bottom:32px;">
+          <li><strong style="color:#fff;">Симметрия (20%):</strong> Измеряет билатеральную симметрию черт лица путём сравнения левой и правой половин. Идеальная симметрия встречается редко, но более высокие показатели коррелируют с большей воспринимаемой привлекательностью.</li>
+          <li><strong style="color:#fff;">Челюсть (20%):</strong> Оценивает чёткость, угол и ширину линии челюсти. Хорошо очерченная челюсть с углами около 120-130 градусов обычно получает наивысшие оценки.</li>
+          <li><strong style="color:#fff;">Глаза (20%):</strong> Анализирует кантальный наклон (угол от внутреннего к внешнему уголку), соотношение ширины к высоте глаза и расстояние между орбитами относительно ширины лица.</li>
+          <li><strong style="color:#fff;">Нос (15%):</strong> Измеряет ширину переносицы, проекцию кончика и соотношение ширины носа к ширине лица. Идеальное соотношение составляет примерно 1:5.</li>
+          <li><strong style="color:#fff;">Кожа (15%):</strong> Оценивает однородность текстуры и чистоту кожи на основе пиксельного анализа поверхности лица.</li>
+          <li><strong style="color:#fff;">Пропорции (10%):</strong> Оценивает общие трети лица (лоб, средняя часть, нижняя часть) и их соотношение с золотым сечением.</li>
         </ul>
 
         <section style="margin-top:40px;">
-          <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:12px;">О системе Omogle</h2>
-          <p style="color:#9ca3af;">Omogle — это премиальная платформа для случайных видеочатов, созданная для живого общения и соревновательного анализа внешности. Если вы искали omogle, ommoggle или ommoggle omoggle, вы нашли идеальное место для знакомств и битв за звание лучшего.</p>
+          <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:12px;">О платформе Omogle</h2>
+          <p style="color:#9ca3af;line-height:1.7;">Omogle — это платформа соревновательного анализа лица для пользователей, которые хотят понять и улучшить свою эстетику. Мы предоставляем объективные метрики на основе ИИ, соревнования в реальном времени и поддерживающее сообщество. Независимо от того, отслеживаете ли вы прогресс в лукмаксинге или боретесь за вершину таблицы лидеров, Omogle даёт вам инструменты для измерения, соревнования и роста.</p>
         </section>
 
-        <p style="margin-top:48px;text-align:center;"><a href="/ru" style="color:#00ff9d;font-weight:700;">← Начать битву на Omogle</a></p>
+        <p style="margin-top:48px;text-align:center;"><a href="/ru" style="color:#00ff9d;font-weight:700;">← Начать анализ на Omogle</a></p>
       </div>
     </main>
   </div>

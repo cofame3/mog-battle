@@ -53,10 +53,11 @@
   <div id="root">
     <main style="background:#000;color:#fff;font-family:system-ui,sans-serif;padding:40px 20px;min-height:100vh;">
       <div style="max-width:900px;margin:0 auto;">
-        <h1 style="font-size:2.5rem;font-weight:900;">Omogle.me vs Others</h1>
-        <p style="color:#9ca3af;margin-bottom:32px;">Discover why professional analysts and aesthetic enthusiasts choose our platform for the most accurate facial analysis.</p>
+        <h1 style="font-size:2.5rem;font-weight:900;margin-bottom:8px;">Omogle.me vs Others</h1>
+        <p style="color:#9ca3af;margin-bottom:40px;font-size:1.05rem;line-height:1.7;">Discover why professionals and aesthetic enthusiasts choose our platform for the most accurate facial analysis. Omogle stands apart from other face rating tools by combining advanced AI technology with real-time competitive gameplay.</p>
 
-        <table style="width:100%;border-collapse:collapse;margin-bottom:32px;">
+        <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:20px;">Feature Comparison</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:40px;">
           <thead>
             <tr style="border-bottom:2px solid #333;">
               <th style="text-align:left;padding:12px;color:#9ca3af;">Features</th>
@@ -70,29 +71,36 @@
             <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">Sub-Metric Breakdown</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ 6+ Deep Metrics</td><td style="text-align:center;padding:12px;color:#666;">✗ 5 Basic Metrics</td></tr>
             <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">Battle Arena (PvP Mode)</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Yes (Real-time 1v1)</td><td style="text-align:center;padding:12px;color:#666;">✗ Not Available</td></tr>
             <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">Scan Visualization</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Detailed 3D Scan</td><td style="text-align:center;padding:12px;color:#666;">✗ Radar Chart</td></tr>
-            <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">History & Leaderboards</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Global ELO System</td><td style="text-align:center;padding:12px;color:#666;">✗ None</td></tr>
+            <tr style="border-bottom:1px solid #222;"><td style="padding:12px;">History &amp; Leaderboards</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Global ELO System</td><td style="text-align:center;padding:12px;color:#666;">✗ None</td></tr>
             <tr><td style="padding:12px;">Mobile Support</td><td style="text-align:center;padding:12px;color:#00ff9d;">✓ Responsive Web-App</td><td style="text-align:center;padding:12px;color:#666;">✗ Web only</td></tr>
           </tbody>
         </table>
 
         <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:16px;">Our Technology</h2>
-        <ul style="padding-left:20px;color:#9ca3af;">
-          <li><strong style="color:#fff;">Precision:</strong> We use a 468-point mesh to analyze every micro-fold of your face.</li>
-          <li><strong style="color:#fff;">Speed:</strong> Analysis happens in real-time directly in your browser using WebGL.</li>
-          <li><strong style="color:#fff;">Security:</strong> Your data is encrypted. We value your anonymity above all else.</li>
+        <p style="color:#9ca3af;line-height:1.7;margin-bottom:16px;">Omogle uses TensorFlow.js and the Face Mesh model to perform real-time facial analysis entirely within the user's browser. This approach eliminates the need for server-side image processing, ensuring complete privacy and zero-latency results.</p>
+        <ul style="padding-left:20px;color:#9ca3af;line-height:2;margin-bottom:32px;">
+          <li><strong style="color:#fff;">Precision:</strong> We use a 468-point mesh to analyze every micro-fold of your face. The algorithm measures inter-pupillary distance, philtrum length, jawline angles, and nose-to-chin proportions with sub-pixel accuracy.</li>
+          <li><strong style="color:#fff;">Speed:</strong> Analysis happens in real-time directly in your browser using WebGL. The TensorFlow.js model loads once and runs at 30+ frames per second, providing instant feedback during battles.</li>
+          <li><strong style="color:#fff;">Security:</strong> Your data is encrypted and processed locally. We never upload facial images to our servers. The only data transmitted is the numerical analysis result — never your actual photos.</li>
+        </ul>
+
+        <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:16px;">How Facial Analysis Scoring Works</h2>
+        <p style="color:#9ca3af;line-height:1.7;margin-bottom:16px;">Our scoring system evaluates six distinct facial parameters, each contributing to the overall aesthetic rating:</p>
+        <ul style="padding-left:20px;color:#9ca3af;line-height:2;margin-bottom:32px;">
+          <li><strong style="color:#fff;">Symmetry (20%):</strong> Measures the bilateral symmetry of facial features by comparing left and right halves. Perfect symmetry is rare, but higher symmetry scores correlate with greater perceived attractiveness.</li>
+          <li><strong style="color:#fff;">Jawline (20%):</strong> Evaluates the definition, angle, and width of the jawline. A well-defined jaw with angles close to 120-130 degrees typically scores highest.</li>
+          <li><strong style="color:#fff;">Eyes (20%):</strong> Analyzes canthal tilt (the angle from inner to outer corner), eye width-to-height ratio, and orbital spacing relative to face width.</li>
+          <li><strong style="color:#fff;">Nose (15%):</strong> Measures nasal bridge width, tip projection, and the ratio of nose width to face width. The ideal ratio is approximately 1:5.</li>
+          <li><strong style="color:#fff;">Skin (15%):</strong> Assesses skin texture uniformity and clarity based on pixel analysis of the facial surface.</li>
+          <li><strong style="color:#fff;">Proportions (10%):</strong> Evaluates overall facial thirds (forehead, mid-face, lower face) and their relation to the golden ratio.</li>
         </ul>
 
         <section style="margin-top:40px;">
-          <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:12px;">About Omogle Network</h2>
-          <p style="color:#9ca3af;">Omogle is a premium random video chat platform designed for live interactions and competitive looksmaxxing. If you've been searching for omogle, ommoggle, or ommoggle omoggle, you've found the ultimate arena for talking to strangers and rating aesthetics.</p>
+          <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:12px;">About Omogle</h2>
+          <p style="color:#9ca3af;line-height:1.7;">Omogle is a competitive face analysis platform designed for users who want to understand and improve their facial aesthetics. We provide objective AI-driven metrics, real-time PvP competition, and a supportive community. Whether you are tracking your looksmaxxing progress or competing for the top of the leaderboard, Omogle gives you the tools to measure, compete, and grow.</p>
         </section>
 
-        <section style="margin-top:32px;">
-          <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:12px;">However you spell it, Omogle is the place.</h2>
-          <p style="color:#9ca3af;">People arrive here through a few spellings. Omogle is the name of the platform, and we keep the common searches connected so visitors who type omogle, ommoggle, or ommoggle omoggle still get where they meant to go.</p>
-        </section>
-
-        <p style="margin-top:48px;text-align:center;"><a href="/" style="color:#00ff9d;font-weight:700;">← Start Battle on Omogle</a></p>
+        <p style="margin-top:48px;text-align:center;"><a href="/" style="color:#00ff9d;font-weight:700;">← Start Your Analysis on Omogle</a></p>
       </div>
     </main>
   </div>
